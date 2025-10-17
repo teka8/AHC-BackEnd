@@ -1,100 +1,164 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Concerns\QueryBuilderTrait;
+use App\Notifications\AdminResetPasswordNotification;
+use App\Concerns\AuthorizationChecker;
+use App\Observers\UserObserver;
+use Illuminate\Auth\Notifications\ResetPassword as DefaultResetPassword;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Hash;
-use DB;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
+#[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use AuthorizationChecker;
+    use HasApiTokens;
+    use HasFactory;
+    use HasRoles;
+    use Notifiable;
+    use QueryBuilderTrait;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var array
      */
-    protected $table = 'users'; // Specify the table name if it's not pluralized
-
     protected $fillable = [
-        'last_login', // Ensure this is included
+        'first_name',
+        'last_name',
+        'email',
+        'password',
+        'username',
+        'avatar_id',
     ];
 
-
     /**
-     * The attributes that should be hidden for serialization.
+     * The attributes that should be hidden for arrays.
      *
-     * @var array<int, string>
+     * @var array
      */
     protected $hidden = [
         'password',
         'remember_token',
+        'email_verified_at',
     ];
 
     /**
-     * The attributes that should be cast.
+     * The attributes that should be cast to native types.
      *
-     * @var array<string, string>
+     * @var array
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
 
-    /** generate id */
-    protected static function boot()
+    /**
+     * The attributes that should be appended to the model.
+     */
+    protected $appends = [
+        'avatar_url',
+        'full_name',
+    ];
+
+    /**
+     * The relationships that should be eager loaded.
+     */
+    protected $with = [
+        'avatar',
+    ];
+
+    public function actionLogs()
     {
-        parent::boot();
-
-        self::creating(function ($model) {
-            $latestUser = self::orderBy('user_id', 'desc')->first();
-            $nextID = $latestUser ? intval(substr($latestUser->user_id, 3)) + 1 : 1;
-            $model->user_id = 'KH-' . sprintf("%04d", $nextID);
-
-            // Ensure the user_id is unique
-            while (self::where('user_id', $model->user_id)->exists()) {
-                $nextID++;
-                $model->user_id = 'KH-' . sprintf("%04d", $nextID);
-            }
-        });
+        return $this->hasMany(ActionLog::class, 'action_by');
     }
 
-    /** Insert New Users */
-    public function saveNewuser(Request $request)
+    /**
+     * Get the user's metadata.
+     */
+    public function userMeta()
     {
-        $validator = Validator::make($request->all(), [
-            'name'      => 'required|string|max:255',
-            'email'     => 'required|string|email|max:255|unique:users,email',
-            'password'  => 'required|string|min:8|confirmed',
-        ], [
-            'email.unique' => 'This email is already registered. Please use another.',
-        ]);
+        return $this->hasMany(UserMeta::class);
+    }
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput()->with('error', 'Please fix the errors below.');
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        // Check if the request is for the admin panel
+        if (request()->is('admin/*')) {
+            $this->notify(new AdminResetPasswordNotification($token));
+        } else {
+            $this->notify(new DefaultResetPassword($token));
+        }
+    }
+
+    /**
+     * Check if the user has any of the given permissions.
+     *
+     * @param  array|string  $permissions
+     */
+    public function hasAnyPermission($permissions): bool
+    {
+        if (empty($permissions)) {
+            return true;
         }
 
-        try {
-            $todayDate = Carbon::now()->toDayDateTimeString();
-            $save             = new User;
-            $save->name       = $request->name;
-            $save->avatar     = $request->image;
-            $save->email      = $request->email;
-            $save->join_date  = $todayDate;
-            $save->role_name  = 'User';
-            $save->status     = 'Active';
-            $save->password   = Hash::make($request->password);
-            $save->save();
-            return redirect('login')->with('success', 'Account created successfully :)');
-        } catch (\Exception $e) {
-            \Log::error($e);
-            return redirect()->back()->with('error', 'Failed to Create Account. Please try again.');
+        $permissions = is_array($permissions) ? $permissions : [$permissions];
+
+        foreach ($permissions as $permission) {
+            if ($this->can($permission)) {
+                return true;
+            }
         }
+
+        return false;
+    }
+
+    /**
+     * Get the user's avatar media.
+     */
+    public function avatar(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'avatar_id', 'id');
+    }
+
+    /**
+     * Get the user's avatar URL.
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->avatar_id) {
+            return asset('storage/media/' . $this->avatar->file_name);
+        }
+
+        return $this->getGravatarUrl();
+    }
+
+    /**
+     * Get the Gravatar URL for the model's email.
+     */
+    public function getGravatarUrl(int $size = 80): string
+    {
+        return "https://ui-avatars.com/api/{$this->full_name}/{$size}/635bff/fff/2";
+    }
+
+    /**
+     * Get the user's full name.
+     */
+    public function getFullNameAttribute(): string
+    {
+        return trim($this->first_name . ' ' . $this->last_name);
     }
 }
