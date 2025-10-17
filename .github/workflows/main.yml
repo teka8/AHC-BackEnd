@@ -44,19 +44,8 @@ jobs:
 
     - name: Create storage link
       run: |
-        # Create the storage directory structure
-        mkdir -p storage/framework/cache/data
-        mkdir -p storage/framework/sessions
-        mkdir -p storage/framework/views
-        mkdir -p storage/framework/testing
         # Create storage link
         php artisan storage:link
-
-    - name: Optimize for production
-      run: |
-        php artisan config:cache
-        php artisan route:cache
-        php artisan view:cache
 
     - name: Upload files via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
