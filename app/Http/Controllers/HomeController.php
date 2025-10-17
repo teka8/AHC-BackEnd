@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+declare(strict_types=1);
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
-use App\Models\User;
+namespace App\Http\Controllers;
 
 class HomeController extends Controller
 {
@@ -25,30 +23,6 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('dashboard.home');
-    }
-
-    public function analytics()
-    {
-        return view('dashboard.analytics');
-    }
-    
-    public function finance()
-    {
-        return view('dashboard.finance');
-    }
-
-    public function crypto()
-    {
-        return view('dashboard.crypto');
-    }
-
-    /** Display the lock screen */
-    public function lockscreen() {
-        if(!Session::has('email')) {
-            return redirect('login');
-        }
-        $user = User::where('email', Session::get('email'))->first();
-        return view('auth.lockscreen', compact('user'));
+        return view('home');
     }
 }
