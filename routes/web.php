@@ -18,6 +18,7 @@ use App\Http\Controllers\Backend\TranslationController;
 use App\Http\Controllers\Backend\UserLoginAsController;
 use App\Http\Controllers\Backend\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Backend\EventController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,6 +76,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::put('/posts/{postType}/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{postType}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::delete('/posts/{postType}/delete/bulk-delete', [PostController::class, 'bulkDelete'])->name('posts.bulk-delete');
+
+    // Event Routes.
+    Route::get('events', [EventController::class, 'index'])->name('events.index');
+    Route::get('events/create', [EventController::class, 'create'])->name('events.create');
+    Route::post('events', [EventController::class, 'store'])->name('events.store');
 
     // Terms Routes (Categories, Tags, etc.).
     Route::get('/terms/{taxonomy}', [TermController::class, 'index'])->name('terms.index');
