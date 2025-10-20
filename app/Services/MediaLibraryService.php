@@ -70,7 +70,7 @@ class MediaLibraryService
 
         // Enhance media items with additional information
         $media->getCollection()->transform(function ($item) {
-            $item->human_readable_size = $this->formatFileSize($item->size);
+            $item->human_readable_size = $this->formatFileSize((int) $item->size);
             $item->file_type_category = $this->getFileTypeCategory($item->mime_type);
             $item->icon = $this->getMediaIcon($item->mime_type);
             return $item;
