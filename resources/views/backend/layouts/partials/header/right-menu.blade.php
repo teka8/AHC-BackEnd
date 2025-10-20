@@ -32,10 +32,10 @@
     @endif
 
     @if (env('GITHUB_LINK'))
-        <x-tooltip title="{{ __('Go to Github') }}" position="bottom">
-            <a href="{{ env('GITHUB_LINK') }}" target="_blank"
+        <x-tooltip title="{{ __('Notification') }}" position="bottom">
+            <a href="#"
                 class="hover:text-dark-900 relative flex p-2 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
-                <iconify-icon icon="lucide:github" width="22" height="22"
+                <iconify-icon icon="lucide:bell" width="22" height="22"
                     class=""></iconify-icon>
             </a>
         </x-tooltip>

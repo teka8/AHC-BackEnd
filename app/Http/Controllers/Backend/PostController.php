@@ -100,6 +100,7 @@ class PostController extends Controller
 
     public function store(StorePostRequest $request, string $postType = 'post'): RedirectResponse
     {
+        
         $this->authorize('create', Post::class);
 
         // Get post type.
@@ -121,20 +122,20 @@ class PostController extends Controller
         $post->slug = $data['slug'] ?? Str::slug($data['title']);
         $post->content = $data['content'];
         $post->excerpt = $data['excerpt'] ?? Str::limit(strip_tags($data['content']), 200);
-        $post->status = $data['status'];
+        $post->status = 'draft';
         $post->post_type = $postType;
         $post->user_id = Auth::id();
         $post->parent_id = $data['parent_id'] ?? null;
 
         // Handle publish date
-        if (isset($data['schedule_post']) && $data['schedule_post'] && ! empty($data['published_at'])) {
-            $post->status = PostStatus::SCHEDULED->value;
-            $post->published_at = Carbon::parse($data['published_at']);
-        } elseif ($data['status'] === PostStatus::SCHEDULED->value && ! empty($data['published_at'])) {
-            $post->published_at = Carbon::parse($data['published_at']);
-        } elseif ($data['status'] === PostStatus::PUBLISHED->value) {
-            $post->published_at = now();
-        }
+        // if (isset($data['schedule_post']) && $data['schedule_post'] && ! empty($data['published_at'])) {
+        //     $post->status = PostStatus::SCHEDULED->value;
+        //     $post->published_at = Carbon::parse($data['published_at']);
+        // } elseif ($data['status'] === PostStatus::SCHEDULED->value && ! empty($data['published_at'])) {
+        //     $post->published_at = Carbon::parse($data['published_at']);
+        // } elseif ($data['status'] === PostStatus::PUBLISHED->value) {
+        //     $post->published_at = now();
+        // }
 
         $post->save();
 

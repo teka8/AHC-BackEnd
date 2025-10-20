@@ -63,7 +63,7 @@ class StorePostRequest extends FormRequest
             'excerpt' => 'nullable|string',
 
             /** @example "publish" */
-            'status' => 'required|in:' . $postStatuses,
+            // 'status' => 'required|in:' . $postStatuses,
 
             /** @example null */
             'parent_id' => 'nullable|exists:posts,id',

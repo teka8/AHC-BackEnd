@@ -55,10 +55,10 @@ class ContentServiceProvider extends ServiceProvider
 
         // Register post type.
         $contentService->registerPostType([
-            'name' => 'post',
-            'label' => 'Posts',
-            'label_singular' => 'Post',
-            'description' => 'Default post type for blog entries',
+            'name' => 'News',
+            'label' => 'News',
+            'label_singular' => 'News',
+            'description' => 'Default News type for blog entries',
             'taxonomies' => ['category', 'tag'],
         ]);
 
