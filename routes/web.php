@@ -79,6 +79,13 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::delete('/posts/{postType}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::delete('/posts/{postType}/delete/bulk-delete', [PostController::class, 'bulkDelete'])->name('posts.bulk-delete');
 
+    // Redirect old post news routes to news routes
+    Route::redirect('/posts/news', '/admin/news/news');
+    Route::redirect('/posts/news/create', '/admin/news/news/create');
+    Route::get('/posts/news/{id}/edit', function($id) {
+        return redirect()->route('admin.news.edit', ['news', $id]);
+    });
+
     // News Routes - Dynamic news types.
     Route::get('/news/{newsType?}', [NewsController::class, 'index'])->name('news.index');
     Route::get('/news/{newsType}/create', [NewsController::class, 'create'])->name('news.create');
