@@ -32,7 +32,7 @@ class UpdatePostRequest extends FormRequest
             // Ensure $metaKeys is always an array
             $metaKeys = is_array($metaKeys) ? $metaKeys : [];
             $sanitizedKeys = array_map(function ($key) {
-                return ! empty($key) ? Str::slug($key, '_') : $key;
+                return !empty($key) ? Str::slug($key, '_') : $key;
             }, $metaKeys);
 
             $this->merge([
@@ -49,7 +49,7 @@ class UpdatePostRequest extends FormRequest
     public function rules(): array
     {
         $postId = $this->post;
-        $postStatuses = implode(',', array_map(fn ($status) => $status->value, PostStatus::cases()));
+        $postStatuses = implode(',', array_map(fn($status) => $status->value, PostStatus::cases()));
 
         return Hook::applyFilters(PostFilterHook::POST_UPDATE_VALIDATION_RULES, [
             /** @example "Updated: Laravel Development Best Practices" */
@@ -65,7 +65,7 @@ class UpdatePostRequest extends FormRequest
             'excerpt' => 'nullable|string',
 
             /** @example "published" */
-            'status' => 'required|in:' . $postStatuses,
+            'status' => 'string',
 
             /** @example null */
             'parent_id' => 'nullable|exists:posts,id',

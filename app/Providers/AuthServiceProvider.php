@@ -9,6 +9,7 @@ use App\Models\Post;
 use App\Models\Setting;
 use App\Models\Term;
 use App\Models\User;
+use App\Models\Event;
 use App\Policies\ActionLogPolicy;
 use App\Policies\MediaPolicy;
 use App\Policies\ModulePolicy;
@@ -18,6 +19,7 @@ use App\Policies\RolePolicy;
 use App\Policies\SettingPolicy;
 use App\Policies\TermPolicy;
 use App\Policies\UserPolicy;
+use App\Policies\EventPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -39,6 +41,7 @@ class AuthServiceProvider extends ServiceProvider
         Setting::class => SettingPolicy::class,
         Module::class => ModulePolicy::class,
         ActionLog::class => ActionLogPolicy::class,
+        Event::class => EventPolicy::class,
     ];
 
     /**

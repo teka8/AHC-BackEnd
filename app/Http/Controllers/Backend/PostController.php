@@ -4,26 +4,29 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Backend;
 
-use App\Enums\Hooks\PostActionHook;
-use App\Enums\Hooks\PostFilterHook;
-use App\Enums\PostStatus;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Post\StorePostRequest;
-use App\Http\Requests\Post\UpdatePostRequest;
-use App\Http\Requests\Common\BulkDeleteRequest;
+use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Term;
-use App\Services\Content\ContentService;
-use App\Services\ImageService;
-use App\Services\MediaLibraryService;
-use App\Services\PostMetaService;
-use App\Services\PostService;
-use Carbon\Carbon;
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Enums\PostStatus;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Services\PostService;
+use App\Services\ImageService;
+use App\Services\PostMetaService;
+use App\Enums\Hooks\PostActionHook;
+use App\Enums\Hooks\PostFilterHook;
+use App\Http\Controllers\Controller;
+use App\Notifications\StatusChanged;
+use Illuminate\Support\Facades\Auth;
+use App\Services\MediaLibraryService;
+use Illuminate\Http\RedirectResponse;
+use App\Services\Content\ContentService;
+use App\Http\Requests\Post\StorePostRequest;
+use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Facades\Notification;
+use App\Http\Requests\Post\UpdatePostRequest;
+use App\Http\Requests\Common\BulkDeleteRequest;
 
 class PostController extends Controller
 {
@@ -43,7 +46,7 @@ class PostController extends Controller
         // Get post type.
         $postTypeModel = $this->contentService->getPostType($postType);
 
-        if (! $postTypeModel) {
+        if (!$postTypeModel) {
             return redirect()->route('admin.posts.index')->with('error', 'Post type not found');
         }
 
@@ -72,13 +75,13 @@ class PostController extends Controller
         // Get post type.
         $postTypeModel = $this->contentService->getPostType($postType);
 
-        if (! $postTypeModel) {
+        if (!$postTypeModel) {
             return redirect()->route('admin.posts.index')->with('error', 'Post type not found');
         }
 
         // Get taxonomies.
         $taxonomies = [];
-        if (! empty($postTypeModel->taxonomies)) {
+        if (!empty($postTypeModel->taxonomies)) {
             $taxonomies = $this->contentService->getTaxonomies()
                 ->whereIn('name', $postTypeModel->taxonomies)
                 ->all();
@@ -100,13 +103,13 @@ class PostController extends Controller
 
     public function store(StorePostRequest $request, string $postType = 'post'): RedirectResponse
     {
-        
+
         $this->authorize('create', Post::class);
 
         // Get post type.
         $postTypeModel = $this->contentService->getPostType($postType);
 
-        if (! $postTypeModel) {
+        if (!$postTypeModel) {
             return redirect()->route('admin.posts.index')->with('error', 'Post type not found');
         }
 
@@ -124,7 +127,7 @@ class PostController extends Controller
         $post->slug = $data['slug'] ?? Str::slug($data['title']);
         $post->content = $data['content'];
         $post->excerpt = $data['excerpt'] ?? Str::limit(strip_tags($data['content']), 200);
-        $post->status = 'draft';
+        $post->status = $data['status'] ?? 'created';
         $post->post_type = $postType;
         $post->user_id = Auth::id();
         $post->parent_id = $data['parent_id'] ?? null;
@@ -144,7 +147,7 @@ class PostController extends Controller
         // Handle featured image removal first.
         if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
             $post->clearMediaCollection('featured');
-        } elseif (! empty($data['featured_image'])) {
+        } elseif (!empty($data['featured_image'])) {
             if ($request->hasFile('featured_image')) {
                 $post->clearMediaCollection('featured');
                 $post->addMediaFromRequest('featured_image')->toMediaCollection('featured');
@@ -165,7 +168,9 @@ class PostController extends Controller
         // Handle taxonomies
         $this->handleTaxonomies($request, $post);
 
-        session()->flash('success', __('Post has been created.'));
+        session()->flash('success', __('News has been created.'));
+        $users = User::permission('blog.edit')->get();
+        Notification::send($users, new StatusChanged($post, "Editable News: {$post->title}"));
 
         return redirect()->route('admin.posts.edit', [$postType, $post->id]);
     }
@@ -194,13 +199,13 @@ class PostController extends Controller
         // Get post type
         $postTypeModel = $this->contentService->getPostType($postType);
 
-        if (! $postTypeModel) {
+        if (!$postTypeModel) {
             return redirect()->route('admin.posts.index')->with('error', 'Post type not found');
         }
 
         // Get taxonomies
         $taxonomies = [];
-        if (! empty($postTypeModel->taxonomies)) {
+        if (!empty($postTypeModel->taxonomies)) {
             $taxonomies = $this->contentService->getTaxonomies()
                 ->whereIn('name', $postTypeModel->taxonomies)
                 ->all();
@@ -219,7 +224,7 @@ class PostController extends Controller
         $selectedTerms = [];
         foreach ($post->terms as $term) {
             $taxonomyName = $term->getAttribute('taxonomy');
-            if ($taxonomyName && ! isset($selectedTerms[$taxonomyName])) {
+            if ($taxonomyName && !isset($selectedTerms[$taxonomyName])) {
                 $selectedTerms[$taxonomyName] = [];
             }
             if ($taxonomyName) {
@@ -240,7 +245,7 @@ class PostController extends Controller
         $this->authorize('update', $post);
 
         $data = $this->addHooks(
-            $request->validated(),
+            $request,//->validated(),
             PostActionHook::POST_UPDATED_BEFORE,
             PostFilterHook::POST_UPDATED_BEFORE
         );
@@ -249,17 +254,17 @@ class PostController extends Controller
         $post->title = $data['title'];
         $post->slug = $data['slug'] ?? Str::slug($data['title']);
         $post->content = $data['content'];
-        $post->excerpt = $data['excerpt'] ?? Str::limit(strip_tags($data['content']), 200);
-        $post->status = $data['status'];
+        $post->excerpt = $data['excerpt'];
+        $post->status = $data['status'] ?? $post->status;
         $post->parent_id = $data['parent_id'] ?? null;
 
         // Handle publish date.
-        if (isset($data['schedule_post']) && $data['schedule_post'] && ! empty($data['published_at'])) {
+        if (isset($data['schedule_post']) && $data['schedule_post'] && !empty($data['published_at'])) {
             $post->status = PostStatus::SCHEDULED->value;
             $post->published_at = Carbon::parse($data['published_at']);
-        } elseif ($data['status'] === PostStatus::SCHEDULED->value && ! empty($data['published_at'])) {
+        } elseif ($data['status'] === PostStatus::SCHEDULED->value && !empty($data['published_at'])) {
             $post->published_at = Carbon::parse($data['published_at']);
-        } elseif ($data['status'] === PostStatus::PUBLISHED->value && ! $post->published_at) {
+        } elseif ($data['status'] === PostStatus::PUBLISHED->value && !$post->published_at) {
             $post->published_at = now();
         }
 
@@ -268,7 +273,7 @@ class PostController extends Controller
         // Handle featured image removal first.
         if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
             $post->clearMediaCollection('featured');
-        } elseif (! empty($data['featured_image'])) {
+        } elseif (!empty($data['featured_image'])) {
             $post->clearMediaCollection('featured');
 
             if ($request->hasFile('featured_image')) {
@@ -289,8 +294,12 @@ class PostController extends Controller
 
         // Handle taxonomies.
         $this->handleTaxonomies($request, $post);
+        if ($post->status === "pending_approval") {
+            $users = User::permission('blog.approve')->get();
+            Notification::send($users, new StatusChanged($post, "News Pending Approval: {$post->title}"));
+        }
 
-        session()->flash('success', __('Post has been updated.'));
+        session()->flash('success', __('News has been updated.'));
 
         return back();
     }
@@ -317,7 +326,7 @@ class PostController extends Controller
             PostFilterHook::POST_DELETED_AFTER
         );
 
-        session()->flash('success', __('Post has been deleted.'));
+        session()->flash('success', __('News has been deleted.'));
 
         return redirect()->route('admin.posts.index', $postType);
     }
@@ -332,7 +341,7 @@ class PostController extends Controller
         $ids = $request->validated('ids');
 
         if (empty($ids)) {
-            session()->flash('error', __('No posts selected for deletion.'));
+            session()->flash('error', __('No news selected for deletion.'));
             return redirect()->route('admin.posts.index', $postType);
         }
 
@@ -349,9 +358,9 @@ class PostController extends Controller
         );
 
         if ($deletedCount > 0) {
-            session()->flash('success', __(':count posts deleted successfully', ['count' => $deletedCount]));
+            session()->flash('success', __(':count news deleted successfully', ['count' => $deletedCount]));
         } else {
-            session()->flash('error', __('No posts were deleted.'));
+            session()->flash('error', __('No news were deleted.'));
         }
 
         return redirect()->route('admin.posts.index', $postType);
@@ -365,7 +374,7 @@ class PostController extends Controller
         // Get current post type.
         $postTypeModel = $this->contentService->getPostType($post->post_type);
 
-        if (! $postTypeModel || empty($postTypeModel->taxonomies)) {
+        if (!$postTypeModel || empty($postTypeModel->taxonomies)) {
             return;
         }
 
@@ -402,7 +411,7 @@ class PostController extends Controller
 
         // Add new meta.
         foreach ($metaKeys as $index => $key) {
-            if (! empty($key) && isset($metaValues[$index])) {
+            if (!empty($key) && isset($metaValues[$index])) {
                 $this->postMetaService->setMeta(
                     $post->id,
                     $key,

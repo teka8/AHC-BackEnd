@@ -112,25 +112,25 @@ class AdminMenuService
 
         $this->addMenuItem([
             'label' => __('Events'),
-            'icon' => 'lucide:settings',
+            'icon' => 'lucide:calendar',
             'id' => 'events-submenu',
-            'active' => Route::is('admin.events.*') || Route::is('admin.translations.*'),
-/*             'priority' => 15,
-            'permissions' => ['events.view', 'events.create', 'events.edit'], */
+            'active' => Route::is('admin.events.*'),
+            'priority' => 12,
+            'permissions' => 'event.view',
             'children' => [
                 [
                     'label' => __('All Events'),
                     'route' => route('admin.events.index'),
-                    'active' => Route::is('admin.events.index'),
+                    'active' => Route::is('admin.events.index') || Route::is('admin.events.*') && ! Route::is('admin.events.create'),
                     'priority' => 20,
-                    /* 'permissions' => ['events.view', 'events.edit'], */
+                    'permissions' => 'event.view',
                 ],
                 [
                     'label' => __('Add New'),
                     'route' => route('admin.events.create'),
                     'active' => Route::is('admin.events.create'),
                     'priority' => 10,
-                    /* 'permissions' => ['events.create'], */
+                    'permissions' => 'event.create',
                 ],
             ],
         ]);
