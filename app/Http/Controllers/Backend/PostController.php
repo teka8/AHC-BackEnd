@@ -116,6 +116,8 @@ class PostController extends Controller
             PostFilterHook::POST_CREATED_BEFORE
         );
 
+
+        
         // Create post
         $post = new Post();
         $post->title = $data['title'];

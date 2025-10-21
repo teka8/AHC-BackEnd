@@ -136,6 +136,38 @@ class AdminMenuService
         ]);
 
         $this->addMenuItem([
+            'label' => __('News'),
+            'icon' => 'lucide:newspaper',
+            'id' => 'news-submenu',
+            'active' => Route::is('admin.news.*') || Route::is('admin.terms.category*'),
+            'priority' => 15,
+            'permissions' => ['post.view', 'post.create', 'post.edit'],
+            'children' => [
+                [
+                    'label' => __('All News'),
+                    'route' => route('admin.news.index', 'news'),
+                    'active' => Route::is('admin.news.index'),
+                    'priority' => 10,
+                    'permissions' => 'post.view',
+                ],
+                [
+                    'label' => __('Add New'),
+                    'route' => route('admin.news.create', 'news'),
+                    'active' => Route::is('admin.news.create'),
+                    'priority' => 20,
+                    'permissions' => 'post.create',
+                ],
+                [
+                    'label' => __('Categories'),
+                    'route' => route('admin.terms.index', 'category'),
+                    'active' => Route::is('admin.terms.category*'),
+                    'priority' => 30,
+                    'permissions' => 'term.view',
+                ],
+            ],
+        ]);
+
+        $this->addMenuItem([
             'label' => __('Media Library'),
             'icon' => 'lucide:image',
             'route' => route('admin.media.index'),

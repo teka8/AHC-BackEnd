@@ -82,6 +82,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's notifications.
+     */
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    /**
      * Get the user's metadata.
      */
     public function userMeta()

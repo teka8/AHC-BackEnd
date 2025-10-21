@@ -22,7 +22,7 @@
                             @endcan
                         </div>
                         <input type="text" name="title" id="title" required x-model="title" maxlength="255"
-                            class="form-control">
+                            class="form-control" placeholder="{{ __('Enter your post title here...') }}">
                     </div>
                     {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_TITLE, '') !!}
 
@@ -59,17 +59,56 @@
                     <div class="space-y-1">
                         <label for="content"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Content') }}</label>
-                            <textarea name="content" id="content" rows="10">{!! old('content', $post->content ?? '') !!}</textarea>
+                        <textarea name="content" id="content" rows="15" 
+                            class="form-control-textarea" 
+                            placeholder="{{ __('Start writing your content here...') }}">{!! old('content', $post->content ?? '') !!}</textarea>
+                        @if(!isset($post))
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-300">
+                            {{ __('Tip: You can use the rich text editor to format your content') }}
+                        </p>
+                        @endif
                     </div>
                 @endif
                 {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_CONTENT, '') !!}
 
-                @if ($postTypeModel->supports_excerpt)
+                @if ($postType === 'news')
+                    <!-- News-specific fields -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Author -->
+                        <div class="space-y-1">
+                            <label for="author" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Author') }}</label>
+                            <input type="text" name="author" id="author" 
+                                class="form-control" 
+                                value="{{ old('author', $post->author ?? auth()->user()->name) }}"
+                                placeholder="{{ __('News author name') }}">
+                        </div>
+                        
+                        <!-- Publication Date -->
+                        <div class="space-y-1">
+                            <label for="published_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Publication Date') }}</label>
+                            <input type="datetime-local" name="published_date" id="published_date" 
+                                class="form-control" 
+                                value="{{ old('published_date', isset($post) && $post->published_at ? $post->published_at->format('Y-m-d\TH:i') : now()->format('Y-m-d\TH:i')) }}">
+                        </div>
+                    </div>
+                    
+                    <!-- News Source -->
+                    <div class="space-y-1">
+                        <label for="news_source" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('News Source') }}</label>
+                        <input type="text" name="news_source" id="news_source" 
+                            class="form-control" 
+                            value="{{ old('news_source', $post->news_source ?? '') }}"
+                            placeholder="{{ __('e.g., Reuters, AP, Local Reporter') }}">
+                    </div>
+                @endif
+
+                @if ($postTypeModel->supports_excerpt && $postType !== 'news')
                     <div class="space-y-1">
                         <label for="excerpt"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Excerpt') }}</label>
                         <textarea name="excerpt" id="excerpt" rows="3"
-                            class="form-control-textarea">{{ old('excerpt', $post->excerpt ?? '') }}</textarea>
+                            class="form-control-textarea" 
+                            placeholder="{{ __('Write a brief summary of your post...') }}">{{ old('excerpt', $post->excerpt ?? '') }}</textarea>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-300">
                             {{ __('A short summary of the content') }}.
                             {{ __('Leave empty to auto-generate from content') }}</p>
@@ -87,7 +126,10 @@
         <!-- Status and Visibility -->
         <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
             <div class="px-4 py-3 sm:px-6 border-b border-gray-100 dark:border-gray-800">
-                <h3 class="text-base font-medium text-gray-700 dark:text-white">{{ __('Save') }}</h3>
+                <h3 class="text-base font-medium text-gray-700 dark:text-white">{{ __('Publish') }}</h3>
+                @if(!isset($post))
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ __('Choose status based on your role') }}</p>
+                @endif
             </div>
             <div class="p-3 space-y-2 sm:p-4">
                 {{-- <!-- Status with Combobox -->
@@ -147,27 +189,105 @@
                     </div>
                 </div> --}}
                 {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_PUBLISH_DATE, '') !!}
-                <div class="mt-4">
-                    <x-buttons.submit-buttons cancelUrl="{{ route('admin.posts.index', $postType) }}" />
+                <!-- Role-based Status Options -->
+                @php
+                    $userRole = auth()->user()->getRoleNames()->first();
+                    $availableStatuses = [];
+                    
+                    // Define status options based on user role
+                    if($userRole === 'admin' || $userRole === 'super-admin') {
+                        $availableStatuses = [
+                            ['value' => 'created', 'label' => __('Created'), 'class' => 'bg-yellow-100 text-yellow-800'],
+                            ['value' => 'edited', 'label' => __('Edited'), 'class' => 'bg-blue-100 text-blue-800'],
+                            ['value' => 'approved', 'label' => __('Approved'), 'class' => 'bg-green-100 text-green-800']
+                        ];
+                    } elseif($userRole === 'editor') {
+                        $availableStatuses = [
+                            ['value' => 'created', 'label' => __('Created'), 'class' => 'bg-yellow-100 text-yellow-800'],
+                            ['value' => 'edited', 'label' => __('Edited'), 'class' => 'bg-blue-100 text-blue-800']
+                        ];
+                    } else {
+                        $availableStatuses = [
+                            ['value' => 'created', 'label' => __('Created'), 'class' => 'bg-yellow-100 text-yellow-800']
+                        ];
+                    }
+                    
+                    $currentStatus = old('status', $post->status ?? 'created');
+                @endphp
+                
+                <div class="space-y-3">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Status') }}</label>
+                    
+                    @foreach($availableStatuses as $status)
+                    <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 {{ $currentStatus === $status['value'] ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700' }}">
+                        <input type="radio" name="status" value="{{ $status['value'] }}" 
+                            class="mr-3" {{ $currentStatus === $status['value'] ? 'checked' : '' }}>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between">
+                                <span class="font-medium text-gray-900 dark:text-white">{{ $status['label'] }}</span>
+                                <span class="px-2 py-1 text-xs rounded-full {{ $status['class'] }}">{{ $status['label'] }}</span>
+                            </div>
+                        </div>
+                    </label>
+                    @endforeach
+                    
+                    <div class="mt-4">
+                        <x-buttons.submit-buttons cancelUrl="{{ route('admin.posts.index', $postType) }}" />
+                    </div>
                 </div>
                 {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_SUBMIT_BUTTONS, '') !!}
             </div>
         </div>
 
         @if ($postTypeModel->supports_thumbnail)
-            <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-3 space-y-2 sm:p-4">
-                <x-media-selector
-                    name="featured_image"
-                    label="{{ __('Featured Image') }}"
-                    :multiple="false"
-                    allowedTypes="images"
-                    :existingMedia="isset($post) && $post->hasFeaturedImage() ? $post->getFeaturedImageUrl() : null"
-                    :existingAltText="isset($post) ? $post->title : ''"
-                    removeCheckboxName="remove_featured_image"
-                    removeCheckboxLabel="{{ __('Remove featured image') }}"
-                    :showPreview="true"
-                    class="mt-1"
-                />
+            <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+                <div class="px-4 py-3 sm:px-6 border-b border-gray-100 dark:border-gray-800">
+                    <h3 class="text-base font-medium text-gray-700 dark:text-white">{{ $postType === 'news' ? __('News Image') : __('Featured Image') }}</h3>
+                    @if($postType === 'news')
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ __('Main image for the news article') }}</p>
+                    @endif
+                </div>
+                <div class="p-3 space-y-2 sm:p-4">
+                    <x-media-selector
+                        name="featured_image"
+                        label=""
+                        :multiple="false"
+                        allowedTypes="images"
+                        :existingMedia="isset($post) && $post->hasFeaturedImage() ? $post->getFeaturedImageUrl() : null"
+                        :existingAltText="isset($post) ? $post->title : ''"
+                        removeCheckboxName="remove_featured_image"
+                        removeCheckboxLabel="{{ __('Remove image') }}"
+                        :showPreview="true"
+                        class="mt-1"
+                    />
+                </div>
+            </div>
+        @endif
+        
+        @if ($postType === 'news')
+            <!-- News Priority -->
+            <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+                <div class="px-4 py-3 sm:px-6 border-b border-gray-100 dark:border-gray-800">
+                    <h3 class="text-base font-medium text-gray-700 dark:text-white">{{ __('Priority') }}</h3>
+                </div>
+                <div class="p-3 space-y-2 sm:p-4">
+                    @php
+                        $priorities = [
+                            ['value' => 'low', 'label' => __('Low')],
+                            ['value' => 'normal', 'label' => __('Normal')],
+                            ['value' => 'high', 'label' => __('High')],
+                            ['value' => 'urgent', 'label' => __('Urgent')]
+                        ];
+                    @endphp
+                    
+                    @foreach($priorities as $priority)
+                    <label class="flex items-center">
+                        <input type="radio" name="priority" value="{{ $priority['value'] }}" 
+                            class="mr-2" {{ old('priority', $post->priority ?? 'normal') === $priority['value'] ? 'checked' : '' }}>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ $priority['label'] }}</span>
+                    </label>
+                    @endforeach
+                </div>
             </div>
         @endif
         {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_FEATURED_IMAGE, '') !!}

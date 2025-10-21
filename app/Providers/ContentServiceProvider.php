@@ -55,10 +55,20 @@ class ContentServiceProvider extends ServiceProvider
 
         // Register post type.
         $contentService->registerPostType([
-            'name' => 'News',
+            'name' => 'post',
+            'label' => 'Posts',
+            'label_singular' => 'Post',
+            'description' => 'Default post type for blog entries',
+            'taxonomies' => ['category', 'tag'],
+        ]);
+
+        // Register news type.
+        $contentService->registerPostType([
+            'name' => 'news',
             'label' => 'News',
-            'label_singular' => 'News',
-            'description' => 'Default News type for blog entries',
+            'label_singular' => 'News Article',
+            'description' => 'News articles and updates',
+            'supports_excerpt' => false,
             'taxonomies' => ['category', 'tag'],
         ]);
 
@@ -82,7 +92,7 @@ class ContentServiceProvider extends ServiceProvider
     {
         $contentService = app(ContentService::class);
 
-        // Register category taxonomy for posts.
+        // Register category taxonomy for posts and news.
         $contentService->registerTaxonomy([
             'name' => 'category',
             'label' => 'Categories',
@@ -90,9 +100,9 @@ class ContentServiceProvider extends ServiceProvider
             'description' => 'Default taxonomy for categorizing posts',
             'hierarchical' => true,
             'show_featured_image' => true,
-        ], 'post');
+        ], ['post', 'news']);
 
-        // Register tag taxonomy for posts.
+        // Register tag taxonomy for posts and news.
         $contentService->registerTaxonomy([
             'name' => 'tag',
             'label' => 'Tags',
@@ -100,7 +110,7 @@ class ContentServiceProvider extends ServiceProvider
             'description' => 'Default taxonomy for tagging posts',
             'hierarchical' => false,
             'show_featured_image' => true,
-        ], 'post');
+        ], ['post', 'news']);
 
         // Allow other plugins/modules to register taxonomies
         Hook::doAction(ContentActionHook::REGISTER_TAXONOMIES, $contentService);

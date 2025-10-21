@@ -5,6 +5,67 @@
         @include('backend.layouts.partials.demo-mode-notice')
     </div>
 
+    <div class="relative" x-data="{ notificationOpen: false }" @click.outside="notificationOpen = false">
+        <x-tooltip title="{{ __('Notification') }}" position="bottom">
+            <button @click.prevent="notificationOpen = !notificationOpen"
+                class="hover:text-dark-900 relative flex p-2 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                <iconify-icon icon="lucide:bell" width="22" height="22"></iconify-icon>
+@php
+                    try {
+                        $notificationService = app(\App\Services\NotificationService::class);
+                        $unreadCount = $notificationService->getUnreadCount(auth()->user());
+                    } catch (\Exception $e) {
+                        $unreadCount = 0;
+                        \Log::error('Notification service error: ' . $e->getMessage());
+                    }
+                @endphp
+                @if($unreadCount > 0)
+                    <span class="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
+                @endif
+            </button>
+        </x-tooltip>
+        
+        <div x-show="notificationOpen" x-transition
+            class="absolute right-0 top-full mt-2 w-[300px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-[99999]">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Notifications') }}</h3>
+            </div>
+            <div class="max-h-96 overflow-y-auto">
+                @php
+                    $notificationService = app(\App\Services\NotificationService::class);
+                    $notifications = $notificationService->getUnreadNotifications(auth()->user());
+                @endphp
+                @forelse($notifications as $notification)
+                    <div class="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0">
+                                @if($notification->type === 'news_created')
+                                    <iconify-icon icon="lucide:newspaper" class="text-blue-500" width="20" height="20"></iconify-icon>
+                                @elseif($notification->type === 'news_status_changed')
+                                    <iconify-icon icon="lucide:edit" class="text-orange-500" width="20" height="20"></iconify-icon>
+                                @else
+                                    <iconify-icon icon="lucide:bell" class="text-gray-500" width="20" height="20"></iconify-icon>
+                                @endif
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $notification->title }}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $notification->message }}</p>
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="p-4 text-center">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('No new notifications') }}</p>
+                    </div>
+                @endforelse
+            </div>
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <a href="{{ route('admin.notifications.index') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">{{ __('View all notifications') }}</a>
+            </div>
+        </div>
+    </div>
+
     {!! Hook::applyFilters(AdminFilterHook::HEADER_BEFORE_LOCALE_SWITCHER, '') !!}
     <x-tooltip title="{{ __('Change locale') }}" position="bottom">
         @include('backend.layouts.partials.locale-switcher')
@@ -27,16 +88,6 @@
         <x-tooltip title="{{ __('Preview demo components') }}" position="bottom">
             <a href="{{ route('demo.preview') }}" class="hover:text-dark-900 relative flex p-2 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
                 <iconify-icon icon="lucide:view" width="22" height="22"></iconify-icon>
-            </a>
-        </x-tooltip>
-    @endif
-
-    @if (env('GITHUB_LINK'))
-        <x-tooltip title="{{ __('Notification') }}" position="bottom">
-            <a href="#"
-                class="hover:text-dark-900 relative flex p-2 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
-                <iconify-icon icon="lucide:bell" width="22" height="22"
-                    class=""></iconify-icon>
             </a>
         </x-tooltip>
     @endif

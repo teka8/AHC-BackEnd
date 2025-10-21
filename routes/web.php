@@ -19,6 +19,8 @@ use App\Http\Controllers\Backend\UserLoginAsController;
 use App\Http\Controllers\Backend\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Backend\EventController;
+use App\Http\Controllers\Backend\NewsController;
+use App\Http\Controllers\Backend\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +78,35 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::put('/posts/{postType}/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{postType}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::delete('/posts/{postType}/delete/bulk-delete', [PostController::class, 'bulkDelete'])->name('posts.bulk-delete');
+
+    // News Routes - Dynamic news types.
+    Route::get('/news/{newsType?}', [NewsController::class, 'index'])->name('news.index');
+    Route::get('/news/{newsType}/create', [NewsController::class, 'create'])->name('news.create');
+    Route::post('/news/{newsType}', [NewsController::class, 'store'])->name('news.store');
+    Route::get('/news/{newsType}/{post}', [NewsController::class, 'show'])->name('news.show');
+    Route::get('/news/{newsType}/{post}/edit', [NewsController::class, 'edit'])->name('news.edit');
+    Route::put('/news/{newsType}/{post}', [NewsController::class, 'update'])->name('news.update');
+    Route::delete('/news/{newsType}/{post}', [NewsController::class, 'destroy'])->name('news.destroy');
+    Route::delete('/news/{newsType}/delete/bulk-delete', [NewsController::class, 'bulkDelete'])->name('news.bulk-delete');
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    // Notification Routes.
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 
     // Event Routes.
     Route::get('events', [EventController::class, 'index'])->name('events.index');
