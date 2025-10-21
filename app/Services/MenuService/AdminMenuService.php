@@ -111,6 +111,31 @@ class AdminMenuService
         $this->registerPostTypesInMenu(null);
 
         $this->addMenuItem([
+            'label' => __('Events'),
+            'icon' => 'lucide:settings',
+            'id' => 'events-submenu',
+            'active' => Route::is('admin.events.*') || Route::is('admin.translations.*'),
+/*             'priority' => 15,
+            'permissions' => ['events.view', 'events.create', 'events.edit'], */
+            'children' => [
+                [
+                    'label' => __('All Events'),
+                    'route' => route('admin.events.index'),
+                    'active' => Route::is('admin.events.index'),
+                    'priority' => 20,
+                    /* 'permissions' => ['events.view', 'events.edit'], */
+                ],
+                [
+                    'label' => __('Add New'),
+                    'route' => route('admin.events.create'),
+                    'active' => Route::is('admin.events.create'),
+                    'priority' => 10,
+                    /* 'permissions' => ['events.create'], */
+                ],
+            ],
+        ]);
+
+        $this->addMenuItem([
             'label' => __('Media Library'),
             'icon' => 'lucide:image',
             'route' => route('admin.media.index'),
