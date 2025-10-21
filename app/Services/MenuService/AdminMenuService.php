@@ -29,7 +29,7 @@ class AdminMenuService
     {
         $group = $group ?: __('Main');
         $menuItem = $this->createAdminMenuItem($item);
-        if (! isset($this->groups[$group])) {
+        if (!isset($this->groups[$group])) {
             $this->groups[$group] = [];
         }
 
@@ -51,7 +51,7 @@ class AdminMenuService
                 function ($child) {
                     // Check if user is authenticated
                     $user = auth()->user();
-                    if (! $user) {
+                    if (!$user) {
                         return null;
                     }
 
@@ -115,8 +115,8 @@ class AdminMenuService
             'icon' => 'lucide:settings',
             'id' => 'events-submenu',
             'active' => Route::is('admin.events.*') || Route::is('admin.translations.*'),
-/*             'priority' => 15,
-            'permissions' => ['events.view', 'events.create', 'events.edit'], */
+            /*             'priority' => 15,
+                        'permissions' => ['events.view', 'events.create', 'events.edit'], */
             'children' => [
                 [
                     'label' => __('All Events'),
@@ -282,7 +282,7 @@ class AdminMenuService
 
         foreach ($postTypes as $typeName => $type) {
             // Skip if not showing in menu.
-            if (isset($type->show_in_menu) && ! $type->show_in_menu) {
+            if (isset($type->show_in_menu) && !$type->show_in_menu) {
                 continue;
             }
 
@@ -293,9 +293,9 @@ class AdminMenuService
                     'route' => 'admin.posts.index',
                     'params' => $typeName,
                     'active' => request()->is('admin/posts/' . $typeName) ||
-                        (request()->is('admin/posts/' . $typeName . '/*') && ! request()->is('admin/posts/' . $typeName . '/create')),
+                        (request()->is('admin/posts/' . $typeName . '/*') && !request()->is('admin/posts/' . $typeName . '/create')),
                     'priority' => 10,
-                    'permissions' => 'post.view',
+                    'permissions' => 'news.view',
                 ],
                 [
                     'title' => __('Add New'),
@@ -303,12 +303,12 @@ class AdminMenuService
                     'params' => $typeName,
                     'active' => request()->is('admin/posts/' . $typeName . '/create'),
                     'priority' => 20,
-                    'permissions' => 'post.create',
+                    'permissions' => 'news.create',
                 ],
             ];
 
             // Add taxonomies as children of this post type if this post type has them.
-            if (! empty($type->taxonomies)) {
+            if (!empty($type->taxonomies)) {
                 $taxonomies = $contentService->getTaxonomies()
                     ->whereIn('name', $type->taxonomies);
 
@@ -330,9 +330,9 @@ class AdminMenuService
                 'icon' => get_post_type_icon($typeName),
                 'id' => 'post-type-' . $typeName,
                 'active' => request()->is('admin/posts/' . $typeName . '*') ||
-                    (! empty($type->taxonomies) && $this->isCurrentTermBelongsToPostType($type->taxonomies)),
+                    (!empty($type->taxonomies) && $this->isCurrentTermBelongsToPostType($type->taxonomies)),
                 'priority' => 10,
-                'permissions' => 'post.view',
+                'permissions' => 'news.view',
                 'children' => $children,
             ];
 
@@ -345,7 +345,7 @@ class AdminMenuService
      */
     protected function isCurrentTermBelongsToPostType(array $taxonomies): bool
     {
-        if (! request()->is('admin/terms/*')) {
+        if (!request()->is('admin/terms/*')) {
             return false;
         }
 
@@ -377,7 +377,7 @@ class AdminMenuService
             $filteredItems = Hook::applyFilters(AdminFilterHook::SIDEBAR_MENU->value . strtolower((string) $group), $filteredItems);
 
             // Only add the group if it has items after filtering.
-            if (! empty($filteredItems)) {
+            if (!empty($filteredItems)) {
                 $result[$group] = $filteredItems;
             }
         }

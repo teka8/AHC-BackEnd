@@ -107,6 +107,17 @@ class PermissionService
                 ],
             ],
             [
+                'group_name' => 'news',
+                'permissions' => [
+                    'news.create',
+                    'news.view',
+                    'news.edit',
+                    'news.delete',
+                    'news.approve',
+                    'news.publish',
+                ],
+            ],
+            [
                 'group_name' => 'media',
                 'permissions' => [
                     'media.create',
