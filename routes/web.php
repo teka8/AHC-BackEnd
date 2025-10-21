@@ -115,4 +115,12 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth'
 
 Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch');
 Route::get('/screenshot-login/{email}', [ScreenshotGeneratorLoginController::class, 'login'])->middleware('web')->name('screenshot.login');
-Route::get('/demo-preview', fn () => view('demo.preview'))->name('demo.preview');
+Route::get('/demo-preview', fn() => view('demo.preview'))->name('demo.preview');
+
+//notification Routes
+Route::post('/notifications/read/{id}', function ($id) {
+    $notification = auth()->user()->unreadNotifications()->findOrFail($id);
+    $notification->markAsRead();
+
+    return response()->noContent();
+})->middleware('auth')->name('notifications.read');

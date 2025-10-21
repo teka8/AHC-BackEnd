@@ -16,9 +16,9 @@
                             <label for="title"
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Title') }}</label>
                             @can('ai_content.generate')
-                            <div x-data="{ aiModalOpen: false }">
-                                @include('backend.pages.posts.partials.ai-content-generator')
-                            </div>
+                                <div x-data="{ aiModalOpen: false }">
+                                    @include('backend.pages.posts.partials.ai-content-generator')
+                                </div>
                             @endcan
                         </div>
                         <input type="text" name="title" id="title" required x-model="title" maxlength="255"
@@ -59,8 +59,32 @@
                     <div class="space-y-1">
                         <label for="content"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Content') }}</label>
-                            <textarea name="content" id="content" rows="10">{!! old('content', $post->content ?? '') !!}</textarea>
+                        <textarea name="content" id="content" rows="10">{!! old('content', $post->content ?? '') !!}</textarea>
                     </div>
+                @endif
+                @if ($postTypeModel->supports_editor)
+                    @role('News Admin')
+                        <div class="space-y-1 flex gap-2">
+                            <input name="status" type="checkbox" id="status"
+                                @if (!empty($post) && $post->status === 'approved') checked disabled @endif />
+                            <label for="status"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Approved') }}</label>
+                        </div>
+                        <div class="space-y-1 flex gap-2">
+                            <input name="status" type="checkbox" @if (!empty($post) && $post->status === 'approved') disabled @endif
+                                value="created" />
+                            <label for="status"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Change Status to Editable') }}</label>
+                        </div>
+                    @endrole
+                    @unless (auth()->user()->hasRole('News Admin'))
+                        <div class="space-y-1 flex gap-2">
+                            <input name="status" type="checkbox" id="status" value="pending_approval"
+                                @if (!empty($post) && $post->status === 'pending_approval') checked disabled @endif />
+                            <label for="status"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Ready for Approval') }}</label>
+                        </div>
+                    @endunless
                 @endif
                 {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_CONTENT, '') !!}
 
@@ -68,8 +92,7 @@
                     <div class="space-y-1">
                         <label for="excerpt"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Excerpt') }}</label>
-                        <textarea name="excerpt" id="excerpt" rows="3"
-                            class="form-control-textarea">{{ old('excerpt', $post->excerpt ?? '') }}</textarea>
+                        <textarea name="excerpt" id="excerpt" rows="3" class="form-control-textarea">{{ old('excerpt', $post->excerpt ?? '') }}</textarea>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-300">
                             {{ __('A short summary of the content') }}.
                             {{ __('Leave empty to auto-generate from content') }}</p>
@@ -155,19 +178,11 @@
         </div>
 
         @if ($postTypeModel->supports_thumbnail)
-            <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-3 space-y-2 sm:p-4">
-                <x-media-selector
-                    name="featured_image"
-                    label="{{ __('Featured Image') }}"
-                    :multiple="false"
-                    allowedTypes="images"
-                    :existingMedia="isset($post) && $post->hasFeaturedImage() ? $post->getFeaturedImageUrl() : null"
-                    :existingAltText="isset($post) ? $post->title : ''"
-                    removeCheckboxName="remove_featured_image"
-                    removeCheckboxLabel="{{ __('Remove featured image') }}"
-                    :showPreview="true"
-                    class="mt-1"
-                />
+            <div
+                class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-3 space-y-2 sm:p-4">
+                <x-media-selector name="featured_image" label="{{ __('Featured Image') }}" :multiple="false"
+                    allowedTypes="images" :existingMedia="isset($post) && $post->hasFeaturedImage() ? $post->getFeaturedImageUrl() : null" :existingAltText="isset($post) ? $post->title : ''" removeCheckboxName="remove_featured_image"
+                    removeCheckboxLabel="{{ __('Remove featured image') }}" :showPreview="true" class="mt-1" />
             </div>
         @endif
         {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_FEATURED_IMAGE, '') !!}
@@ -189,14 +204,8 @@
                         }
                     @endphp
 
-                    <x-inputs.combobox
-                        name="parent_id"
-                        :label="__('Parent ' . $postTypeModel->label_singular)"
-                        :placeholder="__('Select Parent')"
-                        :options="$parentOptions"
-                        :selected="old('parent_id', $post->parent_id ?? '')"
-                        :searchable="true"
-                    />
+                    <x-inputs.combobox name="parent_id" :label="__('Parent ' . $postTypeModel->label_singular)" :placeholder="__('Select Parent')" :options="$parentOptions"
+                        :selected="old('parent_id', $post->parent_id ?? '')" :searchable="true" />
                 </div>
             </div>
         @endif
