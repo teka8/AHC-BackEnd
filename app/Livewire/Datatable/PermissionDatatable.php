@@ -80,10 +80,16 @@ class PermissionDatatable extends Datatable
             <p class='text-sm text-gray-500'>" . $permission->roles_count . " " . __('roles') . "</p>";
     }
 
+    // public function renderGroupNameColumn(Permission $permission): string
+    // {
+    //     return "<span class='badge'>" . ucfirst($permission->group_name) . "</span>";
+    // }
+
     public function renderGroupNameColumn(Permission $permission): string
-    {
-        return "<span class='badge'>" . ucfirst($permission->group_name) . "</span>";
-    }
+{
+    $groupName = $permission->group_name ?? 'N/A';
+    return "<span class='badge'>" . ucfirst($groupName) . "</span>";
+}
 
     public function renderRolesColumn(Permission $permission): string
     {

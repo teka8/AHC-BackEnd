@@ -1,3 +1,8 @@
+
+@php
+use App\Enums\Hooks\EventFilterHook;
+@endphp
+
 <x-layouts.backend-layout :breadcrumbs="$breadcrumbs">
     <x-slot name="breadcrumbsData">
         <x-breadcrumbs :breadcrumbs="$breadcrumbs">
@@ -14,10 +19,11 @@
             </x-slot>
         </x-breadcrumbs>
     </x-slot>
+  
 
-    {!! Hook::applyFilters(PostFilterHook::POSTS_AFTER_BREADCRUMBS, '', $postType) !!}
+    {!! Hook::applyFilters(EventFilterHook::EVENTS_AFTER_BREADCRUMBS, '', Event::class) !!}
 
-    @livewire('datatable.post-datatable', ['postType' => $postType ,'lazy' => true])
+@livewire('datatable.event-datatable', ['lazy' => true])
 
-    {!! Hook::applyFilters(PostFilterHook::POSTS_AFTER_TABLE, '', $postType) !!}
+    {!! Hook::applyFilters(EventFilterHook::EVENTS_AFTER_TABLE, '', Event::class) !!}
 </x-layouts.backend-layout>
