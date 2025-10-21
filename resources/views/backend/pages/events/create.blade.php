@@ -1,27 +1,29 @@
 <x-layouts.backend-layout :breadcrumbs="$breadcrumbs">
-    {!! Hook::applyFilters(PostFilterHook::POSTS_CREATE_AFTER_BREADCRUMBS, '', $postType) !!}
+    {!! Hook::applyFilters('filter.event.create.after_breadcrumbs', '') !!}
 
-    <form
-        {{-- action="{{ route('admin.posts.store', $postType) }}" --}}
-        method="POST"
-        enctype="multipart/form-data"
-        data-prevent-unsaved-changes
-    >
+    <form action="{{ route('admin.events.store') }}" method="POST" enctype="multipart/form-data" data-prevent-unsaved-changes x-data="eventForm()">
         @csrf
-        @include('backend.pages.posts.partials.form', [
-            'post' => null,
-            'selectedTerms' => [],
-            'postType' => $postType,
-            'postTypeModel' => $postTypeModel,
-            'taxonomies' => $taxonomies ?? [],
-            'parentPosts' => $parentPosts ?? [],
-            'mode' => 'create',
+
+        @include('backend.pages.events.partials.form', [
+            'event' => null,
+            'mode' => 'create'
         ])
     </form>
 
-    {!! Hook::applyFilters(PostFilterHook::AFTER_POST_FORM, '', $postType) !!}
-
     @push('scripts')
-        <x-quill-editor :editor-id="'content'" height="200px" maxHeight="-1" />
+        {{-- Quill editor for description --}}
+        <x-quill-editor :editor-id="'description'" height="300px" maxHeight="-1" />
+
+        <script>
+            document.addEventListener('alpine:init', () => {
+                Alpine.data('eventForm', () => ({
+                    event_type: @json(old('event_type', 'in-person')),
+                    register_on_site: @json((bool) old('register_on_site', false)),
+                    // no schedule field in the new migration - keep empty
+                    addSlot() { /* no-op */ },
+                    removeSlot() { /* no-op */ }
+                }))
+            });
+        </script>
     @endpush
 </x-layouts.backend-layout>
