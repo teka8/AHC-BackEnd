@@ -25,21 +25,78 @@
 
     @if (config('app.show_demo_component_preview', false))
         <x-tooltip title="{{ __('Preview demo components') }}" position="bottom">
-            <a href="{{ route('demo.preview') }}" class="hover:text-dark-900 relative flex p-2 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+            <a href="{{ route('demo.preview') }}"
+                class="hover:text-dark-900 relative flex p-2 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
                 <iconify-icon icon="lucide:view" width="22" height="22"></iconify-icon>
             </a>
         </x-tooltip>
     @endif
 
     @if (env('GITHUB_LINK'))
-        <x-tooltip title="{{ __('Go to Github') }}" position="bottom">
-            <a href="{{ env('GITHUB_LINK') }}" target="_blank"
+        <x-tooltip title="{{ __('Notification') }}" position="bottom">
+            <a href="#"
                 class="hover:text-dark-900 relative flex p-2 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
-                <iconify-icon icon="lucide:github" width="22" height="22"
+                <iconify-icon id="notification-bell" icon="lucide:bell" width="22" height="22"
                     class=""></iconify-icon>
             </a>
+            <span id="notification-count" class="absolute top-0 right-0 text-black text-xs px-1.5 rounded-full">
+                {{ auth()->user()->unreadNotifications->count() }}
+            </span>
         </x-tooltip>
     @endif
+    <div id="notification-wrapper">
+        <div id="notification-dropdown"
+            class="hidden absolute right-0 mt-10 top-4 w-80 bg-white shadow-lg rounded-md z-50">
+            @forelse(auth()->user()->unreadNotifications as $notification)
+                <a href="#"
+                    onclick="markAsReadAndRedirect('{{ $notification->id }}', '{{ route('admin.posts.edit', ['postType' => $notification->data['post_type'], 'post' => $notification->data['news_id']]) }}')"
+                    class="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
+                    {{ $notification->data['message'] }}
+                </a>
+            @empty
+                <div class="px-4 py-2 text-sm text-gray-500">No new notifications.</div>
+            @endforelse
+        </div>
+    </div>
+
+    <script>
+        const bell = document.getElementById('notification-bell');
+        const dropdown = document.getElementById('notification-dropdown');
+        const wrapper = document.getElementById('notification-wrapper');
+
+        bell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!wrapper.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    </script>
+    <script>
+        function markAsReadAndRedirect(notificationId, redirectUrl) {
+            fetch(`/notifications/read/${notificationId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = redirectUrl;
+                } else {
+                    console.error('Failed to mark as read');
+                    window.location.href = redirectUrl; // Still redirect on failure
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                window.location.href = redirectUrl; // Still redirect on error
+            });
+        }
+    </script>
+
 
     {!! Hook::applyFilters(AdminFilterHook::HEADER_AFTER_ACTIONS, '') !!}
 </div>
@@ -50,7 +107,8 @@
     <a class="flex items-center text-gray-700 dark:text-gray-300" href="#"
         @click.prevent="dropdownOpen = ! dropdownOpen">
         <span class="mr-3 h-8 w-8 overflow-hidden rounded-full">
-            <img src="{{ auth()->user()->avatar_url ? auth()->user()->avatar_url : auth()->user()->getGravatarUrl() }}" alt="User" />
+            <img src="{{ auth()->user()->avatar_url ? auth()->user()->avatar_url : auth()->user()->getGravatarUrl() }}"
+                alt="User" />
         </span>
     </a>
 
@@ -72,7 +130,8 @@
             <li>
                 <a href="{{ route('profile.edit') }}"
                     class="group flex items-center gap-3 rounded-md px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300">
-                    <iconify-icon icon="lucide:user" width="20" height="20" class="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"></iconify-icon>
+                    <iconify-icon icon="lucide:user" width="20" height="20"
+                        class="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"></iconify-icon>
                     {{ __('Edit profile') }}
                 </a>
             </li>
@@ -83,7 +142,8 @@
             @csrf
             <button type="submit"
                 class="group flex items-center gap-3 rounded-md px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300 mt-2 w-full">
-                <iconify-icon icon="lucide:log-out" width="20" height="20" class="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"></iconify-icon>
+                <iconify-icon icon="lucide:log-out" width="20" height="20"
+                    class="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"></iconify-icon>
                 {{ __('Logout') }}
             </button>
         </form>

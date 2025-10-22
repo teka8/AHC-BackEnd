@@ -17,7 +17,7 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.3'
         extensions: mbstring, bcmath, intl, pdo, mysql
         tools: composer
 
@@ -41,6 +41,11 @@ jobs:
 
     - name: Build assets
       run: npm run build
+
+    - name: Create storage link
+      run: |
+        # Create storage link
+        php artisan storage:link
 
     - name: Upload files via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4

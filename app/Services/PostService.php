@@ -17,7 +17,7 @@ class PostService
     public function getPosts(array $filters = [])
     {
         // Set default post type if not provided.
-        if (! isset($filters['post_type'])) {
+        if (!isset($filters['post_type'])) {
             $filters['post_type'] = 'post';
         }
 
@@ -26,13 +26,13 @@ class PostService
             ->with(['user', 'terms']);
 
         // Handle category filter separately.
-        if (isset($filters['category']) && ! empty($filters['category'])) {
+        if (isset($filters['category']) && !empty($filters['category'])) {
             $query->filterByCategory($filters['category']);
             unset($filters['category']); // Remove to prevent double filtering
         }
 
         // Handle tag filter separately.
-        if (isset($filters['tag']) && ! empty($filters['tag'])) {
+        if (isset($filters['tag']) && !empty($filters['tag'])) {
             $query->filterByTag($filters['tag']);
             unset($filters['tag']); // Remove to prevent double filtering
         }
@@ -69,7 +69,7 @@ class PostService
     public function getPaginatedPosts(array $filters = [], int $perPage = 10)
     {
         // Set default post type if not provided.
-        if (! isset($filters['post_type'])) {
+        if (!isset($filters['post_type'])) {
             $filters['post_type'] = 'post';
         }
 
@@ -78,13 +78,13 @@ class PostService
             ->with(['author', 'terms']);
 
         // Handle category filter separately.
-        if (isset($filters['category']) && ! empty($filters['category'])) {
+        if (isset($filters['category']) && !empty($filters['category'])) {
             $query->filterByCategory($filters['category']);
             unset($filters['category']);
         }
 
         // Handle tag filter separately.
-        if (isset($filters['tag']) && ! empty($filters['tag'])) {
+        if (isset($filters['tag']) && !empty($filters['tag'])) {
             $query->filterByTag($filters['tag']);
             unset($filters['tag']);
         }
@@ -95,7 +95,7 @@ class PostService
     }
 
     /**
-     * Create a new post
+     * Create a new news
      */
     public function createPost(array $data): Post
     {
@@ -117,12 +117,12 @@ class PostService
         }
 
         // Sync terms if provided
-        if (isset($data['terms']) && ! empty($data['terms'])) {
+        if (isset($data['terms']) && !empty($data['terms'])) {
             $post->terms()->sync($data['terms']);
         }
 
         // Handle post meta if provided
-        if (isset($data['meta']) && ! empty($data['meta'])) {
+        if (isset($data['meta']) && !empty($data['meta'])) {
             foreach ($data['meta'] as $key => $value) {
                 $post->postMeta()->updateOrCreate(
                     ['meta_key' => $key],
@@ -171,7 +171,7 @@ class PostService
         }
 
         // Handle post meta if provided
-        if (isset($data['meta']) && ! empty($data['meta'])) {
+        if (isset($data['meta']) && !empty($data['meta'])) {
             foreach ($data['meta'] as $key => $value) {
                 $post->postMeta()->updateOrCreate(
                     ['meta_key' => $key],
@@ -211,7 +211,7 @@ class PostService
             $post = $this->getPostById($post);
         }
 
-        if (! $post) {
+        if (!$post) {
             return null;
         }
 
@@ -224,7 +224,7 @@ class PostService
             $post = $this->getPostById($post);
         }
 
-        if (! $post) {
+        if (!$post) {
             return null;
         }
 
@@ -238,7 +238,7 @@ class PostService
             $post = $this->getPostById($post);
         }
 
-        if (! $post) {
+        if (!$post) {
             return collect();
         }
 
