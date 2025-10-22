@@ -6,11 +6,31 @@
                     <h4 class="text-sm font-medium text-gray-500 dark:text-gray-300">{{ __('Permission Name') }}</h4>
                     <p class="mt-1 text-lg font-medium text-gray-700 dark:text-white">{{ $permission->name }}</p>
                 </div>
-                <div>
+                <div class="mb-4">
                     <h4 class="text-sm font-medium text-gray-500 dark:text-gray-300">{{ __('Permission Group') }}</h4>
                     <p class="mt-1">
                         <span class="badge">{{ $permission->group_name }}</span>
                     </p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500 dark:text-gray-300">{{ __('Status') }}</h4>
+                    <div class="mt-2 flex items-center gap-3">
+                        @php
+                            $isActive = $permission->is_active ?? true;
+                        @endphp
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' }}">
+                            {{ $isActive ? __('Active') : __('Inactive') }}
+                        </span>
+                        @can('update', $permission)
+                            <form method="POST" action="{{ route('admin.permissions.toggle-status', $permission->id) }}" class="inline">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400">
+                                    {{ $isActive ? __('Deactivate') : __('Activate') }}
+                                </button>
+                            </form>
+                        @endcan
+                    </div>
                 </div>
             </div>
             <div>
