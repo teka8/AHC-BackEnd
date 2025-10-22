@@ -7,6 +7,8 @@ use App\Http\Controllers\Backend\Auth\ScreenshotGeneratorLoginController;
 use App\Http\Controllers\Backend\DashboardController;
 use App\Http\Controllers\Backend\LocaleController;
 use App\Http\Controllers\Backend\MediaController;
+use App\Http\Controllers\Backend\DocumentRepositoryController;
+use App\Http\Controllers\Backend\EducationRepositoryController;
 use App\Http\Controllers\Backend\ModuleController;
 use App\Http\Controllers\Backend\PermissionController;
 use App\Http\Controllers\Backend\PostController;
@@ -107,6 +109,41 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::delete('/{id}', [MediaController::class, 'destroy'])->name('destroy');
         Route::delete('/', [MediaController::class, 'bulkDelete'])->name('bulk-delete');
     });
+
+    // Media Routes.
+    Route::prefix('document')->name('document.')->group(function () {
+        Route::get('/', [DocumentRepositoryController::class, 'index'])->name('index');
+        Route::get('/api', [DocumentRepositoryController::class, 'api'])->name('api');
+        Route::post('/', [DocumentRepositoryController::class, 'store'])->name('store')->middleware('check.upload.limits');
+        Route::get('/upload-limits', [DocumentRepositoryController::class, 'getUploadLimits'])->name('upload-limits');
+        
+        // Additional routes you might want to add:
+        Route::get('/{id}/download', [DocumentRepositoryController::class, 'download'])->name('download');
+        Route::get('/{id}/edit', [DocumentRepositoryController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [DocumentRepositoryController::class, 'update'])->name('update');
+        Route::post('/{id}/publish', [DocumentRepositoryController::class, 'publish'])->name('publish');
+        Route::post('/{id}/approve', [DocumentRepositoryController::class, 'approve'])->name('approve');
+
+        Route::get('/{id}/edit', [DocumentRepositoryController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [DocumentRepositoryController::class, 'update'])->name('update');
+        Route::post('/{id}/publish', [DocumentRepositoryController::class, 'publish'])->name('publish');
+        Route::post('/{id}/approve', [DocumentRepositoryController::class, 'approve'])->name('approve');
+
+        Route::delete('/{id}', [DocumentRepositoryController::class, 'destroy'])->name('destroy');
+        Route::delete('/', [DocumentRepositoryController::class, 'bulkDelete'])->name('bulk-delete');
+        Route::post('/{id}/restore', [DocumentRepositoryController::class, 'restore'])->name('restore');
+        Route::delete('/{id}/force', [DocumentRepositoryController::class, 'forceDelete'])->name('force-delete');
+    });
+
+    Route::prefix('education')->name('education.')->group(function () {
+        Route::get('/', [EducationRepositoryController::class, 'index'])->name('index');
+        Route::get('/api', [EducationRepositoryController::class, 'api'])->name('api');
+        Route::post('/', [EducationRepositoryController::class, 'store'])->name('store')->middleware('check.upload.limits');
+        Route::get('/upload-limits', [EducationRepositoryController::class, 'getUploadLimits'])->name('upload-limits');
+        Route::delete('/{id}', [EducationRepositoryController::class, 'destroy'])->name('destroy');
+        Route::delete('/', [EducationRepositoryController::class, 'bulkDelete'])->name('bulk-delete');
+    });
+
 
     // Editor Upload Route.
     Route::post('/editor/upload', [App\Http\Controllers\Backend\EditorController::class, 'upload'])->name('editor.upload');

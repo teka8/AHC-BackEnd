@@ -132,6 +132,85 @@ class PermissionService
                     'ai_content.generate',
                 ],
             ],
+            // ========== DOCUMENT REPOSITORY PERMISSIONS ==========
+            [
+                'group_name' => 'document',
+                'permissions' => [
+                    // CRUD Operations
+                    'document.create',
+                    'document.view',
+                    'document.edit',
+                    'document.delete',
+                    'document.publish',
+                    'document.unpublish',
+                    
+                    // Workflow & Management
+                    'document.approve',
+                    'document.review',
+                    'document.archive',
+                    'document.feature',
+                    'document.version',
+                    
+                    // Ownership-based permissions
+                    'document.view.own',
+                    'document.edit.own',
+                    'document.delete.own',
+                    
+                    // Analytics & Access
+                    'document.view.analytics',
+                    'document.manage.access',
+                    'document.bulk.operations',
+                ],
+            ],
+            [
+                'group_name' => 'document_category',
+                'permissions' => [
+                    'document_category.create',
+                    'document_category.view',
+                    'document_category.edit',
+                    'document_category.delete',
+                    'document_category.assign',
+                ],
+            ],
+            // ========== EDUCATIONAL RESOURCE HUB PERMISSIONS ==========
+            [
+                'group_name' => 'educational_resource',
+                'permissions' => [
+                    // CRUD Operations
+                    'educational_resource.create',
+                    'educational_resource.view',
+                    'educational_resource.edit',
+                    'educational_resource.delete',
+                    'educational_resource.publish',
+                    'educational_resource.unpublish',
+                    
+                    // Workflow & Management
+                    'educational_resource.approve',
+                    'educational_resource.review',
+                    'educational_resource.archive',
+                    'educational_resource.feature',
+                    
+                    // Ownership-based permissions
+                    'educational_resource.view.own',
+                    'educational_resource.edit.own',
+                    'educational_resource.delete.own',
+                    
+                    // Educational specific
+                    'educational_resource.track.completion',
+                    'educational_resource.view.analytics',
+                    'educational_resource.manage.access',
+                ],
+            ],
+            [
+                'group_name' => 'educational_category',
+                'permissions' => [
+                    'educational_category.create',
+                    'educational_category.view',
+                    'educational_category.edit',
+                    'educational_category.delete',
+                    'educational_category.assign',
+                ],
+            ],
         ];
 
         return $permissions;
