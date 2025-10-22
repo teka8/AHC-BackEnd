@@ -37,4 +37,15 @@ class PermissionController extends Controller
             'roles' => $this->permissionService->getRolesForPermission($permission),
         ]);
     }
+
+    public function toggleStatus(Permission $permission)
+    {
+        $this->authorize('update', $permission);
+        
+        $permission->update([
+            'is_active' => !($permission->is_active ?? true)
+        ]);
+        
+        return redirect()->back()->with('success', __('Permission status updated successfully'));
+    }
 }

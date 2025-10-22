@@ -120,12 +120,17 @@ if (! function_exists('get_post_status_class')) {
     function get_post_status_class(string $status): string
     {
         return match ($status) {
-            PostStatus::PUBLISHED->value => 'badge-success',
-            PostStatus::DRAFT->value => 'badge',
-            PostStatus::PENDING->value => 'badge-info',
-            PostStatus::SCHEDULED->value => 'badge-warning',
-            PostStatus::PRIVATE->value => 'badge-secondary',
-            default => ''
+            PostStatus::PUBLISHED->value => 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+            PostStatus::DRAFT->value => 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+            PostStatus::PENDING->value => 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+            PostStatus::SCHEDULED->value => 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+            PostStatus::PRIVATE->value => 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400',
+            'created' => 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+            'edited' => 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400',
+            'approved' => 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400',
+            'unpublished' => 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
+            'archived' => 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+            default => 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
         };
     }
 }
