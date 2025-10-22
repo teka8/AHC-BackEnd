@@ -252,4 +252,21 @@ class Document extends Model
     {
         return $this->tags ? $this->tags->pluck('name')->implode(', ') : '';
     }
+
+
+    /**
+     * Get preview URL
+     */
+    public function getPreviewUrlAttribute(): string
+    {
+        return route('admin.document.preview', $this->id);
+    }
+
+    /**
+     * Check if document can be previewed (PDF files)
+     */
+    public function getCanPreviewAttribute(): bool
+    {
+        return $this->file_extension === 'pdf';
+    }
 }
