@@ -80,6 +80,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::get('/posts/{postType}/{post}', [PostController::class, 'show'])->name('posts.show');
     Route::get('/posts/{postType}/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{postType}/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::patch('/posts/{postType}/{post}/status', [PostController::class, 'updateStatus'])->name('posts.update-status');
     Route::delete('/posts/{postType}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::delete('/posts/{postType}/delete/bulk-delete', [PostController::class, 'bulkDelete'])->name('posts.bulk-delete');
 
