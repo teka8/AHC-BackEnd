@@ -118,7 +118,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/upload-limits', [DocumentRepositoryController::class, 'getUploadLimits'])->name('upload-limits');
         
         // Additional routes you might want to add:
-        Route::get('/{id}/download', [DocumentRepositoryController::class, 'download'])->name('download');
         Route::get('/{id}/edit', [DocumentRepositoryController::class, 'edit'])->name('edit');
         Route::put('/{id}', [DocumentRepositoryController::class, 'update'])->name('update');
         Route::post('/{id}/publish', [DocumentRepositoryController::class, 'publish'])->name('publish');
@@ -133,6 +132,12 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::delete('/', [DocumentRepositoryController::class, 'bulkDelete'])->name('bulk-delete');
         Route::post('/{id}/restore', [DocumentRepositoryController::class, 'restore'])->name('restore');
         Route::delete('/{id}/force', [DocumentRepositoryController::class, 'forceDelete'])->name('force-delete');
+    
+        // Download routes
+        Route::get('/{id}/download', [DocumentRepositoryController::class, 'download'])->name('download');
+        Route::get('/{id}/preview', [DocumentRepositoryController::class, 'preview'])->name('preview');
+        Route::get('/{id}/stats', [DocumentRepositoryController::class, 'downloadStats'])->name('stats');
+        Route::post('/{id}/increment-download', [DocumentRepositoryController::class, 'incrementDownload'])->name('increment-download');
     });
 
     Route::prefix('education')->name('education.')->group(function () {
