@@ -100,10 +100,12 @@ class PermissionService
                     'post.view',
                     'post.edit',
                     'post.delete',
+                    'post.edit_status',
                     'term.create',
                     'term.view',
                     'term.edit',
                     'term.delete',
+                    ''
                 ],
             ],
             [
@@ -115,6 +117,7 @@ class PermissionService
                     'news.delete',
                     'news.approve',
                     'news.publish',
+                    ''
                 ],
             ],
             [

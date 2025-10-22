@@ -177,6 +177,15 @@ class PostDatatable extends Datatable
             'sortBy' => 'created_at',
         ];
 
+        if (auth()->user()->can('post.edit_status')) {
+            $headers[] = [
+                'id' => 'edit_status',
+                'title' => __('Edit Status'),
+                'width' => null,
+                'sortable' => false,
+            ];
+        }
+
         $headers[] = [
             'id' => 'actions',
             'title' => __('Actions'),
@@ -260,5 +269,32 @@ class PostDatatable extends Datatable
     public function renderCategoryColumn(Post $post): string|Renderable
     {
         return $post->categories->pluck('name')->map(fn ($name) => "<span class='badge'>" . ucfirst($name) . "</span>")->join(' ');
+    }
+
+    public function renderEditStatusColumn(Post $post): string|Renderable
+    {
+        if (!auth()->user()->can('post.edit_status')) {
+            return '';
+        }
+        
+        if ($post->status === 'created') {
+            return view('backend.pages.posts.partials.action-button-edit-status', compact('post'));
+        }
+        return '<span class="text-gray-400 text-sm">-</span>';
+    }
+
+    public function updatePostStatus($postId, $status)
+    {
+        if (!auth()->user()->can('post.edit_status')) {
+            abort(403);
+        }
+        
+        $post = Post::findOrFail($postId);
+        $post->update(['status' => $status]);
+        
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'message' => __('Post status updated successfully')
+        ]);
     }
 }

@@ -105,7 +105,7 @@ class PostService
             'content' => $data['content'] ?? '',
             'excerpt' => $data['excerpt'] ?? '',
             'post_type' => $data['post_type'] ?? 'post',
-            'status' => $data['status'] ?? PostStatus::DRAFT->value,
+            'status' => $data['status'] ?? PostStatus::CREATED->value,
             'published_at' => $data['published_at'] ?? null,
             'author_id' => $data['author_id'],
         ]);
