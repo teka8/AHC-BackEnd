@@ -43,12 +43,12 @@
                 ])
                 {!! Hook::applyFilters(DashboardFilterHook::DASHBOARD_CARDS_AFTER_PERMISSIONS, '') !!}
                 @include('backend.pages.dashboard.partials.card', [
-                    'icon' => 'heroicons:language',
+                    'icon' => 'lucide:newspaper',
                     'icon_bg' => '#22C55E',
-                    'label' => __('Translations'),
-                    'value' => $languages['total'] . ' / ' . $languages['active'],
+                    'label' => __('News'),
+                    'value' => $total_news, 
                     'class' => 'bg-white',
-                    'url' => route('admin.translations.index'),
+                    'url' => route('admin.posts.index', 'News'), 
                     'enable_full_div_click' => true,
                 ])
                 {!! Hook::applyFilters(DashboardFilterHook::DASHBOARD_CARDS_AFTER_TRANSLATIONS, '') !!}

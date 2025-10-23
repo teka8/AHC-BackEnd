@@ -11,92 +11,98 @@ use Carbon\Carbon;
 class PostChartService
 {
     /**
-     * Get post statistics for the chart
-     *
-     * @param  string  $period  The time period for the chart (last_6_months, last_12_months, this_year, etc.)
+     * Get post/news statistics for the chart
      */
     public function getPostActivityData(string $period = 'last_6_months'): array
     {
-        // Determine date range based on period
+        // Determine date range
         $dateRange = $this->getDateRangeFromPeriod($period);
         $startDate = $dateRange['start'];
         $endDate = $dateRange['end'];
         $interval = $dateRange['interval'];
 
-        // Initialize arrays for chart data
+        // Initialize arrays
         $labels = [];
+        $createdData = [];
+        $reviewedData = [];
+        $approvedData = [];
         $publishedData = [];
-        $draftData = [];
+        $archivedData = [];
 
-        // Generate data points based on interval
+        // Loop through each interval
         $currentDate = $startDate->copy();
         while ($currentDate <= $endDate) {
-            // Format label based on interval
             if ($interval === 'month') {
                 $labels[] = $currentDate->format('M Y');
                 $nextDate = $currentDate->copy()->addMonth();
 
-                // Count published posts for this month
-                $publishedCount = Post::where('status', PostStatus::PUBLISHED->value)
-                    ->whereYear('created_at', $currentDate->year)
-                    ->whereMonth('created_at', $currentDate->month)
-                    ->count();
-
-                // Count draft posts for this month
-                $draftCount = Post::where('status', PostStatus::DRAFT->value)
-                    ->whereYear('created_at', $currentDate->year)
-                    ->whereMonth('created_at', $currentDate->month)
-                    ->count();
+                $rangeStart = $currentDate->startOfMonth()->toDateTimeString();
+                $rangeEnd = $currentDate->endOfMonth()->toDateTimeString();
             } elseif ($interval === 'week') {
                 $weekEnd = $currentDate->copy()->addDays(6);
                 $labels[] = $currentDate->format('d M').' - '.$weekEnd->format('d M');
                 $nextDate = $currentDate->copy()->addWeek();
 
-                // Count published posts for this week
-                $publishedCount = Post::where('status', PostStatus::PUBLISHED->value)
-                    ->whereBetween('created_at', [
-                        $currentDate->startOfDay()->toDateTimeString(),
-                        $weekEnd->endOfDay()->toDateTimeString(),
-                    ])
-                    ->count();
-
-                // Count draft posts for this week
-                $draftCount = Post::where('status', PostStatus::DRAFT->value)
-                    ->whereBetween('created_at', [
-                        $currentDate->startOfDay()->toDateTimeString(),
-                        $weekEnd->endOfDay()->toDateTimeString(),
-                    ])
-                    ->count();
-            } else { // day
+                $rangeStart = $currentDate->startOfDay()->toDateTimeString();
+                $rangeEnd = $weekEnd->endOfDay()->toDateTimeString();
+            } else {
                 $labels[] = $currentDate->format('d M');
                 $nextDate = $currentDate->copy()->addDay();
 
-                // Count published posts for this day
-                $publishedCount = Post::where('status', PostStatus::PUBLISHED->value)
-                    ->whereDate('created_at', $currentDate->toDateString())
-                    ->count();
-
-                // Count draft posts for this day
-                $draftCount = Post::where('status', PostStatus::DRAFT->value)
-                    ->whereDate('created_at', $currentDate->toDateString())
-                    ->count();
+                $rangeStart = $currentDate->startOfDay()->toDateTimeString();
+                $rangeEnd = $currentDate->endOfDay()->toDateTimeString();
             }
 
+            // Count posts by status
+            $createdCount = Post::where('status', PostStatus::CREATED->value)
+                ->where('post_type', 'News')
+                ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+                ->count();
+
+           $reviewedCount = Post::where('post_type', 'News')
+    ->where(function($query) {
+        $query->where('status', PostStatus::REVIEWED->value)
+              ->orWhere('status', PostStatus::EDITED->value);
+    })
+    ->whereBetween('updated_at', [$rangeStart, $rangeEnd])
+    ->count();
+            $approvedCount = Post::where('status', PostStatus::APPROVED->value)
+                ->where('post_type', 'News')
+                ->whereBetween('updated_at', [$rangeStart, $rangeEnd])
+                ->count();
+
+            $publishedCount = Post::where('status', PostStatus::PUBLISHED->value)
+                ->where('post_type', 'News')
+                ->whereBetween('updated_at', [$rangeStart, $rangeEnd])
+                ->count();
+
+            $archivedCount = Post::where('status', PostStatus::ARCHIVED->value)
+                ->where('post_type', 'News')
+                ->whereBetween('updated_at', [$rangeStart, $rangeEnd])
+                ->count();
+
+            // Push data
+            $createdData[] = $createdCount;
+            $reviewedData[] = $reviewedCount;
+            $approvedData[] = $approvedCount;
             $publishedData[] = $publishedCount;
-            $draftData[] = $draftCount;
+            $archivedData[] = $archivedCount;
 
             $currentDate = $nextDate;
         }
 
         return [
             'labels' => $labels,
+            'created' => $createdData,
+            'reviewed' => $reviewedData,
+            'approved' => $approvedData,
             'published' => $publishedData,
-            'draft' => $draftData,
+            'archived' => $archivedData,
         ];
     }
 
     /**
-     * Get date range based on period string
+     * Get date range based on selected period
      */
     private function getDateRangeFromPeriod(string $period): array
     {
