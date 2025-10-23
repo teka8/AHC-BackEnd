@@ -239,6 +239,21 @@ class PostController extends Controller
         $post->status = $post->status === 'created' ? 'edited' : ($data['status'] ?? $post->status);
         $post->parent_id = $data['parent_id'] ?? null;
 
+        // Auto-change status from 'created' to 'edited' when post is updated
+        if ($post->status === 'created') {
+            $post->status = 'edited';
+        }
+
+        // Handle publish date.
+        if (isset($data['schedule_post']) && $data['schedule_post'] && !empty($data['published_at'])) {
+            $post->status = PostStatus::SCHEDULED->value;
+            $post->published_at = Carbon::parse($data['published_at']);
+        } elseif ($data['status'] === PostStatus::SCHEDULED->value && !empty($data['published_at'])) {
+            $post->published_at = Carbon::parse($data['published_at']);
+        } elseif ($data['status'] === PostStatus::PUBLISHED->value && !$post->published_at) {
+            $post->published_at = now();
+        }
+
         $post->save();
 
         $this->handlePostMeta($request, $post);
