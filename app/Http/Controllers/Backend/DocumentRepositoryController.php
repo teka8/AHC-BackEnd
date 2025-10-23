@@ -934,4 +934,270 @@ class DocumentRepositoryController extends Controller
     //         'limits' => $limits,
     //     ]);
     // }
+
+    /**
+     * Download the specified document.
+     */
+    public function download($id)
+    {
+        $document = Document::findOrFail($id);
+
+        // Check if user has permission to download based on access level
+        if (!$document->isAccessibleBy(Auth::user())) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('You do not have permission to download this document')
+                ], 403);
+            }
+            abort(403, __('You do not have permission to download this document'));
+        }
+
+        // Check if file exists
+        if (!\Storage::disk('public')->exists($document->file_path)) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Document file not found')
+                ], 404);
+            }
+            abort(404, __('Document file not found'));
+        }
+
+        try {
+            // Increment download count
+            $document->incrementDownloadCount();
+
+            // Log the download activity
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->performedOn($document)
+            //     ->withProperties([
+            //         'ip_address' => request()->ip(),
+            //         'user_agent' => request()->userAgent(),
+            //         'download_count' => $document->download_count + 1
+            //     ])
+            //     ->log('downloaded document: ' . $document->title);
+
+            // Create download log entry
+            \App\Models\DocumentAccessLog::create([
+                'document_id' => $document->id,
+                'user_id' => Auth::id(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'action' => 'download',
+                'referrer' => request()->header('referer')
+            ]);
+
+            // Get file path and set appropriate headers
+            $filePath = \Storage::disk('public')->path($document->file_path);
+            $fileName = $document->file_name;
+
+            // Set appropriate headers for download
+            $headers = [
+                'Content-Type' => $document->mime_type,
+                'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+                'Content-Length' => $document->file_size,
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
+            ];
+
+            return response()->download($filePath, $fileName, $headers);
+
+        } catch (\Exception $e) {
+            \Log::error('Document download failed: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'document_id' => $id,
+                'file_path' => $document->file_path ?? 'unknown',
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Failed to download document: ') . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', __('Failed to download document: ') . $e->getMessage());
+        }
+    }
+
+    /**
+     * Preview document (inline viewing)
+     */
+    public function preview($id)
+    {
+        $document = Document::findOrFail($id);
+
+        // Check if user has permission to view
+        if (!$document->isAccessibleBy(Auth::user())) {
+            abort(403, __('You do not have permission to view this document'));
+        }
+
+        // Only allow preview for PDF files
+        if ($document->file_extension !== 'pdf') {
+            return redirect()->route('admin.document.download', $id);
+        }
+
+        // Check if file exists
+        if (!\Storage::disk('public')->exists($document->file_path)) {
+            abort(404, __('Document file not found'));
+        }
+
+        try {
+            // Log the preview activity
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->performedOn($document)
+            //     ->withProperties([
+            //         'ip_address' => request()->ip(),
+            //         'user_agent' => request()->userAgent()
+            //     ])
+            //     ->log('previewed document: ' . $document->title);
+
+            // Create preview log entry
+            \App\Models\DocumentAccessLog::create([
+                'document_id' => $document->id,
+                'user_id' => Auth::id(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'action' => 'preview',
+                'referrer' => request()->header('referer')
+            ]);
+
+            // Increment view count (but not download count)
+            $document->incrementViewCount();
+
+            // Get file path and set appropriate headers for inline viewing
+            $filePath = \Storage::disk('public')->path($document->file_path);
+
+            $headers = [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $document->file_name . '"',
+                'Content-Length' => $document->file_size,
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
+            ];
+
+            return response()->file($filePath, $headers);
+
+        } catch (\Exception $e) {
+            \Log::error('Document preview failed: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', __('Failed to preview document: ') . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get document download statistics
+     */
+    public function downloadStats($id)
+    {
+        $document = Document::findOrFail($id);
+
+        $this->authorize('view', $document);
+
+        $stats = [
+            'total_downloads' => $document->download_count,
+            'total_views' => $document->view_count,
+            'recent_downloads' => $document->accessLogs()
+                ->where('action', 'download')
+                ->where('created_at', '>=', now()->subDays(30))
+                ->count(),
+            'download_trend' => $this->getDownloadTrend($document),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $stats
+        ]);
+    }
+
+    /**
+     * Get download trend data for charts
+     */
+    private function getDownloadTrend(Document $document)
+    {
+        $trend = $document->accessLogs()
+            ->where('action', 'download')
+            ->where('created_at', '>=', now()->subDays(30))
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        return $trend;
+    }
+
+    /**
+     * Increment download count via AJAX
+     */
+    public function incrementDownload($id)
+    {
+        $document = Document::findOrFail($id);
+
+        if (!$document->isAccessibleBy(Auth::user())) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Permission denied')
+            ], 403);
+        }
+
+        try {
+            $document->incrementDownloadCount();
+
+            // Log the download activity
+            \App\Models\DocumentAccessLog::create([
+                'document_id' => $document->id,
+                'user_id' => Auth::id(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'action' => 'download',
+                'referrer' => request()->header('referer')
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'download_count' => $document->download_count
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Download count increment failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to track download')
+            ], 500);
+        }
+    }
+
+    /**
+     * Increment view count via AJAX
+     */
+    public function incrementView($id)
+    {
+        $document = Document::findOrFail($id);
+
+        if (!$document->isAccessibleBy(Auth::user())) {
+            return response()->json(['success' => false], 403);
+        }
+
+        $document->incrementViewCount();
+
+        \App\Models\DocumentAccessLog::create([
+            'document_id' => $document->id,
+            'user_id' => Auth::id(),
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'action' => 'view',
+            'referrer' => request()->header('referer')
+        ]);
+
+        return response()->json(['success' => true]);
+    }
 }

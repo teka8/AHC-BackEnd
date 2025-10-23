@@ -344,18 +344,32 @@
                                             </td>
                                             <td class="table-td text-center">
                                                 <div class="flex items-center justify-center gap-2">
-                                                    <a href="{{ $document->download_url }}"
-                                                        class="text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
-                                                        title="{{ __('Download') }}"
-                                                        onclick="incrementDownloadCount({{ $document->id }})">
+                                                    <!-- Download Button -->
+                                                    <!-- Remove onclick attribute -->
+                                                    <a href="{{ route('admin.document.download', $document->id) }}"
+                                                    class="text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
+                                                    title="{{ __('Download') }}">
                                                         <iconify-icon icon="lucide:download" class="text-sm"></iconify-icon>
                                                     </a>
+
+                                                    <!-- Preview Button (only for PDFs) -->
+                                                    @if($document->can_preview)
+                                                    <a href="{{ route('admin.document.preview', $document->id) }}"
+                                                    target="_blank"
+                                                    class="text-green-400 hover:text-green-600 dark:hover:text-green-300"
+                                                    title="{{ __('Preview') }}"
+                                                    onclick="trackPreview({{ $document->id }})">
+                                                        <iconify-icon icon="lucide:eye" class="text-sm"></iconify-icon>
+                                                    </a>
+                                                    @else
                                                     <button
                                                         class="text-green-400 hover:text-green-600 dark:hover:text-green-300"
                                                         onclick="openPdfModal('{{ Storage::disk('public')->url($document->file_path) }}', '{{ $document->title }}')"
                                                         title="{{ __('Preview') }}">
                                                         <iconify-icon icon="lucide:eye" class="text-sm"></iconify-icon>
                                                     </button>
+                                                    @endif
+
                                                     @if (auth()->user()->can('document.edit'))
                                                         <a href="{{ route('admin.document.edit', $document->id) }}"
                                                             class="text-yellow-400 hover:text-yellow-600 dark:hover:text-yellow-300"
@@ -450,6 +464,9 @@
                 modal.classList.add('hidden');
                 modal.classList.remove('flex', 'items-center', 'justify-center');
             }
+
+            // Track download function - Call this when download link is clicked
+            
         </script>
     @endpush
 </x-layouts.backend-layout>

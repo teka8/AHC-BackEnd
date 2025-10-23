@@ -45,6 +45,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     // Permissions Routes.
     Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
     Route::get('/permissions/{permission}', [PermissionController::class, 'show'])->name('permissions.show');
+    Route::patch('/permissions/{permission}/toggle-status', [PermissionController::class, 'toggleStatus'])->name('permissions.toggle-status');
 
     // Modules Routes.
     Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
@@ -69,6 +70,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
 
     // Action Log Routes.
     Route::get('/action-log', [ActionLogController::class, 'index'])->name('actionlog.index');
+    
+    // Notification Routes.
+    Route::get('/notifications', [App\Http\Controllers\Backend\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/mark-all-read', [App\Http\Controllers\Backend\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::post('/notifications/read/{id}', [App\Http\Controllers\Backend\NotificationController::class, 'markAsRead'])->name('notifications.read');
 
     // Posts/Pages Routes - Dynamic post types.
     Route::get('/posts/{postType?}', [PostController::class, 'index'])->name('posts.index');
@@ -77,6 +83,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::get('/posts/{postType}/{post}', [PostController::class, 'show'])->name('posts.show');
     Route::get('/posts/{postType}/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{postType}/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::patch('/posts/{postType}/{post}/status', [PostController::class, 'updateStatus'])->name('posts.update-status');
     Route::delete('/posts/{postType}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::delete('/posts/{postType}/delete/bulk-delete', [PostController::class, 'bulkDelete'])->name('posts.bulk-delete');
 
@@ -119,7 +126,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/upload-limits', [DocumentRepositoryController::class, 'getUploadLimits'])->name('upload-limits');
 
         // Additional routes you might want to add:
-        Route::get('/{id}/download', [DocumentRepositoryController::class, 'download'])->name('download');
         Route::get('/{id}/edit', [DocumentRepositoryController::class, 'edit'])->name('edit');
         Route::put('/{id}', [DocumentRepositoryController::class, 'update'])->name('update');
         Route::post('/{id}/publish', [DocumentRepositoryController::class, 'publish'])->name('publish');
@@ -134,6 +140,12 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::delete('/', [DocumentRepositoryController::class, 'bulkDelete'])->name('bulk-delete');
         Route::post('/{id}/restore', [DocumentRepositoryController::class, 'restore'])->name('restore');
         Route::delete('/{id}/force', [DocumentRepositoryController::class, 'forceDelete'])->name('force-delete');
+    
+        // Download routes
+        Route::get('/{id}/download', [DocumentRepositoryController::class, 'download'])->name('download');
+        Route::get('/{id}/preview', [DocumentRepositoryController::class, 'preview'])->name('preview');
+        Route::get('/{id}/stats', [DocumentRepositoryController::class, 'downloadStats'])->name('stats');
+        Route::post('/{id}/increment-download', [DocumentRepositoryController::class, 'incrementDownload'])->name('increment-download');
     });
 
     Route::prefix('education')->name('education.')->group(function () {
@@ -183,10 +195,3 @@ Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.
 Route::get('/screenshot-login/{email}', [ScreenshotGeneratorLoginController::class, 'login'])->middleware('web')->name('screenshot.login');
 Route::get('/demo-preview', fn() => view('demo.preview'))->name('demo.preview');
 
-//notification Routes
-Route::post('/notifications/read/{id}', function ($id) {
-    $notification = auth()->user()->unreadNotifications()->findOrFail($id);
-    $notification->markAsRead();
-
-    return response()->noContent();
-})->middleware('auth')->name('notifications.read');

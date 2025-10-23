@@ -8,9 +8,12 @@ use App\Enums\Hooks\DatatableHook;
 use App\Enums\PostStatus;
 use App\Models\Post;
 use App\Models\Term;
+use App\Models\User;
+use App\Notifications\PostStatusChanged;
 use App\Services\Content\ContentService;
 use App\Services\Content\PostType;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Facades\Notification;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class PostDatatable extends Datatable
@@ -177,6 +180,15 @@ class PostDatatable extends Datatable
             'sortBy' => 'created_at',
         ];
 
+        if (auth()->user()->can('post.edit_status') || auth()->user()->can('post.archive') || auth()->user()->can('post.publish') || auth()->user()->can('post.unpublish') || auth()->user()->can('post.schedule')) {
+            $headers[] = [
+                'id' => 'post_actions',
+                'title' => __('Post Actions'),
+                'width' => null,
+                'sortable' => false,
+            ];
+        }
+
         $headers[] = [
             'id' => 'actions',
             'title' => __('Actions'),
@@ -246,7 +258,7 @@ class PostDatatable extends Datatable
         $html = "<span class='" . get_post_status_class($post->status) . "'>" . ucfirst($post->status) . "</span>";
 
         if ($post->status === PostStatus::SCHEDULED->value && ! empty($post->published_at)) {
-            $html .= " <br><small class='text-muted'>" . __('(Scheduled for :date)', ['date' => $post->published_at->format('M d, Y h:i A')]) . "</small>";
+            $html .= "<br><small class='text-xs text-gray-500 mt-1'>" . __('(Scheduled for :date)', ['date' => $post->published_at->format('M d, Y h:i A')]) . "</small>";
         }
 
         return $html;
@@ -260,5 +272,127 @@ class PostDatatable extends Datatable
     public function renderCategoryColumn(Post $post): string|Renderable
     {
         return $post->categories->pluck('name')->map(fn ($name) => "<span class='badge'>" . ucfirst($name) . "</span>")->join(' ');
+    }
+
+    public function renderPostActionsColumn(Post $post): string|Renderable
+    {
+        $actions = [];
+        
+        // Sequential workflow: created → edited → approved → published → unpublished → archived
+        switch ($post->status) {
+            case 'created':
+                // Mark as Edited is now handled in the edit page
+                break;
+                
+            case 'edited':
+                if (auth()->user()->can('post.approve')) {
+                    $actions[] = '<button wire:click="updatePostStatus(' . $post->id . ', \'approved\')" class="inline-flex items-center px-2 py-1 text-xs font-medium text-green-600 bg-green-50 border border-green-200 rounded hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 mr-1 mb-1"><iconify-icon icon="lucide:check-circle" class="w-3 h-3 mr-1"></iconify-icon>' . __('Approve') . '</button>';
+                }
+                break;
+                
+            case 'approved':
+                if (auth()->user()->can('post.publish') || auth()->user()->can('post.schedule')) {
+                    $actions[] = '<div class="relative inline-block" x-data="{ open: false }">';
+                    $actions[] = '<button @click="open = !open" class="inline-flex items-center px-2 py-1 text-xs font-medium text-green-600 bg-green-50 border border-green-200 rounded hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 mr-1 mb-1">';
+                    $actions[] = '<iconify-icon icon="lucide:send" class="w-3 h-3 mr-1"></iconify-icon>' . __('Publish') . '<iconify-icon icon="lucide:chevron-down" class="w-3 h-3 ml-1"></iconify-icon>';
+                    $actions[] = '</button>';
+                    $actions[] = '<div x-show="open" @click.away="open = false" class="absolute z-10 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg min-w-32">';
+                    
+                    if (auth()->user()->can('post.publish')) {
+                        $actions[] = '<button wire:click="updatePostStatus(' . $post->id . ', \'published\')" class="block w-full px-3 py-2 text-xs text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"><iconify-icon icon="lucide:send" class="w-3 h-3 mr-2"></iconify-icon>' . __('Publish Now') . '</button>';
+                    }
+                    
+                    if (auth()->user()->can('post.schedule')) {
+                        $actions[] = '<div class="px-3 py-2 border-t border-gray-200 dark:border-gray-700">';
+                        $actions[] = '<div class="text-xs text-gray-500 dark:text-gray-400 mb-2">' . __('Schedule for:') . '</div>';
+                        $actions[] = '<div class="flex gap-1 mb-2">';
+                        $actions[] = '<input type="date" wire:model="scheduledDate_' . $post->id . '" class="text-xs px-1 py-1 border rounded w-24" min="' . now()->format('Y-m-d') . '" value="' . now()->addDay()->format('Y-m-d') . '">';
+                        $actions[] = '<input type="time" wire:model="scheduledTime_' . $post->id . '" class="text-xs px-1 py-1 border rounded w-16" value="09:00">';
+                        $actions[] = '</div>';
+                        $actions[] = '<button wire:click="schedulePost(' . $post->id . ')" class="w-full text-xs px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"><iconify-icon icon="lucide:clock" class="w-3 h-3 mr-1"></iconify-icon>' . __('Schedule') . '</button>';
+                        $actions[] = '</div>';
+                    }
+                    
+                    $actions[] = '</div></div>';
+                }
+                break;
+                
+            case 'published':
+                if (auth()->user()->can('post.unpublish')) {
+                    $actions[] = '<button wire:click="updatePostStatus(' . $post->id . ', \'unpublished\')" class="inline-flex items-center px-2 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 mr-1 mb-1"><iconify-icon icon="lucide:eye-off" class="w-3 h-3 mr-1"></iconify-icon>' . __('Unpublish') . '</button>';
+                }
+                break;
+                
+            case 'unpublished':
+                if (auth()->user()->can('post.archive')) {
+                    $actions[] = '<button wire:click="updatePostStatus(' . $post->id . ', \'archived\')" class="inline-flex items-center px-2 py-1 text-xs font-medium text-orange-600 bg-orange-50 border border-orange-200 rounded hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800 mr-1 mb-1"><iconify-icon icon="lucide:archive" class="w-3 h-3 mr-1"></iconify-icon>' . __('Archive') . '</button>';
+                }
+                break;
+        }
+        
+        return empty($actions) ? '<span class="text-gray-400 text-sm">-</span>' : implode('', $actions);
+    }
+
+    public function updatePostStatus($postId, $status)
+    {
+        $post = Post::findOrFail($postId);
+        
+        // Check permissions and validate sequential workflow
+        switch ($status) {
+            case 'edited':
+                if (!auth()->user()->can('post.edit_status') || $post->status !== 'created') abort(403);
+                break;
+            case 'approved':
+                if (!auth()->user()->can('post.approve') || $post->status !== 'edited') abort(403);
+                break;
+            case 'published':
+                if (!auth()->user()->can('post.publish') || $post->status !== 'approved') abort(403);
+                break;
+            case 'unpublished':
+                if (!auth()->user()->can('post.unpublish') || $post->status !== 'published') abort(403);
+                break;
+            case 'archived':
+                if (!auth()->user()->can('post.archive') || $post->status !== 'unpublished') abort(403);
+                break;
+            default:
+                abort(403);
+        }
+        
+        $oldStatus = $post->status;
+        $post->update(['status' => $status]);
+        
+        // Notifications are handled by PostObserver
+        
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'message' => __('Post status updated successfully')
+        ]);
+    }
+    
+    public function schedulePost($postId)
+    {
+        $post = Post::findOrFail($postId);
+        
+        if (!auth()->user()->can('post.schedule') || $post->status !== 'approved') {
+            abort(403);
+        }
+        
+        $dateProperty = 'scheduledDate_' . $postId;
+        $timeProperty = 'scheduledTime_' . $postId;
+        
+        $scheduledDate = $this->$dateProperty ?? now()->addDay()->format('Y-m-d');
+        $scheduledTime = $this->$timeProperty ?? '09:00';
+        
+        $scheduledDateTime = $scheduledDate . ' ' . $scheduledTime;
+        
+        $post->update([
+            'status' => 'scheduled',
+            'published_at' => $scheduledDateTime
+        ]);
+        
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'message' => __('Post scheduled successfully for :date', ['date' => $scheduledDateTime])
+        ]);
     }
 }

@@ -32,52 +32,65 @@
         </x-tooltip>
     @endif
 
-    @if (env('GITHUB_LINK'))
-        <x-tooltip title="{{ __('Notification') }}" position="bottom">
-            <a href="#"
+    <!-- Notifications -->
+    <div class="relative" x-data="{ notificationOpen: false }" @click.outside="notificationOpen = false">
+            <button @click="notificationOpen = !notificationOpen"
                 class="hover:text-dark-900 relative flex p-2 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
-                <iconify-icon id="notification-bell" icon="lucide:bell" width="22" height="22"
-                    class=""></iconify-icon>
-            </a>
-            <span id="notification-count" class="absolute top-0 right-0 text-black text-xs px-1.5 rounded-full">
-                {{ auth()->user()->unreadNotifications->count() }}
-            </span>
-        </x-tooltip>
-    @endif
-    <div id="notification-wrapper">
-        <div id="notification-dropdown"
-            class="hidden absolute right-0 mt-10 top-4 w-80 bg-white shadow-lg rounded-md z-50">
-            @forelse(auth()->user()->unreadNotifications as $notification)
-                <a href="#"
-                    onclick="markAsReadAndRedirect('{{ $notification->id }}', '{{ route('admin.posts.edit', ['postType' => $notification->data['post_type'], 'post' => $notification->data['news_id']]) }}')"
-                    class="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
-                    {{ $notification->data['message'] }}
-                </a>
-            @empty
-                <div class="px-4 py-2 text-sm text-gray-500">No new notifications.</div>
-            @endforelse
+                <iconify-icon icon="lucide:bell" width="22" height="22"></iconify-icon>
+                @if(auth()->user()->unreadNotifications->count() > 0)
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {{ auth()->user()->unreadNotifications->count() }}
+                    </span>
+                @endif
+            </button>
+        
+        <div x-show="notificationOpen" x-transition
+            class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 shadow-lg rounded-md border border-gray-200 dark:border-gray-700 z-50">
+            <div class="p-3 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-sm font-medium text-gray-900 dark:text-white">{{ __('Notifications') }}</h3>
+                        @if(auth()->user()->unreadNotifications->count() > 0)
+                            <span class="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                                {{ auth()->user()->unreadNotifications->count() }}
+                            </span>
+                        @endif
+                    </div>
+                    <a href="{{ route('admin.notifications.index') }}" class="text-xs text-blue-600 hover:text-blue-500">
+                        {{ __('View All') }}
+                    </a>
+                </div>
+            </div>
+            <div class="max-h-64 overflow-y-auto">
+                @forelse(auth()->user()->unreadNotifications->take(5) as $notification)
+                    <a href="#"
+                        onclick="markAsReadAndRedirect('{{ $notification->id }}', '{{ route('admin.posts.edit', ['postType' => $notification->data['post_type'], 'post' => $notification->data['news_id']]) }}')"
+                        class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0">
+                        <div class="flex items-start gap-3">
+                            <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-900 dark:text-white truncate">
+                                    {{ $notification->data['message'] }}
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {{ $notification->created_at->diffForHumans() }}
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                @empty
+                    <div class="px-4 py-6 text-center">
+                        <iconify-icon icon="lucide:bell-off" class="w-8 h-8 text-gray-400 mx-auto mb-2"></iconify-icon>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('No new notifications') }}</p>
+                    </div>
+                @endforelse
+            </div>
         </div>
     </div>
 
     <script>
-        const bell = document.getElementById('notification-bell');
-        const dropdown = document.getElementById('notification-dropdown');
-        const wrapper = document.getElementById('notification-wrapper');
-
-        bell.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dropdown.classList.toggle('hidden');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!wrapper.contains(e.target)) {
-                dropdown.classList.add('hidden');
-            }
-        });
-    </script>
-    <script>
         function markAsReadAndRedirect(notificationId, redirectUrl) {
-            fetch(`/notifications/read/${notificationId}`, {
+            fetch(`{{ url('admin/notifications/read') }}/${notificationId}`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -88,11 +101,11 @@
                     window.location.href = redirectUrl;
                 } else {
                     console.error('Failed to mark as read');
-                    window.location.href = redirectUrl; // Still redirect on failure
+                    window.location.href = redirectUrl;
                 }
             }).catch(error => {
                 console.error('Error:', error);
-                window.location.href = redirectUrl; // Still redirect on error
+                window.location.href = redirectUrl;
             });
         }
     </script>
