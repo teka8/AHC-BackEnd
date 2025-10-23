@@ -31,11 +31,12 @@ class Event extends Model implements SpatieHasMedia
         'event_type',
         'target_audience',
         'status',
-        'image_url',
+        'event_image',
         'is_archived',
         'created_by',
         'approved_by',
         'reviewed_by',
+        'published_by',
         'archived_by',
         'attachments',
     ];
@@ -58,11 +59,33 @@ class Event extends Model implements SpatieHasMedia
 
         $this->addMediaCollection('attachments')
             ->acceptsMimeTypes([
-                'application/pdf',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 'image/jpeg',
-                'image/png'
+                'image/png',
+
+                'application/pdf',
+                'application/msword', // .doc
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+                'application/rtf',
+
+                // Spreadsheets
+                'application/vnd.ms-excel', // .xls
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+                'text/csv',
+                'text/plain',
+
+                // Presentations
+                'application/vnd.ms-powerpoint', // .ppt
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+
+                // Archives
+                'application/zip',
+                'application/x-7z-compressed',
+                'application/x-rar-compressed',
+                'application/x-tar',
+                'application/x-gzip',
+
+                
+
             ]);
     }
 
