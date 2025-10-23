@@ -157,7 +157,7 @@
                                 class="absolute top-full right-0 z-10 w-48 p-2 bg-white rounded-md shadow-lg dark:bg-gray-700 mt-2">
                                 <ul class="space-y-2">
                                     <li>
-                                        <a href="{{ route('admin.document.index', array_merge(request()->query(), ['type' => null])) }}"
+                                        <a href="{{ route('admin.others.index', array_merge(request()->query(), ['type' => null])) }}"
                                             @click="typeDropdownOpen = false"
                                             class="cursor-pointer flex items-center gap-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-400 hover:opacity-80 px-2 py-1.5 rounded transition-colors duration-300 {{ !request('type') ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
                                             <iconify-icon icon="lucide:layers"
@@ -167,7 +167,7 @@
                                     </li>
                                     @foreach ($documentTypes as $type)
                                         <li>
-                                            <a href="{{ route('admin.document.index', array_merge(request()->query(), ['type' => $type])) }}"
+                                            <a href="{{ route('admin.others.index', array_merge(request()->query(), ['type' => $type])) }}"
                                                 @click="typeDropdownOpen = false"
                                                 class="cursor-pointer flex items-center gap-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 px-2 py-1.5 rounded transition-colors duration-300 {{ request('type') === $type ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
                                                 <iconify-icon icon="lucide:file-text"
@@ -206,7 +206,7 @@
                                 class="absolute top-full right-0 z-10 w-48 p-2 bg-white rounded-md shadow-lg dark:bg-gray-700 mt-2">
                                 <ul class="space-y-2">
                                     <li>
-                                        <a href="{{ route('admin.document.index', array_merge(request()->query(), ['category' => null])) }}"
+                                        <a href="{{ route('admin.others.index', array_merge(request()->query(), ['category' => null])) }}"
                                             @click="categoryDropdownOpen = false"
                                             class="cursor-pointer flex items-center gap-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-400 hover:opacity-80 px-2 py-1.5 rounded transition-colors duration-300 {{ !request('category') ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
                                             <iconify-icon icon="lucide:layers"
@@ -216,7 +216,7 @@
                                     </li>
                                     @foreach ($categories as $category)
                                         <li>
-                                            <a href="{{ route('admin.document.index', array_merge(request()->query(), ['category' => $category->name])) }}"
+                                            <a href="{{ route('admin.others.index', array_merge(request()->query(), ['category' => $category->name])) }}"
                                                 @click="categoryDropdownOpen = false"
                                                 class="cursor-pointer flex items-center gap-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 px-2 py-1.5 rounded transition-colors duration-300 {{ request('category') === $category->name ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
                                                 <iconify-icon icon="lucide:folder"
@@ -229,7 +229,7 @@
                             </div>
                         </div>
 
-                        @if (auth()->user()->can('educational_resource.create'))
+                        @if (auth()->user()->can('others.create'))
                             <button @click="uploadModalOpen = true" class="btn-primary flex items-center gap-2">
                                 <iconify-icon icon="lucide:upload" height="16"></iconify-icon>
                                 {{ __('Upload File') }}
@@ -409,7 +409,7 @@
                                     class="text-6xl text-gray-300 dark:text-gray-600 mb-4 mx-auto"></iconify-icon>
                                 <p class="text-gray-500 dark:text-gray-400 mb-4">{{ __('No documents found') }}</p>
 
-                                @if (auth()->user()->can('educational_resource.create'))
+                                @if (auth()->user()->can('others.create'))
                                     <div class="flex justify-center">
                                         <button @click="uploadModalOpen = true"
                                             class="btn-primary flex items-center gap-2">

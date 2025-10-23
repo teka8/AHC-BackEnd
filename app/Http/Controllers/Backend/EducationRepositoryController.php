@@ -40,21 +40,46 @@ class EducationRepositoryController extends Controller
         ];
 
         // Get documents with search, filter, and pagination
+        // Map UI type labels to enum values stored in DB
+        $typeMap = [
+            'Curriculum Materials' => EducationalResource::TYPE_TEACHING_GUIDE,
+            'Teaching Modules' => EducationalResource::TYPE_INTERACTIVE_MODULE,
+            'Educational Videos' => EducationalResource::TYPE_VIDEO,
+            'Podcasts' => EducationalResource::TYPE_PODCAST,
+            'Interactive Learning Formats' => EducationalResource::TYPE_INTERACTIVE_MODULE,
+            'Lesson Plans' => EducationalResource::TYPE_LESSON_PLAN,
+        ];
+        $allowedTypes = [
+            EducationalResource::TYPE_VIDEO,
+            EducationalResource::TYPE_PODCAST,
+            EducationalResource::TYPE_INTERACTIVE_MODULE,
+            EducationalResource::TYPE_LESSON_PLAN,
+            EducationalResource::TYPE_TEACHING_GUIDE,
+            EducationalResource::TYPE_PRESENTATION,
+            EducationalResource::TYPE_CASE_STUDY,
+            EducationalResource::TYPE_SIMULATION,
+            EducationalResource::TYPE_OTHER,
+        ];
+
         $query = EducationalResource::with(['creator', 'tags'])
             ->when($request->get('search'), function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
-                        ->orWhere('author', 'like', "%{$search}%")
-                        ->orWhere('abstract', 'like', "%{$search}%")
-                        ->orWhere('document_type', 'like', "%{$search}%")
-                        ->orWhere('category', 'like', "%{$search}%");
+                        ->orWhere('creator', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('resource_type', 'like', "%{$search}%")
+                        ->orWhere('subject_area', 'like', "%{$search}%");
                 });
             })
-            ->when($request->get('type'), function ($query, $type) {
-                return $query->where('document_type', $type);
+            ->when($request->get('type'), function ($query, $type) use ($typeMap, $allowedTypes) {
+                $mapped = $typeMap[$type] ?? (in_array($type, $allowedTypes, true) ? $type : null);
+                if ($mapped) {
+                    return $query->where('resource_type', $mapped);
+                }
+                return $query;
             })
             ->when($request->get('category'), function ($query, $category) {
-                return $query->where('category', $category);
+                return $query->where('subject_area', $category);
             })
             ->when($request->get('status'), function ($query, $status) {
                 return $query->where('status', $status);

@@ -44,17 +44,17 @@ class OthersController extends Controller
             ->when($request->get('search'), function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
-                        ->orWhere('author', 'like', "%{$search}%")
-                        ->orWhere('abstract', 'like', "%{$search}%")
-                        ->orWhere('document_type', 'like', "%{$search}%")
-                        ->orWhere('category', 'like', "%{$search}%");
+                        ->orWhere('creator', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('resource_type', 'like', "%{$search}%")
+                        ->orWhere('subject_area', 'like', "%{$search}%");
                 });
             })
             ->when($request->get('type'), function ($query, $type) {
-                return $query->where('document_type', $type);
+                return $query->where('resource_type', $type);
             })
             ->when($request->get('category'), function ($query, $category) {
-                return $query->where('category', $category);
+                return $query->where('subject_area', $category);
             })
             ->when($request->get('status'), function ($query, $status) {
                 return $query->where('status', $status);

@@ -156,19 +156,19 @@ class PermissionService
                     'document.delete',
                     'document.publish',
                     'document.unpublish',
-                    
+
                     // Workflow & Management
                     'document.approve',
                     'document.review',
                     'document.archive',
                     'document.feature',
                     'document.version',
-                    
+
                     // Ownership-based permissions
                     'document.view.own',
                     'document.edit.own',
                     'document.delete.own',
-                    
+
                     // Analytics & Access
                     'document.view.analytics',
                     'document.manage.access',
@@ -196,32 +196,72 @@ class PermissionService
                     'educational_resource.delete',
                     'educational_resource.publish',
                     'educational_resource.unpublish',
-                    
+
                     // Workflow & Management
                     'educational_resource.approve',
                     'educational_resource.review',
                     'educational_resource.archive',
                     'educational_resource.feature',
-                    
+
                     // Ownership-based permissions
                     'educational_resource.view.own',
                     'educational_resource.edit.own',
                     'educational_resource.delete.own',
-                    
+
                     // Educational specific
                     'educational_resource.track.completion',
                     'educational_resource.view.analytics',
                     'educational_resource.manage.access',
                 ],
             ],
+
+            //Others rsources permissions
             [
-                'group_name' => 'educational_category',
+                'group_name' => 'others_category',
                 'permissions' => [
-                    'educational_category.create',
-                    'educational_category.view',
-                    'educational_category.edit',
-                    'educational_category.delete',
-                    'educational_category.assign',
+                    'others_category.create',
+                    'others_category.view',
+                    'others_category.edit',
+                    'others_category.delete',
+                    'others_category.assign',
+                ],
+            ],
+            [
+                'group_name' => 'others',
+                'permissions' => [
+                    // CRUD Operations
+                    'others.create',
+                    'others.view',
+                    'others.edit',
+                    'others.delete',
+                    'others.publish',
+                    'others.unpublish',
+
+                    // Workflow & Management
+                    'others.approve',
+                    'others.review',
+                    'others.archive',
+                    'others.feature',
+
+                    // Ownership-based permissions
+                    'others.view.own',
+                    'others.edit.own',
+                    'others.delete.own',
+
+                    // Educational specific
+                    'others.track.completion',
+                    'others.view.analytics',
+                    'others.manage.access',
+                ],
+            ],
+            [
+                'group_name' => 'others_category',
+                'permissions' => [
+                    'others.create',
+                    'others.view',
+                    'others.edit',
+                    'others.delete',
+                    'others.assign',
                 ],
             ],
         ];

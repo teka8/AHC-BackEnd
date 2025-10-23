@@ -14,7 +14,7 @@ class OthersPolicy extends BasePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $this->checkPermission($user, 'educational_resource.view');
+        return $this->checkPermission($user, 'others.view');
     }
 
     /**
@@ -23,8 +23,8 @@ class OthersPolicy extends BasePolicy
     public function view(User $user, EducationalResource $document): bool
     {
         // Users can view if they have general view permission OR own educational hub document view permission
-        $canView = $this->checkPermission($user, 'educational_resource.view') ||
-            ($this->checkPermission($user, 'educational_resource.view.own') && $document->created_by === $user->id);
+        $canView = $this->checkPermission($user, 'others.view') ||
+            ($this->checkPermission($user, 'others.view.own') && $document->created_by === $user->id);
 
         // Additionally check access level restrictions
         if ($canView) {
@@ -39,7 +39,7 @@ class OthersPolicy extends BasePolicy
      */
     public function create(User $user): bool
     {
-        return $this->checkPermission($user, 'educational_resource.create');
+        return $this->checkPermission($user, 'others.create');
     }
 
     /**
@@ -48,15 +48,15 @@ class OthersPolicy extends BasePolicy
     public function update(User $user, EducationalResource $document): bool
     {
         // Users can update if they have general edit permission OR own document edit permission
-        $canUpdate = $this->checkPermission($user, 'educational_resource.edit') ||
-            ($this->checkPermission($user, 'educational_resource.edit.own') && $document->created_by === $user->id);
+        $canUpdate = $this->checkPermission($user, 'others.edit') ||
+            ($this->checkPermission($user, 'others.edit.own') && $document->created_by === $user->id);
 
         // Additionally check if document is in a state that can be edited
         if ($canUpdate) {
             return in_array($document->status, [
                 EducationalResource::STATUS_DRAFT,
                 EducationalResource::STATUS_UNDER_REVIEW
-            ]) || $this->checkPermission($user, 'educational_resource.edit'); // Admins can edit any status
+            ]) || $this->checkPermission($user, 'others.edit'); // Admins can edit any status
         }
 
         return false;
@@ -64,8 +64,8 @@ class OthersPolicy extends BasePolicy
 
     public function delete(User $user, EducationalResource $document)
     {
-        return $user->hasPermission('educational_resource.delete') ||
-            ($user->hasPermission('educational_resource.delete.own') && $document->created_by === $user->id);
+        return $user->hasPermission('others.delete') ||
+            ($user->hasPermission('others.delete.own') && $document->created_by === $user->id);
     }
 
     public function forceDelete(User $user, EducationalResource $document)
@@ -76,7 +76,7 @@ class OthersPolicy extends BasePolicy
 
     public function restore(User $user, EducationalResource $document)
     {
-        return $user->hasPermission('educational_resource.delete') || $user->hasRole('super_admin');
+        return $user->hasPermission('others.delete') || $user->hasRole('super_admin');
     }
 
 
@@ -86,7 +86,7 @@ class OthersPolicy extends BasePolicy
      */
     public function bulkDelete(User $user): bool
     {
-        return $this->checkPermission($user, 'educational_resource.delete');
+        return $this->checkPermission($user, 'others.delete');
     }
 
     /**
@@ -94,7 +94,7 @@ class OthersPolicy extends BasePolicy
      */
     public function publish(User $user, EducationalResource $document): bool
     {
-        return $this->checkPermission($user, 'educational_resource.publish') &&
+        return $this->checkPermission($user, 'others.publish') &&
             $document->status === EducationalResource::STATUS_APPROVED;
     }
 
@@ -103,7 +103,7 @@ class OthersPolicy extends BasePolicy
      */
     public function approve(User $user, EducationalResource $document): bool
     {
-        return $this->checkPermission($user, 'educational_resource.approve') &&
+        return $this->checkPermission($user, 'others.approve') &&
             $document->status === EducationalResource::STATUS_UNDER_REVIEW;
     }
 
@@ -112,7 +112,7 @@ class OthersPolicy extends BasePolicy
      */
     public function review(User $user, EducationalResource $document): bool
     {
-        return $this->checkPermission($user, 'educational_resource.review') &&
+        return $this->checkPermission($user, 'others.review') &&
             $document->status === EducationalResource::STATUS_DRAFT;
     }
 
@@ -121,7 +121,7 @@ class OthersPolicy extends BasePolicy
      */
     public function feature(User $user, EducationalResource $document): bool
     {
-        return $this->checkPermission($user, 'educational_resource.feature') &&
+        return $this->checkPermission($user, 'others.feature') &&
             $document->status === EducationalResource::STATUS_PUBLISHED;
     }
 
@@ -130,7 +130,7 @@ class OthersPolicy extends BasePolicy
      */
     public function archive(User $user, EducationalResource $document): bool
     {
-        return $this->checkPermission($user, 'educational_resource.archive') &&
+        return $this->checkPermission($user, 'others.archive') &&
             in_array($document->status, [
                 EducationalResource::STATUS_PUBLISHED,
                 EducationalResource::STATUS_APPROVED
@@ -152,9 +152,9 @@ class OthersPolicy extends BasePolicy
      */
     public function manageCategories(User $user): bool
     {
-        return $this->checkPermission($user, 'educational_category.create') ||
-            $this->checkPermission($user, 'educational_category.edit') ||
-            $this->checkPermission($user, 'educational_category.delete');
+        return $this->checkPermission($user, 'others_category.create') ||
+            $this->checkPermission($user, 'others_category.edit') ||
+            $this->checkPermission($user, 'others_category.delete');
     }
 
     /**
@@ -162,7 +162,7 @@ class OthersPolicy extends BasePolicy
      */
     public function viewAnalytics(User $user): bool
     {
-        return $this->checkPermission($user, 'educational_resource.view.analytics');
+        return $this->checkPermission($user, 'others.view.analytics');
     }
 
     /**
@@ -170,7 +170,7 @@ class OthersPolicy extends BasePolicy
      */
     public function bulkOperations(User $user): bool
     {
-        return $this->checkPermission($user, 'educational_resource.bulk.operations');
+        return $this->checkPermission($user, 'others.bulk.operations');
     }
 
     /**
@@ -178,7 +178,7 @@ class OthersPolicy extends BasePolicy
      */
     public function manageAccess(User $user, EducationalResource $document): bool
     {
-        return $this->checkPermission($user, 'educational_resource.manage.access');
+        return $this->checkPermission($user, 'others.manage.access');
     }
 
     /**
@@ -186,7 +186,7 @@ class OthersPolicy extends BasePolicy
      */
     public function updateVersion(User $user, EducationalResource $document): bool
     {
-        return $this->checkPermission($user, 'educational_resource.version') &&
+        return $this->checkPermission($user, 'others.version') &&
             $this->update($user, $document);
     }
 }
