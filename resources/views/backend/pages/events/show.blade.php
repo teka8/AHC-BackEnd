@@ -2,43 +2,47 @@
     {!! Hook::applyFilters(\App\Enums\Hooks\EventFilterHook::EVENTS_SHOW_AFTER_BREADCRUMBS, '', \App\Models\Event::class) !!}
 
     <div class="space-y-6">
-        <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-            <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between items-center border-b border-gray-100 dark:border-gray-800">
-                <h3 class="text-base font-medium text-gray-700 dark:text-white/90">{{ __('Event Details') }}</h3>
+        <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] shadow-sm">
+
+            {{-- Header --}}
+            <div
+                class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between items-center border-b border-gray-100 dark:border-gray-800">
+                <h3 class="text-lg font-semibold text-gray-700 dark:text-white/90">{{ __('Event Details') }}</h3>
                 <div class="flex gap-2">
                     @can('update', $event)
-                        <a href="{{ route('admin.events.edit', $event->id) }}" class="btn-primary">
+                        <a href="{{ route('admin.events.edit', $event->id) }}" class="btn-primary flex items-center">
                             <iconify-icon icon="lucide:pencil" class="mr-2"></iconify-icon>
                             {{ __('Edit') }}
                         </a>
                     @endcan
-                    <a href="{{ route('admin.events.index') }}" class="btn-default">
+                    <a href="{{ route('admin.events.index') }}" class="btn-default flex items-center">
                         <iconify-icon icon="lucide:arrow-left" class="mr-2"></iconify-icon>
                         {{ __('Back') }}
                     </a>
                 </div>
             </div>
 
-            <div class="px-5 py-4 sm:px-6 sm:py-5">
-                {{-- Meta --}}
-                <div class="mb-6 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-300">
-                
+            {{-- Meta info --}}
+            <div class="px-5 py-4 sm:px-6 sm:py-5 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
 
-                    <div class="flex items-center">
-                        <iconify-icon icon="lucide:calendar" class="mr-1"></iconify-icon>
-                        <span>{{ __('Event Date:') }}</span>
-                        <span class="ml-1 text-gray-700 dark:text-white/90">
+                    {{-- Event Date --}}
+                    <div class="flex items-center gap-2">
+                        <iconify-icon icon="lucide:calendar" class="text-gray-500"></iconify-icon>
+                        <span class="font-medium">{{ __('Event Date:') }}</span>
+                        <span class="ml-auto text-gray-700 dark:text-white/90">
                             {{ $event->event_date ? $event->event_date->format('M d, Y') : '—' }}
                         </span>
                     </div>
 
-                    <div class="flex items-center">
-                        <iconify-icon icon="lucide:clock" class="mr-1"></iconify-icon>
-                        <span>{{ __('Time:') }}</span>
-                        <span class="ml-1 text-gray-700 dark:text-white/90">
-                            @if($event->start_time)
+                    {{-- Event Time --}}
+                    <div class="flex items-center gap-2">
+                        <iconify-icon icon="lucide:clock" class="text-gray-500"></iconify-icon>
+                        <span class="font-medium">{{ __('Time:') }}</span>
+                        <span class="ml-auto text-gray-700 dark:text-white/90">
+                            @if ($event->start_time)
                                 {{ \Carbon\Carbon::createFromFormat('H:i:s', $event->start_time)->format('h:i A') }}
-                                @if($event->end_time)
+                                @if ($event->end_time)
                                     — {{ \Carbon\Carbon::createFromFormat('H:i:s', $event->end_time)->format('h:i A') }}
                                 @endif
                             @else
@@ -47,136 +51,146 @@
                         </span>
                     </div>
 
-                    <div class="flex items-center">
-                        <iconify-icon icon="lucide:tag" class="mr-1"></iconify-icon>
-                        {{ __('Status:') }}
-                        <span class="ml-1 {{ function_exists('get_post_status_class') ? get_post_status_class($event->status) : 'badge' }}">{{ ucfirst($event->status) }}</span>
+                    {{-- Status --}}
+                    <div class="flex items-center gap-2">
+                        <iconify-icon icon="lucide:tag" class="text-gray-500"></iconify-icon>
+                        <span class="font-medium">{{ __('Status:') }}</span>
+                        <span
+                            class="ml-auto px-2 py-1 text-xs rounded {{ function_exists('get_post_status_class') ? get_post_status_class($event->status) : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white' }}">
+                            {{ ucfirst($event->status ?? '—') }}
+                        </span>
                     </div>
 
-                    @if($event->location)
-                        <div class="flex items-center">
-                            <iconify-icon icon="lucide:map-pin" class="mr-1"></iconify-icon>
-                            <span class="ml-1 text-gray-700 dark:text-white/90">{{ Str::limit($event->location, 80) }}</span>
-                        </div>
-                    @endif
-
-                    @if($event->registration_link)
-                        <div class="flex items-center">
-                            <iconify-icon icon="lucide:link" class="mr-1"></iconify-icon>
-                            <a href="{{ $event->registration_link }}" target="_blank" class="text-primary hover:underline ml-1">
-                                {{ __('Registration Link') }}
-                            </a>
+                    {{-- Registration Link --}}
+                    @if($event->register_on_site == 0)
+                        <div class="flex items-center gap-2">
+                            <iconify-icon icon="lucide:link" class="text-gray-500"></iconify-icon>
+                            <span class="font-medium">{{ __('Registration Link:') }}</span>
+                            @if ($event->registration_link)
+                                <a href="{{ $event->registration_link }}" target="_blank"
+                                    class="ml-auto text-primary hover:underline">
+                                    {{ __('Register Here') }}
+                                </a>
+                            @else
+                                <span class="ml-auto text-gray-700 dark:text-white/90">—</span>
+                            @endif
                         </div>
                     @endif
                 </div>
 
-                {{-- Featured image (media or url) --}}
+                {{-- Featured Image --}}
                 @php
-                    $featuredUrl = null;
-                    try {
-                        if (method_exists($event, 'getFirstMediaUrl')) {
-                            $mediaUrl = $event->getFirstMediaUrl('featured');
-                            if (!empty($mediaUrl)) {
-                                $featuredUrl = $mediaUrl;
-                            }
+                    $featuredUrl = $event->image_url ?? asset('images/default-event.png');
+                    if (method_exists($event, 'getFirstMediaUrl')) {
+                        $mediaUrl = $event->getFirstMediaUrl('featured');
+                        if (!empty($mediaUrl)) {
+                            $featuredUrl = $mediaUrl;
                         }
-                    } catch (\Throwable $e) {
-                        $featuredUrl = null;
-                    }
-                    if (!$featuredUrl) {
-                        $featuredUrl = $event->image_url;
                     }
                 @endphp
 
-                @if($featuredUrl)
-                    <div class="mb-6">
-                        <img src="{{ $featuredUrl }}" alt="{{ $event->title }}" class="max-h-64 rounded-md w-full object-cover">
+                @if ($event->image_url ?? false)
+                    <div class="mt-4">
+                        <img src="{{ $featuredUrl }}" alt="{{ $event->title }}"
+                            class="w-full max-h-64 object-cover rounded-md shadow-sm">
                     </div>
                 @endif
 
-                {{-- Short info panel --}}
-                <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded">
+                {{-- Short Info Panel --}}
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
                         <div class="text-sm text-gray-500">{{ __('Category') }}</div>
                         <div class="font-medium text-gray-800 dark:text-white mt-1">{{ $event->category ?? '—' }}</div>
                     </div>
-                    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded">
+                    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
                         <div class="text-sm text-gray-500">{{ __('Type') }}</div>
-                        <div class="font-medium text-gray-800 dark:text-white mt-1">{{ ucfirst($event->event_type ?? '—') }}</div>
+                        <div class="font-medium text-gray-800 dark:text-white mt-1">
+                            {{ ucfirst($event->event_type ?? '—') }}</div>
                     </div>
-                    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded">
+                    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
                         <div class="text-sm text-gray-500">{{ __('Cost') }}</div>
                         <div class="font-medium text-gray-800 dark:text-white mt-1">
-                            {{ $event->cost_amount !== null ? number_format($event->cost_amount, 2) . ' ETB' : __('Free / Not set') }}
+                            {{ $event->cost_amount !== null ? number_format($event->cost_amount, 2) . ' ETB' : __('Free') }}
+                        </div>
+                    </div>
+                    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
+                        <div class="text-sm text-gray-500">{{ __('Target Audience') }}</div>
+                        <div class="font-medium text-gray-800 dark:text-white mt-1">
+                            {{ $event->target_audience ?? '—' }}
                         </div>
                     </div>
                 </div>
 
-                {{-- Description --}}
-                @if($event->description)
-                    <div class="mb-6">
-                        <h4 class="text-lg font-medium text-gray-700 dark:text-white/90 mb-2">{{ __('Description') }}</h4>
-                        <div class="prose max-w-none dark:prose-invert">
-                            {!! $event->description !!}
+                {{-- Location & Map --}}
+                @if($event->event_type == 'in-person')
+                    <div class="mt-6 text-sm text-gray-700 dark:text-white/90">
+                        <div class="flex items-center gap-2">
+                            <iconify-icon icon="lucide:map-pin" class="text-gray-500"></iconify-icon>
+                            <span class="font-medium">{{ __('Location:') }}</span>
+                            <span class="ml-1">{{ $event->location ?? '—' }}</span>
                         </div>
+
+                        @if ($event->google_map_location_link)
+                            <div class="ml-[90px] mt-1">
+                                <a href="{{ $event->google_map_location_link }}" target="_blank"
+                                    class="text-primary hover:underline">
+                                    {{ __('Open in Google Maps') }}
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 @endif
 
-                {{-- Google maps link --}}
-                @if($event->google_map_location_link)
-                    <div class="mb-6">
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-white/90 mb-1">{{ __('Location on Map') }}</h4>
-                        <a href="{{ $event->google_map_location_link }}" target="_blank" class="text-primary hover:underline">
-                            {{ __('Open in Google Maps') }}
-                        </a>
+                {{-- Description --}}
+                <div class="mt-6">
+                    <h4 class="text-lg font-semibold text-gray-700 dark:text-white/90 mb-2">{{ __('Description') }}</h4>
+                    <div class="prose max-w-none dark:prose-invert text-sm">
+                        {!! $event->description ?? '<p>—</p>' !!}
                     </div>
-                @endif
+                </div>
 
-                {{-- Attachments (media collection or attachments json) --}}
+                {{-- Attachments --}}
                 @php
-                    $attachments = [];
-                    if (method_exists($event, 'getMedia')) {
-                        try {
-                            $attachments = $event->getMedia('attachments') ?: [];
-                        } catch (\Throwable $e) {
-                            $attachments = [];
-                        }
+                    $attachments = $event->attachments ?? [];
+                    /* if (method_exists($event, 'getMedia')) {
+                        try { $attachments = $event->getMedia('attachments') ?: []; } catch (\Throwable $e) {}
                     }
+                    if(empty($attachments) && !empty($event->attachments)) {
+                        $attachments = json_decode($event->attachments, true);
+                    } */
                 @endphp
 
-                @if(!empty($attachments) && count($attachments) > 0)
-                    <div class="mb-6">
-                        <h4 class="text-lg font-medium text-gray-700 dark:text-white/90 mb-2">{{ __('Attachments') }}</h4>
+                <div class="mt-6">
+                    <h4 class="text-lg font-semibold text-gray-700 dark:text-white/90 mb-2">{{ __('Attachments') }}</h4>
+                    @if (!empty($attachments))
                         <div class="space-y-2">
-                            @foreach($attachments as $attachment)
-                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
+                            @foreach ($attachments as $att)
+                                @php
+                                    $name = $att->name ?? ($att['filename'] ?? ($att['name'] ?? 'Attachment'));
+                                    $url = method_exists($att, 'getUrl') ? $att->getUrl() : $att['url'] ?? '#';
+                                @endphp
+                                <div
+                                    class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
                                     <div class="flex items-center gap-3">
                                         <iconify-icon icon="lucide:file-text" class="text-gray-500"></iconify-icon>
                                         <div>
-                                            <p class="text-sm font-medium">{{ $attachment->name ?? $attachment->file_name }}</p>
-                                            <p class="text-xs text-gray-500">{{ number_format(($attachment->size ?? 0) / 1024, 2) }} KB</p>
+                                            <p class="text-sm font-medium text-gray-800 dark:text-white">{{ $name }}</p>
                                         </div>
                                     </div>
-                                    <a href="{{ $attachment->getUrl() }}" target="_blank" class="text-primary hover:underline text-sm">{{ __('Download') }}</a>
+                                    <a href="{{ $url }}" target="_blank"
+                                        class="text-primary hover:underline text-sm">{{ __('Download') }}</a>
                                 </div>
                             @endforeach
                         </div>
-                    </div>
-                @elseif(!empty($event->attachments) && is_array($event->attachments))
-                    <div class="mb-6">
-                        <h4 class="text-lg font-medium text-gray-700 dark:text-white/90 mb-2">{{ __('Attachments') }}</h4>
-                        <ul class="list-disc pl-5">
-                            @foreach($event->attachments as $att)
-                                <li><a href="{{ $att['url'] ?? '#' }}" target="_blank" class="text-primary hover:underline">{{ $att['filename'] ?? ($att['name'] ?? __('Attachment')) }}</a></li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+                    @else
+                        <p class="text-gray-700 dark:text-white/90">—</p>
+                    @endif
+                </div>
 
                 {{-- Created / Updated --}}
-                <div class="mt-6 text-sm text-gray-600 dark:text-gray-300">
+                <div class="mt-6 text-sm text-gray-600 dark:text-gray-300 space-y-1">
                     <div>{{ __('Created:') }} {{ $event->created_at->format('M d, Y h:i A') }}</div>
-                    @if($event->created_at != $event->updated_at)
+                    @if ($event->created_at != $event->updated_at)
                         <div>{{ __('Updated:') }} {{ $event->updated_at->format('M d, Y h:i A') }}</div>
                     @endif
                 </div>
@@ -185,4 +199,15 @@
     </div>
 
     {!! Hook::applyFilters(\App\Enums\Hooks\EventFilterHook::EVENTS_SHOW_AFTER_CONTENT, '', $event) !!}
+
+    @push('styles')
+        <style>
+            /* Make images inside the description smaller */
+            .prose img {
+                max-width: 300px;
+                height: auto;
+                border-radius: 0.375rem;
+            }
+        </style>
+    @endpush
 </x-layouts.backend-layout>

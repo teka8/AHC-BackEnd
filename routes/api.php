@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\TermController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Backend\Api\TermController as BackendTermController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\EventController;
 
 /*
 |--------------------------------------------------------------------------
@@ -113,3 +114,7 @@ Route::middleware(['auth', 'web'])->prefix('admin')->name('admin.api.')->group(f
     Route::put('/terms/{taxonomy}/{id}', [BackendTermController::class, 'update'])->name('terms.update');
     Route::delete('/terms/{taxonomy}/{id}', [BackendTermController::class, 'destroy'])->name('terms.destroy');
 });
+
+// Events management
+Route::get('/events', [EventController::class, 'index'])->name('events.index');
+Route::get('/events/{id}', [EventController::class, 'show']);

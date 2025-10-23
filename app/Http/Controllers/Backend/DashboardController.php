@@ -11,6 +11,7 @@ use App\Services\Charts\UserChartService;
 use App\Services\LanguageService;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use App\Models\Event;
 
 class DashboardController extends Controller
 {
@@ -30,7 +31,7 @@ class DashboardController extends Controller
             [
                 'total_users' => number_format(User::count()),
                 'total_roles' => number_format(Role::count()),
-                'total_permissions' => number_format(Permission::count()),
+                'total_events' => number_format(Event::count()),
                 'languages' => [
                     'total' => number_format(count($this->languageService->getLanguages())),
                     'active' => number_format(count($this->languageService->getActiveLanguages())),
