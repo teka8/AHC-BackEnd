@@ -146,6 +146,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/{id}/preview', [DocumentRepositoryController::class, 'preview'])->name('preview');
         Route::get('/{id}/stats', [DocumentRepositoryController::class, 'downloadStats'])->name('stats');
         Route::post('/{id}/increment-download', [DocumentRepositoryController::class, 'incrementDownload'])->name('increment-download');
+    
+    
+        // Workflow routes
+        Route::post('/{id}/change-status', [DocumentRepositoryController::class, 'changeStatus'])->name('change-status');
+        Route::get('/{id}/workflow-history', [DocumentRepositoryController::class, 'workflowHistory'])->name('workflow-history');
     });
 
     Route::prefix('education')->name('education.')->group(function () {

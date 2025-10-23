@@ -78,6 +78,7 @@ class EventService
                 'start_time' => date('H:i:s', strtotime($data['start_time'])), // required,
                 'end_time' => !empty($data['end_time']) ? date('H:i:s', strtotime($data['end_time'])) : null,
                 'location' => $data['location'] ?? null,
+                'event_image' => $data['event_image'] ?? null,
                 'google_map_location_link' => $data['google_map_location_link'] ?? null,
                 'category' => $data['category'] ?? null,
                 'register_on_site' => $data['register_on_site'] ?? false,
@@ -85,18 +86,20 @@ class EventService
                 'cost_amount' => $data['cost_amount'] ?? null,
                 'event_type' => $data['event_type'], // required
                 'target_audience' => $data['target_audience'] ?? null,
+                'attachments' => $data['attachments'] ?? null,
                 'status' => $data['status'] ?? 'draft',
                 'is_archived' => $data['is_archived'] ?? false,
                 'created_by' => $data['created_by'] ?? null,
                 'approved_by' => $data['approved_by'] ?? null,
                 'reviewed_by' => $data['reviewed_by'] ?? null,
                 'archived_by' => $data['archived_by'] ?? null,
-                'attachments' => $data['attachments'] ?? null,
+                'published_by' => $data['published_by'] ?? null,
+                'attachments*' => $data['attachments'] ?? null,
             ]);
 
             // Handle featured image if provided
-            if (!empty($data['featured_image']) && $data['featured_image'] instanceof UploadedFile) {
-                $event->addMedia($data['featured_image'])->toMediaCollection('featured');
+            if (!empty($data['event_image']) && $data['event_image'] instanceof UploadedFile) {
+                $event->addMedia($data['event_image'])->toMediaCollection('featured');
             }
 
             // Handle attachments if provided
@@ -126,6 +129,7 @@ class EventService
             'start_time' => date('H:i:s', strtotime($data['start_time'] ?? $event->start_time)),
             'end_time' => !empty($data['end_time']) ? date('H:i:s', strtotime($data['end_time'] ?? $event->end_time)) : null,
             'location' => $data['location'] ?? $event->location,
+            'event_image' => $data['event_image'] ?? $event->event_image,
             'google_map_location_link' => $data['google_map_location_link'] ?? $event->google_map_location_link,
             'category' => $data['category'] ?? $event->category,
             'register_on_site' => $data['register_on_site'] ?? $event->register_on_site,
@@ -133,17 +137,19 @@ class EventService
             'cost_amount' => $data['cost_amount'] ?? $event->cost_amount,
             'event_type' => $data['event_type'] ?? $event->event_type,
             'target_audience' => $data['target_audience'] ?? $event->target_audience,
+            'attachments' => $data['attachments'] ?? $event->attachments,
             'status' => $data['status'] ?? $event->status,
             'is_archived' => $data['is_archived'] ?? $event->is_archived,
             'approved_by' => $data['approved_by'] ?? $event->approved_by,
             'reviewed_by' => $data['reviewed_by'] ?? $event->reviewed_by,
+            'published_by' => $data['published_by'] ?? $event->published_by,
             'archived_by' => $data['archived_by'] ?? $event->archived_by,
         ]);
 
         // Handle featured image replacement
-        if (!empty($data['featured_image']) && $data['featured_image'] instanceof UploadedFile) {
+        if (!empty($data['event_image']) && $data['event_image'] instanceof UploadedFile) {
             $event->clearMediaCollection('featured');
-            $event->addMedia($data['featured_image'])->toMediaCollection('featured');
+            $event->addMedia($data['event_image'])->toMediaCollection('featured');
         }
 
         // Optionally remove featured image

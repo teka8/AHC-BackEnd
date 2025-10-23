@@ -264,6 +264,15 @@ class PermissionService
                     'others.assign',
                 ],
             ],
+            [
+                'group_name' => 'event',
+                'permissions' => [
+                    'event.create',
+                    'event.view',
+                    'event.edit',
+                    'event.delete',
+                ],
+            ],
         ];
 
         return $permissions;
