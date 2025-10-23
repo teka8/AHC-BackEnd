@@ -150,7 +150,7 @@ class AdminMenuService
                 'label' => __('Resources'),
                 'icon' => 'lucide:library',
                 'id' => 'resources-submenu',
-                'active' => Route::is('admin.document.*') || Route::is('admin.education.*'),
+                'active' => Route::is('admin.document.*') || Route::is('admin.education.*') || Route::is('admin.others.*'),
                 'priority' => 40,
                 'permissions' => ['document.view', 'educational_resource.view'],
                 'children' => [
@@ -170,15 +170,15 @@ class AdminMenuService
                     ],
                     [
                         'label' => __('Others'),
-                        'url' => '#',
-                        'active' => false,
+                        'route' => route('admin.others.index'),
+                        'active' => Route::is('admin.others.*'),
                         'priority' => 30,
-                        'permissions' => ['document.view', 'educational_resource.view'],
+                        'permissions' => ['educational_resource.view'],
                     ],
                 ],
             ],
         );
-        
+
         $this->addMenuItem([
             'label' => __('Modules'),
             'icon' => 'lucide:boxes',
