@@ -80,6 +80,11 @@ class Document extends Model
     const ACCESS_INTERNAL_ONLY = 'internal_only';
 
     /**
+     * Document workflow states
+     */
+    const STATUS_REJECTED = 'rejected';
+
+    /**
      * Get the user who created the document
      */
     public function creator(): BelongsTo
@@ -197,11 +202,11 @@ class Document extends Model
         }
 
         if ($this->access_level === self::ACCESS_INTERNAL_ONLY) {
-            return $user->hasRole(['super_admin', 'project_owner', 'communication_content_manager', 'technical_advisor']);
+            return $user->hasRole(['Superadmin', 'project_owner', 'communication_content_manager', 'technical_advisor']);
         }
 
         if ($this->access_level === self::ACCESS_PARTNER_ONLY) {
-            return $user->hasRole(['super_admin', 'project_owner', 'communication_content_manager', 'technical_advisor', 'partner_university_contributor']);
+            return $user->hasRole(['Superadmin', 'project_owner', 'communication_content_manager', 'technical_advisor', 'partner_university_contributor']);
         }
 
         return false;
@@ -268,5 +273,182 @@ class Document extends Model
     public function getCanPreviewAttribute(): bool
     {
         return $this->file_extension === 'pdf';
+    }
+
+     /**
+     * Available transitions for each status with permission requirements
+     */
+    public static function getAvailableTransitions($currentStatus, User $user = null)
+    {
+        $transitions = [
+            self::STATUS_DRAFT => [
+                'send_for_review' => [
+                    'target' => self::STATUS_UNDER_REVIEW,
+                    'label' => __('Send for Review'),
+                    'color' => 'yellow',
+                    'icon' => 'lucide:send',
+                    'required_permission' => 'document.review'
+                ],
+                'publish' => [
+                    'target' => self::STATUS_PUBLISHED,
+                    'label' => __('Publish Directly'),
+                    'color' => 'green',
+                    'icon' => 'lucide:globe',
+                    'required_permission' => 'document.publish'
+                ]
+            ],
+            
+            self::STATUS_UNDER_REVIEW => [
+                'approve' => [
+                    'target' => self::STATUS_APPROVED,
+                    'label' => __('Approve'),
+                    'color' => 'green',
+                    'icon' => 'lucide:check-circle',
+                    'required_permission' => 'document.approve'
+                ],
+                'reject' => [
+                    'target' => self::STATUS_DRAFT,
+                    'label' => __('Request Changes'),
+                    'color' => 'red',
+                    'icon' => 'lucide:arrow-left',
+                    'required_permission' => 'document.approve'
+                ],
+                'publish' => [
+                    'target' => self::STATUS_PUBLISHED,
+                    'label' => __('Publish'),
+                    'color' => 'green',
+                    'icon' => 'lucide:globe',
+                    'required_permission' => 'document.publish'
+                ]
+            ],
+            
+            self::STATUS_APPROVED => [
+                'publish' => [
+                    'target' => self::STATUS_PUBLISHED,
+                    'label' => __('Publish'),
+                    'color' => 'green',
+                    'icon' => 'lucide:globe',
+                    'required_permission' => 'document.publish'
+                ],
+                'send_back' => [
+                    'target' => self::STATUS_UNDER_REVIEW,
+                    'label' => __('Send Back for Review'),
+                    'color' => 'yellow',
+                    'icon' => 'lucide:arrow-left',
+                    'required_permission' => 'document.review'
+                ]
+            ],
+            
+            self::STATUS_PUBLISHED => [
+                'unpublish' => [
+                    'target' => self::STATUS_DRAFT,
+                    'label' => __('Unpublish'),
+                    'color' => 'gray',
+                    'icon' => 'lucide:eye-off',
+                    'required_permission' => 'document.unpublish'
+                ],
+                'archive' => [
+                    'target' => self::STATUS_ARCHIVED,
+                    'label' => __('Archive'),
+                    'color' => 'orange',
+                    'icon' => 'lucide:archive',
+                    'required_permission' => 'document.archive'
+                ]
+            ],
+            
+            self::STATUS_ARCHIVED => [
+                'restore' => [
+                    'target' => self::STATUS_DRAFT,
+                    'label' => __('Restore'),
+                    'color' => 'blue',
+                    'icon' => 'lucide:refresh-cw',
+                    'required_permission' => 'document.archive'
+                ]
+            ]
+        ];
+
+        return $transitions[$currentStatus] ?? [];
+    }
+
+    /**
+     * Get available actions for current user based on permissions
+     */
+    public function getAvailableActions(User $user = null)
+    {
+        $user = $user ?: auth()->user();
+        $transitions = self::getAvailableTransitions($this->status, $user);
+        $availableActions = [];
+
+        foreach ($transitions as $action => $config) {
+            if ($user->hasPermissionTo($config['required_permission']) || $user->hasRole('super_admin')) {
+                $availableActions[$action] = $config;
+            }
+        }
+
+        return $availableActions;
+    }
+
+    /**
+     * Check if user can perform specific action
+     */
+    public function canPerformAction($action, User $user = null)
+    {
+        $user = $user ?: auth()->user();
+        $availableActions = $this->getAvailableActions($user);
+        
+        return isset($availableActions[$action]);
+    }
+
+    
+
+    /**
+     * Check if action is allowed
+     */
+    public function canTransitionTo($targetStatus, User $user = null)
+    {
+        $user = $user ?: auth()->user();
+        $availableActions = $this->getAvailableActions($user);
+        
+        foreach ($availableActions as $action => $config) {
+            if ($config['target'] === $targetStatus) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Get status badge color
+     */
+    public function getStatusColor()
+    {
+        $colors = [
+            self::STATUS_DRAFT => 'gray',
+            self::STATUS_UNDER_REVIEW => 'yellow', 
+            self::STATUS_APPROVED => 'green',
+            self::STATUS_PUBLISHED => 'blue',
+            self::STATUS_ARCHIVED => 'orange',
+            self::STATUS_REJECTED => 'red'
+        ];
+        
+        return $colors[$this->status] ?? 'gray';
+    }
+
+    /**
+     * Get status display text
+     */
+    public function getStatusDisplay()
+    {
+        $display = [
+            self::STATUS_DRAFT => __('Draft'),
+            self::STATUS_UNDER_REVIEW => __('Under Review'),
+            self::STATUS_APPROVED => __('Approved'),
+            self::STATUS_PUBLISHED => __('Published'),
+            self::STATUS_ARCHIVED => __('Archived'),
+            self::STATUS_REJECTED => __('Changes Requested')
+        ];
+        
+        return $display[$this->status] ?? $this->status;
     }
 }
