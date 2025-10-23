@@ -27,12 +27,13 @@ return new class extends Migration
             $table->string('event_type'); // VIRTUAL(Online) and in-person
             $table->string('target_audience')->nullable(); // e.g., public, for_students, for_staff, for_employees, for_alumni, and also custom audience
             $table->string('status')->default('draft');
-            $table->text('image_url')->nullable();
+            $table->text('event_image')->nullable();
             $table->boolean('is_archived')->default(0);
             $table->Integer('created_by')->nullable();
             $table->Integer('approved_by')->nullable();
             $table->Integer('reviewed_by')->nullable();
             $table->Integer('archived_by')->nullable();
+            $table->Integer('published_by')->nullable();
             $table->json('attachments')->nullable();
             $table->timestamps();
         });

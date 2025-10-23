@@ -9,17 +9,25 @@ use App\Enums\Hooks\EventFilterHook;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Common\BulkDeleteRequest;
 use App\Models\Event;
+use App\Http\Requests\Event\StoreEventRequest;
+use App\Http\Requests\Event\UpdateEventRequest;
 use App\Support\Facades\Hook;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\EventService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use App\Services\MediaLibraryService;
+use Illuminate\Support\Facades\Storage;
+
+
 
 class EventController extends Controller
 {
     public function __construct(
         private readonly EventService $eventService,
+        private readonly MediaLibraryService $mediaService
     ) {
     }
     public function index(): Renderable
@@ -45,61 +53,101 @@ class EventController extends Controller
         return view('backend.pages.events.create', compact('breadcrumbs'));
     }
 
-    public function store(Request $request)
-    {
-        // Authorization
+    public function store(StoreEventRequest $storeEventRequest): RedirectResponse{
         $this->authorize('create', Event::class);
 
-        // Validation rules with hooks
-        $rules = Hook::applyFilters(EventFilterHook::EVENT_STORE_VALIDATION_RULES, [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'event_date' => 'required|date',
-            'start_time' => 'required',
-            'end_time' => 'nullable|after_or_equal:start_time',
-            'event_type' => 'required|string',
-            'image_url' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp',
-            'attachments.*' => 'nullable|file',
-        ]);
+        $data = $this->addHooks(
+            $storeEventRequest->validated(),
+            EventActionHook::EVENT_CREATED_BEFORE,
+            EventFilterHook::EVENT_CREATED_BEFORE
+        );
 
-        $validated = $request->validate($rules);
+        // Create Event
+        $event = new Event();
+        $event->title = $data['title'];
+        $event->description = $data['description'];
+        $event->event_date = $data['event_date'];
+        $event->start_time = date('H:i:s', strtotime($data['start_time']));
+        $event->end_time = !empty($data['end_time']) ? date('H:i:s', strtotime($data['end_time'])) : null;
+        $event->event_type = $data['event_type'];
+        $event->category = $data['category'];
+        $event->google_map_location_link = $data['google_map_location_link'];
+        $event->registration_link = $data['registration_link'];
+        $event->location = $data['location'];
+        $event->register_on_site = $data['register_on_site'] ?? 0;
+        $event->cost_amount = $data['cost_amount'] ?? 0;
+        $event->target_audience = $data['target_audience'];
+        $event->created_by = Auth::id();
 
-        // Before hook
-        Hook::doAction(EventActionHook::EVENT_CREATED_BEFORE, $validated);
+        /**
+         *  Handle Event Image Upload (Single)
+         */
+        if ($storeEventRequest->hasFile('event_image')) {
+            $imagePath = $storeEventRequest->file('event_image')->store('events/images', 'public');
+            $event->event_image = $imagePath;
+        }
 
-        // Use transaction for safety
-        $event = DB::transaction(function () use ($validated, $request) {
-            // Create event
-            $event = $this->eventService->createEvent($validated);
+        /**
+         *  Handle Multiple Attachments Upload
+         */
+        if ($storeEventRequest->hasFile('attachments')) {
+            $attachments = [];
 
-            // Featured image
-            if ($request->hasFile('featured_image')) {
-                $file = $request->file('featured_image');
-                if ($file instanceof UploadedFile && $file->isValid()) {
-                    $event->addMedia($file)->toMediaCollection('featured');
-                }
+            foreach ($storeEventRequest->file('attachments') as $file) {
+                $path = $file->store('events/attachments', 'public');
+
+                $attachments[] = [
+                    'file_name' => $file->getClientOriginalName(),
+                    'size' => round($file->getSize() / 1048576, 2) . ' MB', // Convert bytes to MB
+                    'path' => $path,
+                ];
             }
 
-            // Multiple attachments
-            if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    if ($file instanceof UploadedFile && $file->isValid()) {
-                        $event->addMedia($file)->toMediaCollection('attachments');
-                    }
-                }
+            // Save as JSON in the database
+            $event->attachments = $attachments;
+        }
+
+
+        $event->save();
+        
+
+        // Handle featured image removal first.
+        if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
+            $event->clearMediaCollection('featured');
+        } elseif (! empty($data['event_image'])) {
+            if ($storeEventRequest->hasFile('event_image')) {
+                $event->clearMediaCollection('featured');
+                $event->addMediaFromRequest('event_image')->toMediaCollection('featured');
+            } else {
+                $this->mediaService->associateExistingMedia($event, $data['event_image'], 'featured');
             }
+        }
 
-            return $event;
-        });
+        // Handle attachments removal first.
+        if (isset($data['remove_attachments']) && $data['remove_attachments']) {
+            $event->clearMediaCollection('attachments');
+        } elseif (! empty($data['attachments'])) {
+            if ($storeEventRequest->hasFile('attachments')) {
+                $event->clearMediaCollection('attachments');
+                foreach ($storeEventRequest->file('attachments') as $file) {
+                    $event->addMedia($file)->toMediaCollection('attachments');
+                }
+            } else {
+                $this->mediaService->associateExistingMedia($event, $data['attachments'], 'attachments');
+            }
+        }
 
-        // After hook
-        Hook::doAction(EventActionHook::EVENT_CREATED_AFTER, $event);
 
-        return redirect()
-            ->route('admin.events.index')
-            ->with('success', __('Event created successfully.'));
+        
+        $event = $this->addHooks(
+            $event,
+            EventActionHook::EVENT_CREATED_AFTER,
+            EventFilterHook::EVENT_CREATED_AFTER
+        );
+
+        return redirect()->route('admin.events.index')->with('success', __('Event created successfully.'));
+
     }
-
 
     public function edit(Event $event): Renderable
     {
@@ -113,34 +161,103 @@ class EventController extends Controller
         return view('backend.pages.events.edit', compact('event', 'breadcrumbs'));
     }
 
-    public function update(Request $request, Event $event)
+
+
+    public function update(UpdateEventRequest $request, Event $event): RedirectResponse
     {
         $this->authorize('update', $event);
 
-        $rules = Hook::applyFilters(EventFilterHook::EVENT_UPDATE_VALIDATION_RULES, [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'event_date' => 'required|date',
-            'start_time' => 'required',
-            'end_time' => 'nullable|after_or_equal:start_time',
-            'event_type' => 'required|string',
-            'image_url' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp',
-            'attachments.*' => 'nullable|file',
-            'status' => 'string',
-        ]);
+        $data = $this->addHooks(
+            $request->validated(),
+            EventActionHook::EVENT_UPDATED_BEFORE,
+            EventFilterHook::EVENT_UPDATED_BEFORE
+        );
 
-        $validated = $request->validate($rules);
+        // Update core event fields
+        $event->title = $data['title'];
+        $event->description = $data['description'];
+        $event->event_date = $data['event_date'];
+        $event->start_time = date('H:i:s', strtotime($data['start_time']));
+        $event->end_time = !empty($data['end_time']) ? date('H:i:s', strtotime($data['end_time'])) : null;
+        $event->event_type = $data['event_type'];
+        $event->category = $data['category'];
+        $event->google_map_location_link = $data['google_map_location_link'];
+        $event->registration_link = $data['registration_link'];
+        $event->location = $data['location'];
+        $event->register_on_site = $data['register_on_site'] ?? 0;
+        $event->cost_amount = $data['cost_amount'] ?? 0;
+        $event->target_audience = $data['target_audience'];
+        $event->status = $data['status'];
 
-        Hook::doAction(EventActionHook::EVENT_UPDATED_BEFORE, $event, $validated);
+        /**
+         * Handle Event Image Update
+         */
+        if ($request->hasFile('event_image')) {
+            // Delete old image if exists
+            if ($event->event_image && Storage::disk('public')->exists($event->event_image)) {
+                Storage::disk('public')->delete($event->event_image);
+            }
 
-        DB::transaction(function () use ($event, $validated) {
-            $event = $this->eventService->updateEvent($event, $validated);
-        });
+            $imagePath = $request->file('event_image')->store('events/images', 'public');
+            $event->event_image = $imagePath;
+        }
 
-        Hook::doAction(EventActionHook::EVENT_UPDATED_AFTER, $event);
+        /**
+         * Handle Attachments Update (Add or Remove)
+         */
+        $existingAttachments = is_array($event->attachments) ? $event->attachments : [];
 
-        return redirect()
-            ->route('admin.events.index')
+        // Handle file removal if specified
+        if ($request->filled('remove_attachments')) {
+            $toRemove = $request->input('remove_attachments'); // array of file paths or indexes
+            $existingAttachments = array_filter($existingAttachments, function ($attachment) use ($toRemove) {
+                return !in_array($attachment['path'], $toRemove);
+            });
+            foreach ($toRemove as $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+        }
+
+        // Handle new file uploads
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('events/attachments', 'public');
+                $existingAttachments[] = [
+                    'file_name' => $file->getClientOriginalName(),
+                    'size' => round($file->getSize() / 1048576, 2) . ' MB',
+                    'path' => $path,
+                ];
+            }
+        }
+
+        $event->attachments = array_values($existingAttachments); // reindex
+
+        $event->save();
+
+        // Handle Media (if using Spatie media library)
+        if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
+            $event->clearMediaCollection('featured');
+        } elseif ($request->hasFile('event_image')) {
+            $event->clearMediaCollection('featured');
+            $event->addMediaFromRequest('event_image')->toMediaCollection('featured');
+        }
+
+        if ($request->hasFile('attachments')) {
+            $event->clearMediaCollection('attachments');
+            foreach ($request->file('attachments') as $file) {
+                $event->addMedia($file)->toMediaCollection('attachments');
+            }
+        }
+
+        $event = $this->addHooks(
+            $event,
+            EventActionHook::EVENT_UPDATED_AFTER,
+            EventFilterHook::EVENT_UPDATED_AFTER
+        );
+
+        return redirect()->route('admin.events.index')
             ->with('success', __('Event updated successfully.'));
     }
 

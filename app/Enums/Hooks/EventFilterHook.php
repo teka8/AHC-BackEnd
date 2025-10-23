@@ -8,6 +8,10 @@ enum EventFilterHook: string
 {
     // Validation rules
     case EVENT_STORE_VALIDATION_RULES = 'event.store.validation.rules';
+    case EVENT_CREATED_BEFORE = 'event.created.before';
+    case EVENT_UPDATED_BEFORE = 'event.updated.before';
+    case EVENT_UPDATED_AFTER = 'event.updated.after';
+    case EVENT_CREATED_AFTER = 'event.created.after';
     case EVENT_UPDATE_VALIDATION_RULES = 'event.update.validation.rules';
 
     // UI Hooks - Breadcrumbs
