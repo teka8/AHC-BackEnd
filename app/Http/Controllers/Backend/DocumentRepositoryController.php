@@ -1194,4 +1194,113 @@ class DocumentRepositoryController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    /**
+     * Change document status (workflow action)
+     */
+    public function changeStatus(Request $request, $id)
+    {
+        $document = Document::findOrFail($id);
+        $action = $request->input('action');
+        $comment = $request->input('comment', '');
+
+        // Get available actions for this user
+        $availableActions = $document->getAvailableActions();
+        
+        if (!isset($availableActions[$action])) {
+            return response()->json([
+                'success' => false,
+                'message' => __('This action is not available for the current document status or you do not have permission.')
+            ], 403);
+        }
+
+        $targetStatus = $availableActions[$action]['target'];
+
+        try {
+            \DB::beginTransaction();
+
+            $oldStatus = $document->status;
+            
+            // Update document status
+            $document->update([
+                'status' => $targetStatus,
+                'updated_by' => Auth::id(),
+            ]);
+
+            // Set published_at if publishing
+            if ($targetStatus === Document::STATUS_PUBLISHED && !$document->published_at) {
+                $document->update(['published_at' => now()]);
+            }
+
+            // Set approved_by if approving
+            if ($targetStatus === Document::STATUS_APPROVED) {
+                $document->update(['approved_by' => Auth::id()]);
+            }
+
+            // Log the status change
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->performedOn($document)
+            //     ->withProperties([
+            //         'old_status' => $oldStatus,
+            //         'new_status' => $targetStatus,
+            //         'action' => $action,
+            //         'comment' => $comment
+            //     ])
+            //     ->log('changed document status from ' . $oldStatus . ' to ' . $targetStatus);
+
+            // Create workflow log entry
+            \App\Models\DocumentWorkflowLog::create([
+                'document_id' => $document->id,
+                'user_id' => Auth::id(),
+                'from_status' => $oldStatus,
+                'to_status' => $targetStatus,
+                'action' => $action,
+                'comment' => $comment,
+                'ip_address' => request()->ip()
+            ]);
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Document status updated successfully'),
+                'data' => [
+                    'new_status' => $targetStatus,
+                    'status_display' => $document->getStatusDisplay(),
+                    'status_color' => $document->getStatusColor(),
+                    'available_actions' => $document->getAvailableActions()
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            
+            \Log::error('Document status change failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to update document status: ') . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get document workflow history
+     */
+    public function workflowHistory($id)
+    {
+        $document = Document::findOrFail($id);
+        $this->authorize('view', $document);
+
+        $history = \App\Models\DocumentWorkflowLog::with('user')
+            ->where('document_id', $document->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $history
+        ]);
+    }
 }
