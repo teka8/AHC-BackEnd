@@ -281,9 +281,7 @@ class PostDatatable extends Datatable
         // Sequential workflow: created → edited → approved → published → unpublished → archived
         switch ($post->status) {
             case 'created':
-                if (auth()->user()->can('post.edit_status')) {
-                    $actions[] = '<button wire:click="updatePostStatus(' . $post->id . ', \'edited\')" class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 mr-1 mb-1"><iconify-icon icon="lucide:edit-3" class="w-3 h-3 mr-1"></iconify-icon>' . __('Mark as Edited') . '</button>';
-                }
+                // Mark as Edited is now handled in the edit page
                 break;
                 
             case 'edited':
