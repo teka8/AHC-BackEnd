@@ -144,6 +144,41 @@ class AdminMenuService
             'priority' => 35,
             'permissions' => 'media.view',
         ]);
+
+        $this->addMenuItem(
+            [
+                'label' => __('Resources'),
+                'icon' => 'lucide:library',
+                'id' => 'resources-submenu',
+                'active' => Route::is('admin.document.*') || Route::is('admin.education.*'),
+                'priority' => 40,
+                'permissions' => ['document.view', 'educational_resource.view'],
+                'children' => [
+                    [
+                        'label' => __('Document Repository'),
+                        'route' => route('admin.document.index'),
+                        'active' => Route::is('admin.document.*'),
+                        'priority' => 10,
+                        'permissions' => 'document.view',
+                    ],
+                    [
+                        'label' => __('Educational Resource Hub'),
+                        'route' => route('admin.education.index'),
+                        'active' => Route::is('admin.education.*'),
+                        'priority' => 20,
+                        'permissions' => 'educational_resource.view',
+                    ],
+                    [
+                        'label' => __('Others'),
+                        'url' => '#',
+                        'active' => false,
+                        'priority' => 30,
+                        'permissions' => ['document.view', 'educational_resource.view'],
+                    ],
+                ],
+            ],
+        );
+        
         $this->addMenuItem([
             'label' => __('Modules'),
             'icon' => 'lucide:boxes',

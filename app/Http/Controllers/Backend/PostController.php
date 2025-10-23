@@ -103,7 +103,6 @@ class PostController extends Controller
 
     public function store(StorePostRequest $request, string $postType = 'post'): RedirectResponse
     {
-
         $this->authorize('create', Post::class);
 
         // Get post type.
@@ -129,16 +128,6 @@ class PostController extends Controller
         $post->post_type = $postType;
         $post->user_id = Auth::id();
         $post->parent_id = $data['parent_id'] ?? null;
-
-        // Handle publish date
-        // if (isset($data['schedule_post']) && $data['schedule_post'] && ! empty($data['published_at'])) {
-        //     $post->status = PostStatus::SCHEDULED->value;
-        //     $post->published_at = Carbon::parse($data['published_at']);
-        // } elseif ($data['status'] === PostStatus::SCHEDULED->value && ! empty($data['published_at'])) {
-        //     $post->published_at = Carbon::parse($data['published_at']);
-        // } elseif ($data['status'] === PostStatus::PUBLISHED->value) {
-        //     $post->published_at = now();
-        // }
 
         $post->save();
 
@@ -238,22 +227,16 @@ class PostController extends Controller
 
     public function update(UpdatePostRequest $request, string $postType, string $id): RedirectResponse
     {
-        // Get post.
         $post = Post::where('post_type', $postType)->findOrFail($id);
         $this->authorize('update', $post);
 
-        $data = $this->addHooks(
-            $request,//->validated(),
-            PostActionHook::POST_UPDATED_BEFORE,
-            PostFilterHook::POST_UPDATED_BEFORE
-        );
+        $data = $request->validated();
 
-        // Update post.
         $post->title = $data['title'];
         $post->slug = $data['slug'] ?? Str::slug($data['title']);
         $post->content = $data['content'];
         $post->excerpt = $data['excerpt'];
-        $post->status = $data['status'] ?? $post->status;
+        $post->status = $post->status === 'created' ? 'edited' : ($data['status'] ?? $post->status);
         $post->parent_id = $data['parent_id'] ?? null;
 
         // Auto-change status from 'created' to 'edited' when post is updated
@@ -273,105 +256,30 @@ class PostController extends Controller
 
         $post->save();
 
-        // Handle featured image removal first.
-        if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
-            $post->clearMediaCollection('featured');
-        } elseif (!empty($data['featured_image'])) {
-            $post->clearMediaCollection('featured');
-
-            if ($request->hasFile('featured_image')) {
-                $post->addMediaFromRequest('featured_image')->toMediaCollection('featured');
-            } else {
-                $this->mediaService->associateExistingMedia($post, $data['featured_image'], 'featured');
-            }
-        }
-
-        $post = $this->addHooks(
-            $post,
-            PostActionHook::POST_UPDATED_AFTER,
-            PostFilterHook::POST_UPDATED_AFTER
-        );
-
-        // Handle post meta.
         $this->handlePostMeta($request, $post);
-
-        // Handle taxonomies.
         $this->handleTaxonomies($request, $post);
-        if ($post->status === "pending_approval") {
-            $users = User::permission('blog.approve')->get();
-            Notification::send($users, new StatusChanged($post, "News Pending Approval: {$post->title}"));
-        }
 
-        session()->flash('success', __('News has been updated.'));
+        session()->flash('success', __('Post updated successfully.'));
 
         return back();
     }
 
-    /**
-     * Delete a post
-     */
-    public function destroy(string $postType, string $id): RedirectResponse
+    public function updateStatus(Request $request, string $postType, string $id): RedirectResponse
     {
         $post = Post::where('post_type', $postType)->findOrFail($id);
-        $this->authorize('delete', $post);
-
-        $post = $this->addHooks(
-            $post,
-            PostActionHook::POST_DELETED_BEFORE,
-            PostFilterHook::POST_DELETED_BEFORE
-        );
-
-        $post->delete();
-
-        $this->addHooks(
-            $post,
-            PostActionHook::POST_DELETED_AFTER,
-            PostFilterHook::POST_DELETED_AFTER
-        );
-
-        session()->flash('success', __('News has been deleted.'));
-
-        return redirect()->route('admin.posts.index', $postType);
+        $this->authorize('update', $post);
+        
+        $request->validate([
+            'status' => 'required|string|in:created,edited,approved,published,unpublished,archived'
+        ]);
+        
+        $post->update(['status' => $request->status]);
+        
+        session()->flash('success', __('Post status updated successfully.'));
+        
+        return back();
     }
 
-    /**
-     * Delete multiple posts at once
-     */
-    public function bulkDelete(BulkDeleteRequest $request, string $postType): RedirectResponse
-    {
-        $this->authorize('bulkDelete', Post::class);
-
-        $ids = $request->validated('ids');
-
-        if (empty($ids)) {
-            session()->flash('error', __('No news selected for deletion.'));
-            return redirect()->route('admin.posts.index', $postType);
-        }
-
-        $ids = $this->addHooks(
-            $ids,
-            PostActionHook::POST_BULK_DELETED_BEFORE
-        );
-
-        $deletedCount = $this->postService->bulkDeletePosts($ids, $postType);
-
-        $this->addHooks(
-            ['deleted_count' => $deletedCount, 'post_type' => $postType],
-            PostActionHook::POST_BULK_DELETED_AFTER
-        );
-
-        if ($deletedCount > 0) {
-            session()->flash('success', __(':count news deleted successfully', ['count' => $deletedCount]));
-        } else {
-            session()->flash('error', __('No news were deleted.'));
-        }
-
-        return redirect()->route('admin.posts.index', $postType);
-    }
-
-    /**
-     * Handle taxonomies for a post
-     */
     protected function handleTaxonomies(Request $request, Post $post)
     {
         // Get current post type.
