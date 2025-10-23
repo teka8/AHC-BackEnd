@@ -116,7 +116,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/api', [DocumentRepositoryController::class, 'api'])->name('api');
         Route::post('/', [DocumentRepositoryController::class, 'store'])->name('store')->middleware('check.upload.limits');
         Route::get('/upload-limits', [DocumentRepositoryController::class, 'getUploadLimits'])->name('upload-limits');
-        
+
         // Additional routes you might want to add:
         Route::get('/{id}/download', [DocumentRepositoryController::class, 'download'])->name('download');
         Route::get('/{id}/edit', [DocumentRepositoryController::class, 'edit'])->name('edit');
@@ -140,8 +140,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/api', [EducationRepositoryController::class, 'api'])->name('api');
         Route::post('/', [EducationRepositoryController::class, 'store'])->name('store')->middleware('check.upload.limits');
         Route::get('/upload-limits', [EducationRepositoryController::class, 'getUploadLimits'])->name('upload-limits');
+        Route::get('/{id}/edit', [EducationRepositoryController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [EducationRepositoryController::class, 'update'])->name('update');
         Route::delete('/{id}', [EducationRepositoryController::class, 'destroy'])->name('destroy');
-        Route::delete('/', [EducationRepositoryController::class, 'bulkDelete'])->name('bulk-delete');
+        //Route::delete('/', [EducationRepositoryController::class, 'bulkDelete'])->name('bulk-delete');
     });
 
 

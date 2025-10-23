@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Backend;
 
-use App\Support\Helper\MediaHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Backend\MediaBulkDeleteRequest;
-use App\Http\Requests\Backend\MediaUploadRequest;
 use App\Models\Media;
 use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
@@ -47,10 +44,10 @@ class DocumentRepositoryController extends Controller
             ->when($request->get('search'), function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('author', 'like', "%{$search}%")
-                    ->orWhere('abstract', 'like', "%{$search}%")
-                    ->orWhere('document_type', 'like', "%{$search}%")
-                    ->orWhere('category', 'like', "%{$search}%");
+                        ->orWhere('author', 'like', "%{$search}%")
+                        ->orWhere('abstract', 'like', "%{$search}%")
+                        ->orWhere('document_type', 'like', "%{$search}%")
+                        ->orWhere('category', 'like', "%{$search}%");
                 });
             })
             ->when($request->get('type'), function ($query, $type) {
@@ -105,7 +102,7 @@ class DocumentRepositoryController extends Controller
             'uploadLimits' => $uploadLimits,
             'documentTypes' => [
                 'Policy Brief',
-                'Research Paper', 
+                'Research Paper',
                 'Annual Report',
                 'Quarterly Report',
                 'Assessment Report',
@@ -129,18 +126,18 @@ class DocumentRepositoryController extends Controller
     {
         $unit = preg_replace('/[^bkmgtpezy]/i', '', $size);
         $size = preg_replace('/[^0-9\.]/', '', $size);
-        
+
         if ($unit) {
             return (int) round($size * pow(1024, stripos('bkmgtpezy', $unit[0])));
         }
-        
+
         return (int) round($size);
     }
 
     private function formatBytes(int $bytes, int $precision = 2): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        
+
         for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
             $bytes /= 1024;
         }
@@ -154,7 +151,7 @@ class DocumentRepositoryController extends Controller
     public function edit($id)
     {
         $document = Document::with('tags')->findOrFail($id);
-        
+
         $this->authorize('update', $document);
 
         $breadcrumbs = [
@@ -180,7 +177,7 @@ class DocumentRepositoryController extends Controller
             'breadcrumbs' => $breadcrumbs,
             'documentTypes' => [
                 'Policy Brief',
-                'Research Paper', 
+                'Research Paper',
                 'Annual Report',
                 'Quarterly Report',
                 'Assessment Report',
@@ -211,7 +208,7 @@ class DocumentRepositoryController extends Controller
     public function update(Request $request, $id)
     {
         $document = Document::findOrFail($id);
-        
+
         $this->authorize('update', $document);
 
         // Validate the request
@@ -300,7 +297,7 @@ class DocumentRepositoryController extends Controller
 
         } catch (\Exception $e) {
             \DB::rollBack();
-            
+
             \Log::error('Document update failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'document_id' => $id,
@@ -319,7 +316,7 @@ class DocumentRepositoryController extends Controller
     public function publish($id)
     {
         $document = Document::findOrFail($id);
-        
+
         $this->authorize('publish', $document);
 
         try {
@@ -341,7 +338,7 @@ class DocumentRepositoryController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Document publish failed: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => __('Failed to publish document')
@@ -355,7 +352,7 @@ class DocumentRepositoryController extends Controller
     public function approve($id)
     {
         $document = Document::findOrFail($id);
-        
+
         $this->authorize('approve', $document);
 
         try {
@@ -377,7 +374,7 @@ class DocumentRepositoryController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Document approval failed: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => __('Failed to approve document')
@@ -387,7 +384,7 @@ class DocumentRepositoryController extends Controller
 
     public function store(Request $request)
     {
-        
+
         // Validate the request
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -403,7 +400,7 @@ class DocumentRepositoryController extends Controller
             'files' => 'required|array',
             'files.*' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,rtf,odt,ods,odp|max:102400', // 100MB max
         ]);
-        
+
         try {
             // Handle file upload
             $file = $request->file('files')[0]; // Get the first file since we're uploading one document
@@ -411,7 +408,7 @@ class DocumentRepositoryController extends Controller
             $extension = $file->getClientOriginalExtension();
             $fileSize = $file->getSize();
             $mimeType = $file->getMimeType();
-            
+
             // Generate unique filename
             $filename = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
             $filePath = $file->storeAs('documents', $filename, 'public');
@@ -477,7 +474,8 @@ class DocumentRepositoryController extends Controller
         $tagIds = [];
 
         foreach ($tags as $tagName) {
-            if (empty($tagName)) continue;
+            if (empty($tagName))
+                continue;
 
             // Find or create tag
             $tag = DocumentTag::firstOrCreate(
@@ -501,8 +499,16 @@ class DocumentRepositoryController extends Controller
     private function generateTagColor(string $tagName): string
     {
         $colors = [
-            '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
-            '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6b7280'
+            '#3b82f6',
+            '#ef4444',
+            '#10b981',
+            '#f59e0b',
+            '#8b5cf6',
+            '#ec4899',
+            '#06b6d4',
+            '#84cc16',
+            '#f97316',
+            '#6b7280'
         ];
 
         $hash = crc32($tagName);
@@ -542,11 +548,11 @@ class DocumentRepositoryController extends Controller
     // {
     //     $unit = preg_replace('/[^bkmgtpezy]/i', '', $size);
     //     $size = preg_replace('/[^0-9\.]/', '', $size);
-        
+
     //     if ($unit) {
     //         return (int) round($size * pow(1024, stripos('bkmgtpezy', $unit[0])));
     //     }
-        
+
     //     return (int) round($size);
     // }
 
@@ -556,7 +562,7 @@ class DocumentRepositoryController extends Controller
     // private function formatBytes(int $bytes, int $precision = 2): string
     // {
     //     $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        
+
     //     for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
     //         $bytes /= 1024;
     //     }
@@ -570,7 +576,7 @@ class DocumentRepositoryController extends Controller
     public function destroy($id)
     {
         $document = Document::findOrFail($id);
-        
+
         $this->authorize('delete', $document);
 
         try {
@@ -613,7 +619,7 @@ class DocumentRepositoryController extends Controller
 
         } catch (\Exception $e) {
             \DB::rollBack();
-            
+
             \Log::error('Document deletion failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'document_id' => $id,
@@ -638,7 +644,7 @@ class DocumentRepositoryController extends Controller
     public function bulkDelete(Request $request)
     {
         $documentIds = $request->input('ids', []);
-        
+
         if (empty($documentIds)) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -658,7 +664,7 @@ class DocumentRepositoryController extends Controller
 
             foreach ($documentIds as $documentId) {
                 $document = Document::find($documentId);
-                
+
                 if (!$document) {
                     $failedCount++;
                     continue;
@@ -683,7 +689,7 @@ class DocumentRepositoryController extends Controller
                     if ($filePath && \Storage::disk('public')->exists($filePath)) {
                         \Storage::disk('public')->delete($filePath);
                     }
-                    
+
                     $deletedCount++;
                     $deletedTitles[] = $documentTitle;
                 } else {
@@ -722,7 +728,7 @@ class DocumentRepositoryController extends Controller
 
         } catch (\Exception $e) {
             \DB::rollBack();
-            
+
             \Log::error('Bulk document deletion failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'document_ids' => $documentIds,
@@ -747,7 +753,7 @@ class DocumentRepositoryController extends Controller
     public function forceDelete($id)
     {
         $document = Document::withTrashed()->findOrFail($id);
-        
+
         $this->authorize('forceDelete', $document);
 
         try {
@@ -786,7 +792,7 @@ class DocumentRepositoryController extends Controller
 
         } catch (\Exception $e) {
             \DB::rollBack();
-            
+
             \Log::error('Force document deletion failed: ' . $e->getMessage());
 
             if (request()->ajax() || request()->wantsJson()) {
@@ -807,7 +813,7 @@ class DocumentRepositoryController extends Controller
     public function restore($id)
     {
         $document = Document::withTrashed()->findOrFail($id);
-        
+
         $this->authorize('restore', $document);
 
         try {

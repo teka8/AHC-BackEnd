@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Backend;
 
-use App\Support\Helper\MediaHelper;
+use App\Models\EducationalResource;
+use App\Models\EducationalResourceTag;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Backend\MediaBulkDeleteRequest;
-use App\Http\Requests\Backend\MediaUploadRequest;
-use App\Models\Media;
 use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
+use App\Models\Media;
+
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class EducationRepositoryController extends Controller
 {
@@ -20,140 +23,843 @@ class EducationRepositoryController extends Controller
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Media::class);
-
-        // Check for PHP upload limit errors first
-        $phpError = MediaHelper::checkPhpUploadError();
-        if ($phpError) {
-            return redirect()->back()->withErrors([
-                'upload_error' => $phpError['message'],
-            ])->withInput();
-        }
+        $this->authorize('viewAny', EducationalResource::class);
 
         $breadcrumbs = [
-            'title' => __('Media Library'),
+            'title' => __('Educational Resource Hub'),
             'links' => [
                 [
                     'name' => __('Dashboard'),
                     'url' => route('admin.dashboard'),
                 ],
                 [
-                    'name' => __('Media Library'),
+                    'name' => __('Educational Resource Hub'),
                     'url' => '#',
                 ],
             ],
         ];
 
-        $result = $this->mediaLibraryService->getMediaList(
-            $request->get('search'),
-            $request->get('type'),
-            $request->get('sort', 'created_at'),
-            $request->get('direction', 'desc'),
-            50
-        );
+        // Get documents with search, filter, and pagination
+        $query = EducationalResource::with(['creator', 'tags'])
+            ->when($request->get('search'), function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                        ->orWhere('author', 'like', "%{$search}%")
+                        ->orWhere('abstract', 'like', "%{$search}%")
+                        ->orWhere('document_type', 'like', "%{$search}%")
+                        ->orWhere('category', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->get('type'), function ($query, $type) {
+                return $query->where('document_type', $type);
+            })
+            ->when($request->get('category'), function ($query, $category) {
+                return $query->where('category', $category);
+            })
+            ->when($request->get('status'), function ($query, $status) {
+                return $query->where('status', $status);
+            });
 
-        // Transform media items to include proper URLs.
-        $result['media']->getCollection()->transform(function ($item) {
-            try {
-                if (empty($item->model_type) || $item->model_id == 0) {
-                    $item->url = asset('storage/media/' . $item->file_name);
-                    $item->thumb_url = $item->url;
-                } else {
-                    $item->url = $item->getUrl();
-                    $item->thumb_url = $item->hasGeneratedConversion('thumb') ? $item->getUrl('thumb') : $item->getUrl();
-                }
-            } catch (\Exception $e) {
-                $item->url = asset('storage/media/' . $item->file_name);
-                $item->thumb_url = $item->url;
-            }
+        // Apply sorting
+        $sort = $request->get('sort', 'created_at');
+        $direction = $request->get('direction', 'desc');
+        $query->orderBy($sort, $direction);
 
-            return $item;
-        });
+        $documents = $query->paginate(50);
+
+        // Get statistics for the dashboard
+        $stats = [
+            'total' => EducationalResource::count(),
+            'published' => EducationalResource::where('status', EducationalResource::STATUS_PUBLISHED)->count(),
+            'draft' => EducationalResource::where('status', EducationalResource::STATUS_DRAFT)->count(),
+            'under_review' => EducationalResource::where('status', EducationalResource::STATUS_UNDER_REVIEW)->count(),
+            'featured' => EducationalResource::where('is_featured', true)->count(),
+            'total_downloads' => EducationalResource::sum('download_count'),
+        ];
 
         // Get upload limits for frontend
-        $uploadLimits = MediaHelper::getUploadLimits();
+        $uploadLimits = [
+            'max_file_uploads' => ini_get('max_file_uploads'),
+            'upload_max_filesize' => ini_get('upload_max_filesize'),
+            'post_max_size' => ini_get('post_max_size'),
+            'effective_max_filesize' => min(
+                $this->convertToBytes(ini_get('upload_max_filesize')),
+                $this->convertToBytes(ini_get('post_max_size'))
+            ),
+            'effective_max_filesize_formatted' => $this->formatBytes(
+                min(
+                    $this->convertToBytes(ini_get('upload_max_filesize')),
+                    $this->convertToBytes(ini_get('post_max_size'))
+                )
+            ),
+            'post_max_size_formatted' => $this->formatBytes($this->convertToBytes(ini_get('post_max_size'))),
+        ];
 
-        return view('backend.pages.media.index', [
-            'media' => $result['media'],
+        return view('backend.pages.education.index', [
+            'documents' => $documents,
             'breadcrumbs' => $breadcrumbs,
-            'stats' => $result['stats'],
+            'stats' => $stats,
             'uploadLimits' => $uploadLimits,
+            'documentTypes' => [
+                'Curriculum Materials',
+                'Teaching Modules',
+                'Educational Videos',
+                'Podcasts',
+                'Interactive Learning Formats',
+                'Lesson Plans',
+            ],
+            'categories' => \App\Models\EducationalCategory::active()->ordered()->get(),
+            'statuses' => [
+                EducationalResource::STATUS_DRAFT,
+                EducationalResource::STATUS_UNDER_REVIEW,
+                EducationalResource::STATUS_APPROVED,
+                EducationalResource::STATUS_PUBLISHED,
+                EducationalResource::STATUS_ARCHIVED
+            ]
         ]);
     }
 
-    public function store(MediaUploadRequest $request)
+    private function convertToBytes(string $size): int
     {
-        $this->authorize('create', Media::class);
+        $unit = preg_replace('/[^bkmgtpezy]/i', '', $size);
+        $size = preg_replace('/[^0-9\.]/', '', $size);
 
-        if (config('app.demo_mode', false) && Media::count() > 10) {
-            return response()->json([
-                'success' => false,
-                'message' => __('More than 10 media items are not allowed in demo mode. To test, please either delete some existing items and try again or test on your local/live environment.'),
-            ], 403);
+        if ($unit) {
+            return (int) round($size * pow(1024, stripos('bkmgtpezy', $unit[0])));
         }
 
-        // Double-check for PHP upload errors in case they weren't caught earlier
-        $phpError = MediaHelper::checkPhpUploadError();
-        if ($phpError) {
-            return response()->json([
-                'success' => false,
-                'message' => $phpError['message'],
-                'error_type' => 'php_upload_limit',
-                'uploaded_size' => $phpError['uploaded_size'],
-                'limit' => $phpError['limit'],
-                'limit_formatted' => $phpError['limit_formatted'],
-            ], 422);
+        return (int) round($size);
+    }
+
+    private function formatBytes(int $bytes, int $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+            $bytes /= 1024;
         }
+
+        return round($bytes, $precision) . ' ' . $units[$i];
+    }
+
+    /**
+     * Show the form for editing the specified document.
+     */
+    public function edit($id)
+    {
+        $document = EducationalResource::with('tags')->findOrFail($id);
+
+        $this->authorize('update', $document);
+
+        $breadcrumbs = [
+            'title' => __('Edit Educational Resource Hub'),
+            'links' => [
+                [
+                    'name' => __('Dashboard'),
+                    'url' => route('admin.dashboard'),
+                ],
+                [
+                    'name' => __('Educational Resource Hub'),
+                    'url' => route('admin.education.index'),
+                ],
+                [
+                    'name' => __('Edit Educational Resource Hub'),
+                    'url' => '#',
+                ],
+            ],
+        ];
+
+        return view('backend.pages.education.edit', [
+            'document' => $document,
+            'breadcrumbs' => $breadcrumbs,
+            'documentTypes' => [
+                'Curriculum Materials',
+                'Teaching Modules',
+                'Educational Videos',
+                'Podcasts',
+                'Interactive Learning Formats',
+                'Lesson Plans',
+            ],
+            'categories' => \App\Models\EducationalCategory::active()->ordered()->get(),
+            'statuses' => [
+                EducationalResource::STATUS_DRAFT => __('Draft'),
+                EducationalResource::STATUS_UNDER_REVIEW => __('Under Review'),
+                EducationalResource::STATUS_APPROVED => __('Approved'),
+                EducationalResource::STATUS_PUBLISHED => __('Published'),
+                EducationalResource::STATUS_ARCHIVED => __('Archived')
+            ],
+            'accessLevels' => [
+                EducationalResource::ACCESS_PUBLIC => __('Public'),
+                EducationalResource::ACCESS_PARTNER_ONLY => __('Partner Universities Only'),
+                EducationalResource::ACCESS_INTERNAL_ONLY => __('Internal Only')
+            ]
+        ]);
+    }
+
+    /**
+     * Update the specified document in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $document = EducationalResource::findOrFail($id);
+
+        $this->authorize('update', $document);
+
+        // Validate the request
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'author' => 'required|string|max:255',
+            'publication_date' => 'required|date',
+            'abstract' => 'required|string',
+            'document_type' => 'required|string|max:255',
+            'category' => 'required|string|max:255',
+            'version' => 'nullable|string|max:50',
+            'is_featured' => 'nullable|boolean',
+            'access_level' => 'required|in:public,partner_only,internal_only',
+            'status' => 'required|in:draft,under_review,approved,published,archived',
+            'tags' => 'nullable|string|max:500',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,rtf,odt,ods,odp|max:102400', // 100MB max
+        ]);
 
         try {
-            $uploadedFiles = $this->mediaLibraryService->uploadMedia($request->file('files', []));
+            \DB::beginTransaction();
+
+            // Handle file upload if a new file is provided
+            $fileData = [];
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $originalName = $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
+                $fileSize = $file->getSize();
+                $mimeType = $file->getMimeType();
+
+                // Generate unique filename
+                $filename = \Illuminate\Support\Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
+                $filePath = $file->storeAs('documents', $filename, 'public');
+
+                // Delete old file
+                if ($document->file_path && \Storage::disk('public')->exists($document->file_path)) {
+                    \Storage::disk('public')->delete($document->file_path);
+                }
+
+                $fileData = [
+                    'file_path' => $filePath,
+                    'file_name' => $originalName,
+                    'file_size' => $fileSize,
+                    'file_extension' => $extension,
+                    'mime_type' => $mimeType,
+                ];
+            }
+
+            // Map UI labels used in create to enum values stored in DB
+            $typeMap = [
+                'Curriculum Materials' => EducationalResource::TYPE_TEACHING_GUIDE,
+                'Teaching Modules' => EducationalResource::TYPE_INTERACTIVE_MODULE,
+                'Educational Videos' => EducationalResource::TYPE_VIDEO,
+                'Podcasts' => EducationalResource::TYPE_PODCAST,
+                'Interactive Learning Formats' => EducationalResource::TYPE_INTERACTIVE_MODULE,
+                'Lesson Plans' => EducationalResource::TYPE_LESSON_PLAN,
+            ];
+            $allowedTypes = [
+                EducationalResource::TYPE_VIDEO,
+                EducationalResource::TYPE_PODCAST,
+                EducationalResource::TYPE_INTERACTIVE_MODULE,
+                EducationalResource::TYPE_LESSON_PLAN,
+                EducationalResource::TYPE_TEACHING_GUIDE,
+                EducationalResource::TYPE_PRESENTATION,
+                EducationalResource::TYPE_CASE_STUDY,
+                EducationalResource::TYPE_SIMULATION,
+                EducationalResource::TYPE_OTHER,
+            ];
+            $resourceTypeInput = $validated['document_type'];
+            $resourceType = $typeMap[$resourceTypeInput] ?? (in_array($resourceTypeInput, $allowedTypes, true) ? $resourceTypeInput : EducationalResource::TYPE_OTHER);
+
+            // Update the document
+            $document->update(array_merge([
+                'title' => $validated['title'],
+                // Map incoming fields to schema columns
+                'creator' => $validated['author'],
+                'description' => $validated['abstract'],
+                'resource_type' => $resourceType,
+                'subject_area' => $validated['category'],
+                'published_at' => $validated['publication_date'] ? date('Y-m-d H:i:s', strtotime($validated['publication_date'])) : $document->published_at,
+                'version' => $validated['version'] ?? $document->version,
+                'is_featured' => $validated['is_featured'] ?? false,
+                'access_level' => $validated['access_level'],
+                'status' => $validated['status'],
+                'updated_by' => Auth::id(),
+            ], $fileData));
+
+            // Handle tags
+            if (!empty($validated['tags'])) {
+                $this->processTags($document, $validated['tags']);
+            } else {
+                $document->tags()->detach();
+            }
+
+            // Handle status changes
+            if ($validated['status'] === EducationalResource::STATUS_PUBLISHED && !$document->published_at) {
+                $document->update(['published_at' => now()]);
+            }
+
+            \DB::commit();
+
+            // Log the activity
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->performedOn($document)
+            //     ->log('updated document: ' . $document->title);
+
+            return redirect()->route('admin.education.index')
+                ->with('success', __('Document updated successfully'));
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+
+            \Log::error('Document update failed: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'document_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('error', __('Failed to update document: ') . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Publish a document
+     */
+    public function publish($id)
+    {
+        $document = EducationalResource::findOrFail($id);
+
+        $this->authorize('publish', $document);
+
+        try {
+            $document->update([
+                'status' => EducationalResource::STATUS_PUBLISHED,
+                'published_at' => now(),
+                'updated_by' => Auth::id(),
+            ]);
+
 
             return response()->json([
                 'success' => true,
-                'message' => __('Files uploaded successfully'),
-                'files' => $uploadedFiles,
+                'message' => __('Document published successfully')
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => __('Upload validation failed'),
-                'errors' => $e->errors(),
-                'error_type' => 'validation_failed',
-            ], 422);
+
         } catch (\Exception $e) {
+            \Log::error('Document publish failed: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => __('Upload failed: :error', ['error' => $e->getMessage()]),
-                'error_type' => 'upload_failed',
+                'message' => __('Failed to publish document')
             ], 500);
         }
     }
 
-    public function destroy($id)
+    /**
+     * Approve a document
+     */
+    public function approve($id)
     {
-        $media = Media::findOrFail($id);
-        $this->authorize('delete', $media);
+        $document = EducationalResource::findOrFail($id);
 
-        $this->mediaLibraryService->deleteMedia($id);
+        $this->authorize('approve', $document);
+
+        try {
+            $document->update([
+                'status' => EducationalResource::STATUS_APPROVED,
+                'approved_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
+
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->performedOn($document)
+            //     ->log('approved document: ' . $document->title);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Document approved successfully')
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Document approval failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to approve document')
+            ], 500);
+        }
+    }
+
+    public function store(Request $request)
+    {
+
+        // Validate the request
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'author' => 'required|string|max:255',
+            'publication_date' => 'required|date',
+            'abstract' => 'required|string',
+            'document_type' => 'required|string|max:255',
+            'category' => 'required|string|max:255',
+            'version' => 'nullable|string|max:50',
+            'is_featured' => 'nullable|boolean',
+            'access_level' => 'required|in:public,partner_only,internal_only',
+            'tags' => 'nullable|string|max:500',
+            'files' => 'required|array',
+            'files.*' => 'required|file|max:102400', // 100MB max
+        ]);
+
+        try {
+            // Handle file upload
+            $file = $request->file('files')[0]; // Get the first file since we're uploading one document
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $fileSize = $file->getSize();
+            $mimeType = $file->getMimeType();
+
+            // Generate unique filename
+            $filename = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
+            $filePath = $file->storeAs('education', $filename, 'public');
+
+            // Map UI labels used in create to enum values stored in DB
+            $typeMap = [
+                'Curriculum Materials' => EducationalResource::TYPE_TEACHING_GUIDE,
+                'Teaching Modules' => EducationalResource::TYPE_INTERACTIVE_MODULE,
+                'Educational Videos' => EducationalResource::TYPE_VIDEO,
+                'Podcasts' => EducationalResource::TYPE_PODCAST,
+                'Interactive Learning Formats' => EducationalResource::TYPE_INTERACTIVE_MODULE,
+                'Lesson Plans' => EducationalResource::TYPE_LESSON_PLAN,
+            ];
+            $allowedTypes = [
+                EducationalResource::TYPE_VIDEO,
+                EducationalResource::TYPE_PODCAST,
+                EducationalResource::TYPE_INTERACTIVE_MODULE,
+                EducationalResource::TYPE_LESSON_PLAN,
+                EducationalResource::TYPE_TEACHING_GUIDE,
+                EducationalResource::TYPE_PRESENTATION,
+                EducationalResource::TYPE_CASE_STUDY,
+                EducationalResource::TYPE_SIMULATION,
+                EducationalResource::TYPE_OTHER,
+            ];
+            $resourceTypeInput = $validated['document_type'];
+            $resourceType = $typeMap[$resourceTypeInput] ?? (in_array($resourceTypeInput, $allowedTypes, true) ? $resourceTypeInput : EducationalResource::TYPE_OTHER);
+
+            // Create the document
+            $document = EducationalResource::create([
+                'title' => $validated['title'],
+                // Map incoming fields to schema columns
+                'creator' => $validated['author'],
+                'description' => $validated['abstract'],
+                'resource_type' => $resourceType,
+                'subject_area' => $validated['category'],
+                'file_path' => $filePath,
+                'file_name' => $originalName,
+                'file_size' => $fileSize,
+                'file_extension' => $extension,
+                'mime_type' => $mimeType,
+                'version' => $validated['version'] ?? '1.0',
+                'is_featured' => $validated['is_featured'] ?? false,
+                'access_level' => $validated['access_level'],
+                'status' => EducationalResource::STATUS_DRAFT, // Default to draft, can be changed via workflow
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
+
+            // Handle tags
+            if (!empty($validated['tags'])) {
+                $this->processTags($document, $validated['tags']);
+            }
+
+
+            return response()->json([
+                'success' => true,
+                'message' => __('File uploaded successfully'),
+                'data' => $document
+            ], 201);
+
+        } catch (\Exception $e) {
+            // Delete the file if it was uploaded but document creation failed
+            if (isset($filePath) && Storage::disk('public')->exists($filePath)) {
+                Storage::disk('public')->delete($filePath);
+            }
+
+            \Log::error('Document upload failed: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'file' => $request->file('files')[0]?->getClientOriginalName(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to upload file: ') . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Process and attach tags to the document
+     */
+    private function processTags(EducationalResource $document, string $tagsInput): void
+    {
+        $tags = array_map('trim', explode(',', $tagsInput));
+        $tagIds = [];
+
+        foreach ($tags as $tagName) {
+            if (empty($tagName))
+                continue;
+
+            // Find or create tag
+            $tag = EducationalResourceTag::firstOrCreate(
+                ['name' => $tagName],
+                [
+                    'slug' => Str::slug($tagName),
+                    'color' => $this->generateTagColor($tagName)
+                ]
+            );
+
+            $tagIds[] = $tag->id;
+        }
+
+        // Sync tags with the document
+        $document->tags()->sync($tagIds);
+    }
+
+    /**
+     * Generate a consistent color for a tag based on its name
+     */
+    private function generateTagColor(string $tagName): string
+    {
+        $colors = [
+            '#3b82f6',
+            '#ef4444',
+            '#10b981',
+            '#f59e0b',
+            '#8b5cf6',
+            '#ec4899',
+            '#06b6d4',
+            '#84cc16',
+            '#f97316',
+            '#6b7280'
+        ];
+
+        $hash = crc32($tagName);
+        return $colors[$hash % count($colors)];
+    }
+
+    /**
+     * Get upload limits for the frontend
+     */
+    public function getUploadLimits()
+    {
+        $maxFileSize = ini_get('upload_max_filesize');
+        $postMaxSize = ini_get('post_max_size');
+        $maxFileUploads = ini_get('max_file_uploads');
+
+        // Convert to bytes for calculations
+        $maxFileSizeBytes = $this->convertToBytes($maxFileSize);
+        $postMaxSizeBytes = $this->convertToBytes($postMaxSize);
+
+        // Use the smaller of upload_max_filesize and post_max_size as effective limit
+        $effectiveMaxFilesize = min($maxFileSizeBytes, $postMaxSizeBytes);
 
         return response()->json([
-            'success' => true,
-            'message' => __('Media deleted successfully'),
+            'max_file_uploads' => (int) $maxFileUploads,
+            'upload_max_filesize' => $maxFileSize,
+            'post_max_size' => $postMaxSize,
+            'effective_max_filesize' => $effectiveMaxFilesize,
+            'effective_max_filesize_formatted' => $this->formatBytes($effectiveMaxFilesize),
+            'post_max_size_formatted' => $this->formatBytes($postMaxSizeBytes),
         ]);
     }
 
-    public function bulkDelete(MediaBulkDeleteRequest $request)
+    /**
+     * Remove the specified document from storage.
+     */
+    public function destroy($id)
     {
-        $this->authorize('bulkDelete', Media::class);
+        $document = EducationalResource::findOrFail($id);
 
-        $this->mediaLibraryService->bulkDeleteMedia($request->ids);
+        $this->authorize('delete', $document);
 
-        return redirect()->back()->with('success', __('Selected media deleted successfully'));
+        try {
+            \DB::beginTransaction();
+
+            // Store document info for logging before deletion
+            $documentTitle = $document->title;
+            $filePath = $document->file_path;
+
+            // Delete associated tags
+            $document->tags()->detach();
+
+            // Delete access logs
+            $document->accessLogs()->delete();
+
+            // Delete the document
+            $document->delete();
+
+            // Delete the physical file
+            if ($filePath && \Storage::disk('public')->exists($filePath)) {
+                \Storage::disk('public')->delete($filePath);
+            }
+
+            \DB::commit();
+
+            // Log the activity
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->log('deleted document: ' . $documentTitle);
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('Document deleted successfully')
+                ]);
+            }
+
+            return redirect()->route('admin.document.index')
+                ->with('success', __('Document deleted successfully'));
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+
+            \Log::error('Document deletion failed: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'document_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Failed to delete document: ') . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', __('Failed to delete document: ') . $e->getMessage());
+        }
+    }
+
+    /**
+     * Bulk delete documents
+     */
+    public function bulkDelete(Request $request)
+    {
+        $documentIds = $request->input('ids', []);
+
+        if (empty($documentIds)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('No documents selected for deletion')
+                ], 400);
+            }
+            return redirect()->back()->with('error', __('No documents selected for deletion'));
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            $deletedCount = 0;
+            $failedCount = 0;
+            $deletedTitles = [];
+
+            foreach ($documentIds as $documentId) {
+                $document = EducationalResource::find($documentId);
+
+                if (!$document) {
+                    $failedCount++;
+                    continue;
+                }
+
+                // Check authorization for each document
+                if (!Auth::user()->can('delete', $document)) {
+                    $failedCount++;
+                    continue;
+                }
+
+                $documentTitle = $document->title;
+                $filePath = $document->file_path;
+
+                // Delete associated data
+                $document->tags()->detach();
+                $document->accessLogs()->delete();
+
+                // Delete the document
+                if ($document->delete()) {
+                    // Delete the physical file
+                    if ($filePath && \Storage::disk('public')->exists($filePath)) {
+                        \Storage::disk('public')->delete($filePath);
+                    }
+
+                    $deletedCount++;
+                    $deletedTitles[] = $documentTitle;
+                } else {
+                    $failedCount++;
+                }
+            }
+
+            \DB::commit();
+
+            // Log the activity
+            // if ($deletedCount > 0) {
+            //     activity()
+            //         ->causedBy(Auth::user())
+            //         ->log('bulk deleted ' . $deletedCount . ' documents: ' . implode(', ', $deletedTitles));
+            // }
+
+            $message = '';
+            if ($deletedCount > 0) {
+                $message .= __(':count document(s) deleted successfully.', ['count' => $deletedCount]);
+            }
+            if ($failedCount > 0) {
+                $message .= ' ' . __(':count document(s) failed to delete.', ['count' => $failedCount]);
+            }
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => $deletedCount > 0,
+                    'message' => trim($message),
+                    'deleted_count' => $deletedCount,
+                    'failed_count' => $failedCount
+                ]);
+            }
+
+            return redirect()->route('admin.document.index')
+                ->with($deletedCount > 0 ? 'success' : 'error', trim($message));
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+
+            \Log::error('Bulk document deletion failed: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'document_ids' => $documentIds,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Failed to delete documents: ') . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', __('Failed to delete documents: ') . $e->getMessage());
+        }
+    }
+
+    /**
+     * Force delete a document (for super admins)
+     */
+    public function forceDelete($id)
+    {
+        $document = EducationalResource::withTrashed()->findOrFail($id);
+
+        $this->authorize('forceDelete', $document);
+
+        try {
+            \DB::beginTransaction();
+
+            $documentTitle = $document->title;
+            $filePath = $document->file_path;
+
+            // Permanently delete associated data
+            $document->tags()->detach();
+            $document->accessLogs()->forceDelete();
+
+            // Force delete the document
+            $document->forceDelete();
+
+            // Delete the physical file
+            if ($filePath && \Storage::disk('public')->exists($filePath)) {
+                \Storage::disk('public')->delete($filePath);
+            }
+
+            \DB::commit();
+
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->log('permanently deleted document: ' . $documentTitle);
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('Document permanently deleted')
+                ]);
+            }
+
+            return redirect()->route('admin.document.index')
+                ->with('success', __('Document permanently deleted'));
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+
+            \Log::error('Force document deletion failed: ' . $e->getMessage());
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Failed to permanently delete document')
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', __('Failed to permanently delete document'));
+        }
+    }
+
+    /**
+     * Restore a soft-deleted document
+     */
+    public function restore($id)
+    {
+        $document = EducationalResource::withTrashed()->findOrFail($id);
+
+        $this->authorize('restore', $document);
+
+        try {
+            $document->restore();
+
+            // activity()
+            //     ->causedBy(Auth::user())
+            //     ->performedOn($document)
+            //     ->log('restored document: ' . $document->title);
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('Document restored successfully')
+                ]);
+            }
+
+            return redirect()->route('admin.document.index')
+                ->with('success', __('Document restored successfully'));
+
+        } catch (\Exception $e) {
+            \Log::error('Document restoration failed: ' . $e->getMessage());
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Failed to restore document')
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', __('Failed to restore document'));
+        }
     }
 
     public function api(Request $request)
     {
-        $this->authorize('viewAny', Media::class);
+        $this->authorize('viewAny', EducationalResource::class);
 
         $result = $this->mediaLibraryService->getMediaList(
             $request->get('search'),
@@ -213,27 +919,5 @@ class EducationRepositoryController extends Controller
         ]);
     }
 
-    /**
-     * Get upload limits for frontend consumption
-     */
-    public function getUploadLimits()
-    {
-        $this->authorize('viewAny', Media::class);
 
-        $limits = MediaHelper::getUploadLimits();
-
-        // Add demo mode restrictions info
-        if (config('app.demo_mode', false)) {
-            $limits['demo_mode'] = true;
-            $limits['allowed_mime_types'] = MediaHelper::getAllowedMimeTypesForDemo();
-            $limits['demo_restriction_message'] = __('In demo mode, only images, videos, PDFs, and documents (Word, Excel, PowerPoint, text files) are allowed.');
-        } else {
-            $limits['demo_mode'] = false;
-        }
-
-        return response()->json([
-            'success' => true,
-            'limits' => $limits,
-        ]);
-    }
 }
