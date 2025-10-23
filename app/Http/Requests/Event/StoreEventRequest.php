@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Event;
 
+use App\Models\Event;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreEventRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', \App\Models\Event::class);
+        return $this->user()->can('create', Event::class);
     }
 
 
@@ -19,8 +20,8 @@ class StoreEventRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'start_time' => 'required|time',
-            'end_time' => 'nullable|time|after_or_equal:start_time',
+            'start_time' => 'required',
+            'end_time' => 'nullable|after_or_equal:start_time',
             'event_date' => 'required|date',
             'location' => 'nullable|string|max:2000',
             'google_map_location_link' => 'nullable|url|max:2000',
@@ -30,9 +31,8 @@ class StoreEventRequest extends FormRequest
             'cost_amount' => 'nullable|numeric|min:0',
             'event_type' => 'required|string|in:in-person,virtual,online',
             'target_audience' => 'nullable|string|max:255',
-            'status' => 'nullable|string|in:draft,published,archived',
-            'image_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'featured_image' => 'nullable', // allow ID or URL reference
+            'status' => 'nullable|string|in:draft,created,reviewed,approved,published,archived',
+            'event_image' => 'nullable|image|max:10240',
             'attachments.*' => 'nullable|file|max:10240',
         ];
     }

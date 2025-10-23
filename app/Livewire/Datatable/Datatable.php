@@ -156,7 +156,12 @@ abstract class Datatable extends Component
 
     protected function getNewResourceLinkLabel(): string
     {
-        return __('New :model', ['model' => $this->getModelNameSingular()]);
+        if ($this->getModelNameSingular() === 'Post'){
+            return __('Add News');
+        }
+        else{
+            return __('New :model', ['model' => $this->getModelNameSingular()]);
+        }
     }
 
     protected function getFilters(): array
