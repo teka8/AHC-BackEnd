@@ -6,9 +6,11 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Post;
 use App\Services\Charts\PostChartService;
 use App\Services\Charts\UserChartService;
 use App\Services\LanguageService;
+use App\Enums\PostStatus;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -35,6 +37,13 @@ class DashboardController extends Controller
                     'total' => number_format(count($this->languageService->getLanguages())),
                     'active' => number_format(count($this->languageService->getActiveLanguages())),
                 ],
+
+                // 
+                'total_news' => number_format(Post::where('post_type', 'news')->count()),
+                'published_news' => number_format(Post::where('post_type', 'news')
+                    ->where('status', PostStatus::PUBLISHED->value)
+                    ->count()),
+
                 'user_growth_data' => $this->userChartService->getUserGrowthData(
                     request()->get('chart_filter_period', 'last_6_months')
                 )->getData(true),

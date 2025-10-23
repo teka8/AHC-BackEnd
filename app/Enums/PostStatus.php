@@ -12,8 +12,11 @@ enum PostStatus: string
     case SCHEDULED = 'scheduled';
     case PRIVATE = 'private';
     case CREATED = 'created';
+    case REVIEWED = 'reviewed';
     case EDITED = 'edited';
     case APPROVED = 'approved';
     case ARCHIVED = 'archived';
     case EDIT_STATUS = 'edit_status';
+    
+
 }
