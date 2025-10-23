@@ -1,5 +1,6 @@
 <x-layouts.backend-layout :breadcrumbs="$breadcrumbs">
     <div x-data="{
+        // Existing properties
         selectedDocuments: [],
         selectAll: false,
         bulkDeleteModalOpen: false,
@@ -9,9 +10,156 @@
         bulkActionsDropdownOpen: false,
         uploadModalOpen: false,
 
+        // New properties for change status modal
+        changeStatusModalOpen: false,
+        changeStatusDocumentId: null,
+        changeStatusAction: null,
+        changeStatusModalTitle: '',
+        changeStatusModalMessage: '',
+        changeStatusButtonText: '',
+        changeStatusComment: '',
+        changeStatusLoading: false,
+
+        // New property for bulk delete loading
+        bulkDeleteLoading: false,
+
+        // Existing methods
         showSingleDeleteModal(id) {
             this.selectedDocuments = [id.toString()];
             this.bulkDeleteModalOpen = true;
+        },
+
+        toggleSelectAll() {
+            this.selectAll = !this.selectAll;
+            if (this.selectAll) {
+                this.selectedDocuments = [...document.querySelectorAll('.document-checkbox')].map(cb => cb.value);
+            } else {
+                this.selectedDocuments = [];
+            }
+        },
+
+        // Bulk delete method
+        // Bulk delete method
+async performBulkDelete() {
+    if (this.bulkDeleteLoading) return;
+    
+    this.bulkDeleteLoading = true;
+
+    try {
+        // Use the correct endpoint for bulk delete
+        const response = await fetch('{{ route("admin.document.bulk-delete") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({
+                ids: this.selectedDocuments,
+                _method: 'DELETE'
+            })
+        });
+
+        // Check if response is ok
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            if (window.showToast) {
+                window.showToast('success', '{{ __('Success') }}', data.message);
+            }
+            // Close modal
+            this.bulkDeleteModalOpen = false;
+            // Clear selection
+            this.selectedDocuments = [];
+            this.selectAll = false;
+            // Refresh the page
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            throw new Error(data.message || '{{ __("Failed to delete documents") }}');
+        }
+
+    } catch (error) {
+        console.error('Bulk delete failed:', error);
+        if (window.showToast) {
+            window.showToast('error', '{{ __('Error') }}', error.message || '{{ __("Failed to delete documents") }}');
+        }
+    } finally {
+        this.bulkDeleteLoading = false;
+    }
+},
+
+        
+
+        showChangeStatusModal(documentId, action, actionConfig) {
+            this.changeStatusDocumentId = documentId;
+            this.changeStatusAction = action;
+            this.changeStatusComment = '';
+            this.changeStatusLoading = false;
+            
+            this.changeStatusModalTitle = actionConfig.label || 'Change Status';
+            this.changeStatusModalMessage = this.getStatusChangeMessage(action);
+            this.changeStatusButtonText = actionConfig.label || 'Confirm';
+            
+            this.changeStatusModalOpen = true;
+        },
+
+        getStatusChangeMessage(action) {
+            const messages = {
+                'send_for_review': '{{ __("This will send the document for review.") }}',
+                'approve': '{{ __("This will approve the document for publication.") }}',
+                'publish': '{{ __("This will publish the document.") }}',
+                'reject': '{{ __("This will send the document back for changes.") }}',
+                'send_back': '{{ __("This will send the document back for review.") }}',
+                'unpublish': '{{ __("This will unpublish the document.") }}',
+                'archive': '{{ __("This will archive the document.") }}',
+                'restore': '{{ __("This will restore the document.") }}'
+            };
+            return messages[action] || '{{ __("Are you sure you want to change the document status?") }}';
+        },
+
+        async performStatusChange() {
+            if (this.changeStatusLoading) return;
+            this.changeStatusLoading = true;
+
+            try {
+                const response = await fetch(`/admin/document/${this.changeStatusDocumentId}/change-status`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: this.changeStatusAction,
+                        comment: this.changeStatusComment
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    if (window.showToast) {
+                        window.showToast('success', '{{ __('Success') }}', data.message);
+                    }
+                    this.changeStatusModalOpen = false;
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('Status change failed:', error);
+                if (window.showToast) {
+                    window.showToast('error', '{{ __('Error') }}', error.message);
+                }
+            } finally {
+                this.changeStatusLoading = false;
+            }
         }
     }" id="documentManager">
         @if ($errors->any())
@@ -246,9 +394,7 @@
                                         <th class="table-thead-th">
                                             {{ __('Document') }}
                                         </th>
-                                        <th class="table-thead-th">
-                                            {{ __('Author') }}
-                                        </th>
+                                        
                                         <th class="table-thead-th">
                                             {{ __('Type') }}
                                         </th>
@@ -259,7 +405,10 @@
                                             {{ __('Status') }}
                                         </th>
                                         <th class="table-thead-th">
-                                            {{ __('Downloads') }}
+                                            {{ __('S. Actions') }}
+                                        </th>
+                                        <th class="table-thead-th">
+                                            {{ __('dw') }}
                                         </th>
                                         <th class="table-thead-th">
                                             {{ __('Date') }}
@@ -301,17 +450,15 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="table-td">
-                                                <p class="text-sm text-gray-900 dark:text-white">{{ $document->author }}</p>
-                                            </td>
+                                            
                                             <td class="table-td">
                                                 <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
-                                                    {{ $document->document_type }}
+                                                    <span class="text-center w-full">{{ $document->document_type }}</span>
                                                 </span>
                                             </td>
                                             <td class="table-td">
-                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">
-                                                    {{ $document->category }}
+                                                <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">
+                                                    <span class="text-center w-full">{{ $document->category }}</span>
                                                 </span>
                                             </td>
                                             <td class="table-td">
@@ -328,6 +475,36 @@
                                                     {{ ucfirst(str_replace('_', ' ', $document->status)) }}
                                                 </span>
                                             </td>
+
+                                            <!-- In table row -->
+                                            <!-- In your table row -->
+                                            <td class="table-td">
+    <div class="flex flex-wrap gap-1">
+        @foreach($document->getAvailableActions() as $action => $config)
+            <button x-on:click="showChangeStatusModal({{ $document->id }}, '{{ $action }}', {{ json_encode($config) }})"
+                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md 
+                           bg-{{ $config['color'] }}-100 text-{{ $config['color'] }}-800 
+                           hover:bg-{{ $config['color'] }}-200 dark:bg-{{ $config['color'] }}-900/20 
+                           dark:text-{{ $config['color'] }}-300 dark:hover:bg-{{ $config['color'] }}-900/30
+                           transition-colors duration-200"
+                    title="{{ $config['label'] }}">
+                <iconify-icon icon="{{ $config['icon'] }}" class="w-3 h-3 mr-1"></iconify-icon>
+                {{ $config['label'] }}
+            </button>
+        @endforeach
+        
+        <!-- Always show view workflow history -->
+        <!-- <button onclick="showWorkflowHistory({{ $document->id }})"
+                class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md 
+                       bg-gray-100 text-gray-800 hover:bg-gray-200 
+                       dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600
+                       transition-colors duration-200"
+                title="{{ __('View History') }}">
+            <iconify-icon icon="lucide:history" class="w-3 h-3 mr-1"></iconify-icon>
+            {{ __('History') }}
+        </button> -->
+    </div>
+</td>
                                             <td class="table-td">
                                                 <div class="flex items-center text-sm text-gray-900 dark:text-white">
                                                     <iconify-icon icon="lucide:download" class="w-4 h-4 mr-1 text-gray-400"></iconify-icon>
@@ -378,12 +555,12 @@
                                                         </a>
                                                     @endif
                                                     @if (auth()->user()->can('document.delete'))
-                                                        <button class="text-red-400 hover:text-red-600"
-                                                                onclick="performSingleDelete({{ $document->id }})"
-                                                                title="{{ __('Delete') }}">
-                                                            <iconify-icon icon="lucide:trash" class="text-sm"></iconify-icon>
-                                                        </button>
-                                                    @endif
+    <button class="text-red-400 hover:text-red-600"
+            x-on:click="showSingleDeleteModal({{ $document->id }})"
+            title="{{ __('Delete') }}">
+        <iconify-icon icon="lucide:trash" class="text-sm"></iconify-icon>
+    </button>
+@endif
                                                 </div>
                                             </td>
                                         </tr>
@@ -421,6 +598,8 @@
 
         <!-- Bulk Delete Modal -->
         @include('backend.pages.document.partials.bulk-delete-modal')
+        @include('backend.pages.document.partials.workflow-tracker')
+
 
         <!-- PDF Modal (keep the same PDF modal from your original code) -->
         <div id="pdfModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-75" onclick="closePdfModal()">
@@ -468,5 +647,7 @@
             // Track download function - Call this when download link is clicked
             
         </script>
+
+        
     @endpush
 </x-layouts.backend-layout>
