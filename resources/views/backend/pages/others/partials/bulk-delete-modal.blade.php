@@ -18,7 +18,12 @@
                 <iconify-icon icon="lucide:alert-triangle" class="w-6 h-6"></iconify-icon>
             </div>
             <h3 class="font-semibold tracking-wide text-gray-700 dark:text-white">
-                {{ __('Delete Selected Media') }}
+                <template x-if="selectedDocuments.length === 1">
+                    {{ __('Delete Resource') }}
+                </template>
+                <template x-if="selectedDocuments.length > 1">
+                    {{ __('Delete Selected Resources') }}
+                </template>
             </h3>
             <button x-on:click="bulkDeleteModalOpen = false"
                     aria-label="close modal"
@@ -28,18 +33,26 @@
         </div>
         
         <div class="px-4 text-center">
-            <p class="text-gray-500 dark:text-gray-300">
-                {{ __('Are you sure you want to delete the selected media files?') }}
-                {{ __('This action cannot be undone.') }}
-            </p>
+            <template x-if="selectedDocuments.length === 1">
+                <p class="text-gray-500 dark:text-gray-300">
+                    {{ __('Are you sure you want to delete this resource?') }}
+                    {{ __('This action cannot be undone.') }}
+                </p>
+            </template>
+            <template x-if="selectedDocuments.length > 1">
+                <p class="text-gray-500 dark:text-gray-300">
+                    {{ __('Are you sure you want to delete the selected resources?') }}
+                    {{ __('This action cannot be undone.') }}
+                </p>
+            </template>
         </div>
         
         <div class="flex items-center justify-end gap-3 border-t border-gray-100 p-4 dark:border-gray-800">
-            <form id="bulk-delete-form" action="{{ route('admin.media.bulk-delete') }}" method="POST">
+            <form id="bulk-delete-form" action="{{ route('admin.others.bulk-delete') }}" method="POST">
                 @method('DELETE')
                 @csrf
                 
-                <template x-for="id in selectedMedia" :key="id">
+                <template x-for="id in selectedDocuments" :key="id">
                     <input type="hidden" name="ids[]" :value="id">
                 </template>
                 
@@ -51,9 +64,51 @@
                 
                 <button type="submit"
                         class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-300 dark:focus:ring-red-800">
-                    {{ __('Yes, Delete') }}
+                    <template x-if="selectedDocuments.length === 1">
+                        {{ __('Yes, Delete') }}
+                    </template>
+                    <template x-if="selectedDocuments.length > 1">
+                        {{ __('Yes, Delete All') }}
+                    </template>
                 </button>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('bulk-delete-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalHtml = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <iconify-icon icon="lucide:loader-2" class="animate-spin mr-1"></iconify-icon>
+                {{ __('Deleting...') }}
+            `;
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                body: new FormData(form)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) throw new Error(data.message || 'Failed');
+                setTimeout(() => location.reload(), 600);
+            })
+            .catch(err => {
+                if (window.showToast) window.showToast('error', '{{ __('Error') }}', err.message || '{{ __('Failed to delete resources') }}');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHtml;
+            });
+        });
+    }
+});
+</script>

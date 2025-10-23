@@ -446,7 +446,7 @@
         <script>
             function incrementDownloadCount(documentId) {
                 // You can make an AJAX call here to increment the download count
-                fetch(`/admin/document/${documentId}/increment-download`, {
+                fetch(`/admin/others/${documentId}/increment-download`, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',

@@ -156,7 +156,13 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/{id}/edit', [EducationRepositoryController::class, 'edit'])->name('edit');
         Route::put('/{id}', [EducationRepositoryController::class, 'update'])->name('update');
         Route::delete('/{id}', [EducationRepositoryController::class, 'destroy'])->name('destroy');
-        //Route::delete('/', [EducationRepositoryController::class, 'bulkDelete'])->name('bulk-delete');
+        Route::delete('/', [EducationRepositoryController::class, 'bulkDelete'])->name('bulk-delete');
+
+        // Download routes
+        Route::get('/{id}/download', [EducationRepositoryController::class, 'download'])->name('download');
+        Route::get('/{id}/preview', [EducationRepositoryController::class, 'preview'])->name('preview');
+        Route::get('/{id}/stats', [EducationRepositoryController::class, 'downloadStats'])->name('stats');
+        Route::post('/{id}/increment-download', [EducationRepositoryController::class, 'incrementDownload'])->name('increment-download');
     });
 
     //Route for others
@@ -168,7 +174,13 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/{id}/edit', [OthersController::class, 'edit'])->name('edit');
         Route::put('/{id}', [OthersController::class, 'update'])->name('update');
         Route::delete('/{id}', [OthersController::class, 'destroy'])->name('destroy');
-        //Route::delete('/', [EducationRepositoryController::class, 'bulkDelete'])->name('bulk-delete');
+        Route::delete('/', [OthersController::class, 'bulkDelete'])->name('bulk-delete');
+
+        // Download routes
+        Route::get('/{id}/download', [OthersController::class, 'download'])->name('download');
+        Route::get('/{id}/preview', [OthersController::class, 'preview'])->name('preview');
+        Route::get('/{id}/stats', [OthersController::class, 'downloadStats'])->name('stats');
+        Route::post('/{id}/increment-download', [OthersController::class, 'incrementDownload'])->name('increment-download');
     });
 
 

@@ -218,7 +218,7 @@ class Others extends Model
      */
     public function getDownloadUrlAttribute(): string
     {
-        return route('admin.document.download', $this->id);
+        return route('admin.others.download', $this->id);
     }
 
     /**

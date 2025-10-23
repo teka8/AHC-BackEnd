@@ -21,6 +21,84 @@ class EducationRepositoryController extends Controller
     {
     }
 
+    /**
+     * Download the specified educational resource.
+     */
+    public function download($id)
+    {
+        $document = EducationalResource::findOrFail($id);
+
+        if (!$document->isAccessibleBy(Auth::user())) {
+            abort(403, __('You do not have permission to download this resource'));
+        }
+
+        if (!$document->file_path || !\Storage::disk('public')->exists($document->file_path)) {
+            abort(404, __('Resource file not found'));
+        }
+
+        try {
+            $document->incrementDownloadCount();
+
+            \App\Models\EducationalResourceAccessLog::create([
+                'educational_resource_id' => $document->id,
+                'user_id' => Auth::id(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'action' => 'download',
+                'referrer' => request()->header('referer')
+            ]);
+
+            $filePath = \Storage::disk('public')->path($document->file_path);
+            $fileName = $document->file_name ?: basename($filePath);
+
+            return response()->download($filePath, $fileName);
+        } catch (\Exception $e) {
+            \Log::error('Education download failed: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'id' => $id,
+            ]);
+            return redirect()->back()->with('error', __('Failed to download resource'));
+        }
+    }
+
+    /**
+     * Increment download count (AJAX)
+     */
+    public function incrementDownload($id)
+    {
+        $document = EducationalResource::findOrFail($id);
+        $document->incrementDownloadCount();
+        return response()->json(['success' => true, 'download_count' => $document->download_count]);
+    }
+
+    /**
+     * Preview resource (PDF inline if applicable)
+     */
+    public function preview($id)
+    {
+        $document = EducationalResource::findOrFail($id);
+        if (!$document->isAccessibleBy(Auth::user())) {
+            abort(403);
+        }
+        if (!$document->file_path || !\Storage::disk('public')->exists($document->file_path)) {
+            abort(404);
+        }
+        // Fallback to download if not a PDF (no extension stored reliably)
+        return redirect()->route('admin.education.download', $id);
+    }
+
+    /**
+     * Basic download stats endpoint
+     */
+    public function downloadStats($id)
+    {
+        $document = EducationalResource::findOrFail($id);
+        return response()->json([
+            'success' => true,
+            'download_count' => $document->download_count,
+        ]);
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', EducationalResource::class);
@@ -756,7 +834,7 @@ class EducationRepositoryController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.document.index')
+            return redirect()->route('admin.education.index')
                 ->with($deletedCount > 0 ? 'success' : 'error', trim($message));
 
         } catch (\Exception $e) {
@@ -820,7 +898,7 @@ class EducationRepositoryController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.document.index')
+            return redirect()->route('admin.education.index')
                 ->with('success', __('Document permanently deleted'));
 
         } catch (\Exception $e) {
@@ -881,6 +959,7 @@ class EducationRepositoryController extends Controller
                 ->with('error', __('Failed to restore document'));
         }
     }
+
 
     public function api(Request $request)
     {
