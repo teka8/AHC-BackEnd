@@ -76,6 +76,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::post('/notifications/mark-all-read', [App\Http\Controllers\Backend\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/read/{id}', [App\Http\Controllers\Backend\NotificationController::class, 'markAsRead'])->name('notifications.read');
 
+    Route::post('/news/{id}/change-status', [PostController::class, 'changeStatus'])->name('change-status');
     // Posts/Pages Routes - Dynamic post types.
     Route::get('/posts/{postType?}', [PostController::class, 'index'])->name('posts.index');
     Route::get('/posts/{postType}/create', [PostController::class, 'create'])->name('posts.create');
@@ -96,6 +97,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
     Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
     Route::delete('/events/delete/bulk-delete', [EventController::class, 'bulkDelete'])->name('events.bulk-delete');
+    Route::post('events/{id}/change-status', [EventController::class, 'changeStatus'])->name('change-status');
 
 
 

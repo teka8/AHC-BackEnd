@@ -127,7 +127,9 @@ class PermissionService
                     'news.delete',
                     'news.approve',
                     'news.publish',
-                    ''
+                    'news.review',
+                    'news.archive',
+                    'news.restore'
                 ],
             ],
             [
@@ -271,6 +273,24 @@ class PermissionService
                     'event.view',
                     'event.edit',
                     'event.delete',
+
+                    'event.review',       // Send for review, send back for review
+                    'event.approve',      // Approve events
+                    'event.reject',       // Reject/request changes
+                    'event.publish',      // Publish events
+                    'event.unpublish',    // Unpublish events
+                    'event.cancel',       // Cancel events
+                    'event.complete',     // Mark events as completed
+                    'event.archive',      // Archive events
+                    'event.restore',      // Restore archived events
+
+                    'event.track.completion',
+                    'event.view.analytics',
+
+                    // Ownership-based permissions
+                    'event.view.own',
+                    'event.edit.own',
+                    'event.delete.own',
                 ],
             ],
         ];
