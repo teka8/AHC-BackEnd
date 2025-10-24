@@ -33,7 +33,7 @@
     @endif
 
     <!-- Notifications -->
-    <div class="relative" x-data="{ notificationOpen: false }" @click.outside="notificationOpen = false">
+ <div class="relative" x-data="{ notificationOpen: false }" @click.outside="notificationOpen = false">
             <button @click="notificationOpen = !notificationOpen"
                 class="hover:text-dark-900 relative flex p-2 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
                 <iconify-icon icon="lucide:bell" width="22" height="22"></iconify-icon>
@@ -88,7 +88,9 @@
                 @endforelse
             </div>
         </div>
-    </div>
+    </div> 
+    
+    
 
     <script>
         function markAsReadAndRedirect(notificationId, redirectUrl) {
