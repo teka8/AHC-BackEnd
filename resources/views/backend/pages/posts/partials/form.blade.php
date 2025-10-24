@@ -164,33 +164,116 @@
     <div class="lg:col-span-1 space-y-6">
         <!-- Current Status -->
         @if (!empty($post))
-            <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Current Status') }}</h3>
-                </div>
-                <div class="p-6 space-y-4">
-                    @php
-                        $statusColors = [
-                            'published' => 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-                            'draft' => 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
-                            'created' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-                            'edited' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-                            'approved' => 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-                            'archived' => 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-                        ];
-                        $colorClass =
-                            $statusColors[$post->status] ??
-                            'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
-                    @endphp
-                    <span
-                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $colorClass }}">
-                        {{ ucfirst($post->status) }}
+    <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <!-- Header with Current Status -->
+        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Status') }}</h3>
+                @php
+                    $statusColors = [
+                        'published' => 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
+                        'draft' => 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700',
+                        'created' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+                        'edited' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
+                        'approved' => 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
+                        'archived' => 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
+                    ];
+                    $colorClass = $statusColors[$post->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700';
+                @endphp
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $colorClass }}">
+                    
+                    {{ ucfirst($post->status) }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Workflow Actions -->
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Quick Actions') }}</span>
+                <iconify-icon icon="lucide:zap" class="text-yellow-500"></iconify-icon>
+            </div>
+
+            <div class="grid grid-cols-1 gap-2">
+                @php
+                    // Define available transitions based on current status
+                    $availableActions = $post->getAvailableActions();
+                @endphp
+
+                @foreach($availableActions as $action => $config)
+                    <button type="button"
+                            onclick="changeNewsStatus({{ $post->id }}, '{{ $action }}')"
+                            class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
+                                   bg-{{ $config['color'] }}-100 text-{{ $config['color'] }}-800 
+                                   hover:bg-{{ $config['color'] }}-200 hover:scale-105
+                                   dark:bg-{{ $config['color'] }}-900/20 dark:text-{{ $config['color'] }}-300 
+                                   dark:hover:bg-{{ $config['color'] }}-900/30
+                                   focus:outline-none focus:ring-2 focus:ring-{{ $config['color'] }}-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                            title="{{ $config['label'] }}">
+                        <iconify-icon icon="{{ $config['icon'] }}" class="w-4 h-4 mr-2"></iconify-icon>
+                        {{ $config['label'] }}
+                    </button>
+                @endforeach
+
+                @if(empty($availableActions))
+                    <div class="text-center py-3 text-gray-500 dark:text-gray-400">
+                        <iconify-icon icon="lucide:lock" class="w-5 h-5 mx-auto mb-2"></iconify-icon>
+                        <p class="text-sm">{{ __('No actions available for current status') }}</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Status Information -->
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                    <iconify-icon icon="lucide:info" class="w-4 h-4 mr-2 text-blue-500"></iconify-icon>
+                    <span>
+                        @switch($post->status)
+                            @case('draft')
+                                {{ __('This news is in draft mode and not visible to the public.') }}
+                                @break
+                            @case('under_review')
+                                {{ __('This news is under review by the editorial team.') }}
+                                @break
+                            @case('approved')
+                                {{ __('This news has been approved and is ready for publishing.') }}
+                                @break
+                            @case('published')
+                                {{ __('This news is live and visible to the public.') }}
+                                @break
+                            @case('archived')
+                                {{ __('This news has been archived and is no longer visible.') }}
+                                @break
+                            @default
+                                {{ __('Current status: ') . ucfirst($post->status) }}
+                        @endswitch
                     </span>
-
-
                 </div>
             </div>
-        @endif
+
+            <!-- Workflow Progress (Optional) -->
+            @if(in_array($post->status, ['draft', 'under_review', 'approved', 'published']))
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    <span>{{ __('Publication Progress') }}</span>
+                    <span>{{ round((array_search($post->status, ['draft', 'under_review', 'approved', 'published']) / 3) * 100) }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                    <div class="bg-green-600 h-2 rounded-full transition-all duration-500" 
+                         style="width: {{ (array_search($post->status, ['draft', 'under_review', 'approved', 'published']) / 3) * 100 }}%">
+                    </div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <span>Draft</span>
+                    <span>Review</span>
+                    <span>Approved</span>
+                    <span>Published</span>
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+@endif
 
         <!-- Status and Visibility -->
         <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">

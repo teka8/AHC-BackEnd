@@ -127,7 +127,9 @@ class PermissionService
                     'news.delete',
                     'news.approve',
                     'news.publish',
-                    ''
+                    'news.review',
+                    'news.archive',
+                    'news.restore'
                 ],
             ],
             [
