@@ -12,17 +12,19 @@ use Spatie\QueryBuilder\QueryBuilder;
 class EventDatatable extends Datatable
 {
     public string $status = '';
-    public string $category = '';
+    public string $event_type = '';
+    public string $event_date = '';
     public array $queryString = [
         ...parent::QUERY_STRING_DEFAULTS,
         'status' => [],
-        'category' => [],
+        'event_type' => [],
+        'event_date' => [],
     ];
     public string $model = Event::class;
 
     public function getSearchbarPlaceholder(): string
     {
-        return __('Search by event name or description...');
+        return __('Search by event name, description, or location...');
     }
 
     public function updatingStatus()
@@ -30,7 +32,12 @@ class EventDatatable extends Datatable
         $this->resetPage();
     }
 
-    public function updatingCategory()
+    public function updatingEventType()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingEventDate()
     {
         $this->resetPage();
     }
@@ -56,16 +63,42 @@ class EventDatatable extends Datatable
                 'icon' => 'lucide:filter',
                 'allLabel' => __('All Statuses'),
                 'options' => [
-                    'upcoming' => __('Upcoming'),
+                    'draft' => __('Draft'),
                     'ongoing' => __('Ongoing'),
                     'completed' => __('Completed'),
                     'cancelled' => __('Cancelled'),
                 ],
                 'selected' => $this->status,
             ],
+            [
+                'id' => 'event_type',
+                'label' => __('Event Type'),
+                'filterLabel' => __('Event Type'),
+                'icon' => 'lucide:filter',
+                'allLabel' => __('All Types'),
+                'options' => [
+                    'in-person' => __('In person'),
+                    'virtual' => __('Virtual'),
+                ],
+                'selected' => $this->event_type,
+            ],
+            [
+                'id' => 'event_date',
+                'label' => __('Event Date'),
+                'filterLabel' => __('Event Date'),
+                'icon' => 'lucide:calendar',
+                'allLabel' => __('All Dates'),
+                'options' => [
+                    'today' => __('Today'),
+                    'this_week' => __('This Week'),
+                    'this_month' => __('This Month'),
+                    'past' => __('Past Events'),
+                ],
+                'selected' => $this->event_date,
+            ],
         ];
 
-        // Add more filters if your Event model supports categories or tags
+        // Allow external modules to modify filters
         $filters = $this->addHooks(
             $filters,
             null,
@@ -95,8 +128,14 @@ class EventDatatable extends Datatable
                 'sortBy' => 'title',
             ],
             [
-                'id' => 'date',
-                'title' => __('Date'),
+                'id' => 'event_type',
+                'title' => __('Event Type'),
+                'sortable' => true,
+                'sortBy' => 'event_type',
+            ],
+            [
+                'id' => 'event_date',
+                'title' => __('Event Date'),
                 'sortable' => true,
                 'sortBy' => 'event_date',
             ],
@@ -139,6 +178,16 @@ class EventDatatable extends Datatable
             })
             ->when($this->status, function ($q) {
                 $q->where('status', $this->status);
+            })
+            ->when($this->event_type, function ($q) {
+                $q->where('event_type', $this->event_type);
+            })
+            ->when($this->event_date, function ($q) {
+                $today = now()->startOfDay();
+                $q->when($this->event_date === 'today', fn($sub) => $sub->whereDate('event_date', $today))
+                    ->when($this->event_date === 'this_week', fn($sub) => $sub->whereBetween('event_date', [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()]))
+                    ->when($this->event_date === 'this_month', fn($sub) => $sub->whereBetween('event_date', [$today->copy()->startOfMonth(), $today->copy()->endOfMonth()]))
+                    ->when($this->event_date === 'past', fn($sub) => $sub->whereDate('event_date', '<', $today));
             });
 
         return $this->sortQuery($query);
@@ -153,6 +202,16 @@ class EventDatatable extends Datatable
         HTML;
     }
 
+    public function renderEventTypeColumn(Event $event): string|Renderable
+    {
+        return e(ucfirst($event->event_type ?? __('N/A')));
+    }
+
+    public function renderEventDateColumn(Event $event): string|Renderable
+    {
+        return $event->event_date ? $event->event_date->format('M d, Y') : __('N/A');
+    }
+
     public function renderStatusColumn(Event $event): string|Renderable
     {
         $class = match ($event->status) {
@@ -164,11 +223,6 @@ class EventDatatable extends Datatable
         };
 
         return "<span class='{$class}'>" . ucfirst($event->status) . "</span>";
-    }
-
-    public function renderDateColumn(Event $event): string|Renderable
-    {
-        return $event->event_date ? $event->event_date->format('M d, Y') : __('N/A');
     }
 
     public function renderLocationColumn(Event $event): string|Renderable

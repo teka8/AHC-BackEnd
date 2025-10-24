@@ -45,6 +45,7 @@
     "jsvectormap": "^1.6.0",
     "playwright": "^1.55.0",
     "puppeteer": "^24.14.0",
+    "quill-image-resize-module": "^3.0.0",
     "react-dom": "^19.1.0",
     "simple-datatables": "^10.0.0",
     "tailwind-merge": "^3.0.1",
