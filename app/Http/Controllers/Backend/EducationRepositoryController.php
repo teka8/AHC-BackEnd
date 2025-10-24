@@ -14,6 +14,8 @@ use App\Models\Media;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Models\User;
+use App\Notifications\EducationalResourceStatusChanged;
 
 class EducationRepositoryController extends Controller
 {
@@ -62,6 +64,53 @@ class EducationRepositoryController extends Controller
     }
 
     /**
+     * Send notifications to relevant users based on status change (Education)
+     */
+    private function sendStatusChangeNotifications(EducationalResource $document, $oldStatus, $newStatus, $action)
+    {
+        $changerName = Auth::user()?->name ?: 'System';
+        $notification = new EducationalResourceStatusChanged($document, $oldStatus, $newStatus, $action, $changerName);
+
+        $usersToNotify = $this->getUsersToNotify($action, $document);
+        foreach ($usersToNotify as $user) {
+            $user->notify($notification);
+        }
+    }
+
+    /**
+     * Determine users to notify for Education resource workflow actions
+     */
+    private function getUsersToNotify($action, EducationalResource $document)
+    {
+        $permissionMap = [
+            'send_for_review' => 'document.approve',
+            'approve' => 'document.publish',
+            'reject' => 'document.review',
+            'publish' => null,
+            'unpublish' => 'document.review',
+            'archive' => 'document.restore',
+            'restore' => 'document.review',
+            'send_back' => 'document.review',
+        ];
+
+        $requiredPermission = $permissionMap[$action] ?? null;
+        if ($requiredPermission) {
+            return User::permission($requiredPermission)->get();
+        }
+
+        if ($action === 'publish' && $document->created_by) {
+            return User::where('id', $document->created_by)->get();
+        }
+
+        return User::permission([
+            'document.review',
+            'document.approve',
+            'document.publish',
+            'document.unpublish'
+        ])->get();
+    }
+
+    /**
      * Change educational resource status (workflow action)
      */
     public function changeStatus(Request $request, $id)
@@ -99,6 +148,9 @@ class EducationRepositoryController extends Controller
             }
 
             $document->update($updateData);
+
+            // Send notifications
+            $this->sendStatusChangeNotifications($document, $oldStatus, $targetStatus, $action);
 
             \DB::commit();
 

@@ -14,6 +14,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Services\MediaLibraryService;
 use Illuminate\Support\Facades\Storage;
+use App\Models\User;
+use App\Notifications\OthersStatusChanged;
 
 class OthersController extends Controller
 {
@@ -467,7 +469,7 @@ class OthersController extends Controller
             'access_level' => 'required|in:public,partner_only,internal_only',
             'tags' => 'nullable|string|max:500',
             'files' => 'required|array',
-            'files.*' => 'required|file|max:102400', // 100MB max
+            'files.*' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,rtf,odt,ods,odp|max:102400', // 100MB max
         ]);
 
         try {
@@ -937,6 +939,9 @@ class OthersController extends Controller
 
             $document->update($updateData);
 
+            // Send notifications
+            $this->sendStatusChangeNotifications($document, $oldStatus, $targetStatus, $action);
+
             \DB::commit();
 
             return response()->json([
@@ -966,6 +971,53 @@ class OthersController extends Controller
             'success' => true,
             'data' => []
         ]);
+    }
+
+    /**
+     * Send notifications to relevant users based on status change (Others)
+     */
+    private function sendStatusChangeNotifications(Others $document, $oldStatus, $newStatus, $action)
+    {
+        $changerName = Auth::user()?->name ?: 'System';
+        $notification = new OthersStatusChanged($document, $oldStatus, $newStatus, $action, $changerName);
+
+        $usersToNotify = $this->getUsersToNotify($action, $document);
+        foreach ($usersToNotify as $user) {
+            $user->notify($notification);
+        }
+    }
+
+    /**
+     * Determine users to notify for Others workflow actions
+     */
+    private function getUsersToNotify($action, Others $document)
+    {
+        $permissionMap = [
+            'send_for_review' => 'document.approve',
+            'approve' => 'document.publish',
+            'reject' => 'document.review',
+            'publish' => null,
+            'unpublish' => 'document.review',
+            'archive' => 'document.restore',
+            'restore' => 'document.review',
+            'send_back' => 'document.review',
+        ];
+
+        $requiredPermission = $permissionMap[$action] ?? null;
+        if ($requiredPermission) {
+            return User::permission($requiredPermission)->get();
+        }
+
+        if ($action === 'publish' && $document->created_by) {
+            return User::where('id', $document->created_by)->get();
+        }
+
+        return User::permission([
+            'document.review',
+            'document.approve',
+            'document.publish',
+            'document.unpublish'
+        ])->get();
     }
 
     public function api(Request $request)
