@@ -222,7 +222,11 @@ class PostController extends Controller
         $this->setBreadcrumbTitle(__('Edit :postType', ['postType' => $postTypeModel->label_singular]))
             ->addBreadcrumbItem($postTypeModel->label, route('admin.posts.index', $postType));
 
-        return $this->renderViewWithBreadcrumbs('backend.pages.posts.edit', compact('post', 'postType', 'postTypeModel', 'taxonomies', 'parentPosts', 'selectedTerms'));
+        // Get categories and tags for filters.
+        $categories = Term::where('taxonomy', 'category')->select('id', 'name')->get();
+        $tags = Term::where('taxonomy', 'tag')->select('id', 'name')->get();
+
+        return $this->renderViewWithBreadcrumbs('backend.pages.posts.edit', compact('post', 'postType', 'postTypeModel', 'taxonomies', 'parentPosts', 'selectedTerms', 'categories', 'tags'));
     }
 
     public function update(UpdatePostRequest $request, string $postType, string $id): RedirectResponse
@@ -236,7 +240,6 @@ class PostController extends Controller
         $post->slug = $data['slug'] ?? Str::slug($data['title']);
         $post->content = $data['content'];
         $post->excerpt = $data['excerpt'];
-        $post->status = $post->status === 'created' ? 'edited' : ($data['status'] ?? $post->status);
         $post->parent_id = $data['parent_id'] ?? null;
 
         // Auto-change status from 'created' to 'edited' when post is updated
@@ -248,9 +251,9 @@ class PostController extends Controller
         if (isset($data['schedule_post']) && $data['schedule_post'] && !empty($data['published_at'])) {
             $post->status = PostStatus::SCHEDULED->value;
             $post->published_at = Carbon::parse($data['published_at']);
-        } elseif ($data['status'] === PostStatus::SCHEDULED->value && !empty($data['published_at'])) {
+        } elseif (isset($data['status']) && $data['status'] === PostStatus::SCHEDULED->value && !empty($data['published_at'])) {
             $post->published_at = Carbon::parse($data['published_at']);
-        } elseif ($data['status'] === PostStatus::PUBLISHED->value && !$post->published_at) {
+        } elseif (isset($data['status']) && $data['status'] === PostStatus::PUBLISHED->value && !$post->published_at) {
             $post->published_at = now();
         }
 

@@ -369,6 +369,8 @@ class AdminMenuService
                 'priority' => 10,
                 'permissions' => 'news.view',
                 'children' => $children,
+                
+            
             ];
 
             $this->addMenuItem($menuItem, $group ?: __('Main'));
