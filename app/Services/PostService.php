@@ -18,7 +18,7 @@ class PostService
     {
         // Set default post type if not provided.
         if (!isset($filters['post_type'])) {
-            $filters['post_type'] = 'post';getPostActivityData
+            $filters['post_type'] = 'post';
         }
 
         // Create base query with post type filter.

@@ -78,24 +78,6 @@
                     @endif
                 </div>
 
-                {{-- Featured Image --}}
-                @php
-                    $featuredUrl = $event->image_url ?? asset('images/default-event.png');
-                    if (method_exists($event, 'getFirstMediaUrl')) {
-                        $mediaUrl = $event->getFirstMediaUrl('featured');
-                        if (!empty($mediaUrl)) {
-                            $featuredUrl = $mediaUrl;
-                        }
-                    }
-                @endphp
-
-                @if ($event->image_url ?? false)
-                    <div class="mt-4">
-                        <img src="{{ $featuredUrl }}" alt="{{ $event->title }}"
-                            class="w-full max-h-64 object-cover rounded-md shadow-sm">
-                    </div>
-                @endif
-
                 {{-- Short Info Panel --}}
                 <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
@@ -141,6 +123,13 @@
                     </div>
                 @endif
 
+                @if ($event->event_image ?? false)
+                    <div class="mt-4">
+                        <img src="{{ asset('storage/' . $event->event_image) }}"  alt="{{ $event->title }}"
+                            class="w-full max-h-64 object-contain rounded-md shadow-sm m-10">
+                    </div>
+                @endif
+
                 {{-- Description --}}
                 <div class="mt-6">
                     <h4 class="text-lg font-semibold text-gray-700 dark:text-white/90 mb-2">{{ __('Description') }}</h4>
@@ -150,24 +139,15 @@
                 </div>
 
                 {{-- Attachments --}}
-                @php
-                    $attachments = $event->attachments ?? [];
-                    /* if (method_exists($event, 'getMedia')) {
-                        try { $attachments = $event->getMedia('attachments') ?: []; } catch (\Throwable $e) {}
-                    }
-                    if(empty($attachments) && !empty($event->attachments)) {
-                        $attachments = json_decode($event->attachments, true);
-                    } */
-                @endphp
-
                 <div class="mt-6">
                     <h4 class="text-lg font-semibold text-gray-700 dark:text-white/90 mb-2">{{ __('Attachments') }}</h4>
-                    @if (!empty($attachments))
+                    @if (!empty($event->attachments))
                         <div class="space-y-2">
-                            @foreach ($attachments as $att)
+                            
+                            @foreach ($event->attachments ?? [] as $att)
                                 @php
-                                    $name = $att->name ?? ($att['filename'] ?? ($att['name'] ?? 'Attachment'));
-                                    $url = method_exists($att, 'getUrl') ? $att->getUrl() : $att['url'] ?? '#';
+                                    $name = $att['file_name'] ?? 'N/A';
+                                    $url = isset($att['path']) ? asset('storage/' . $att['path']) : '#';
                                 @endphp
                                 <div
                                     class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
