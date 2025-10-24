@@ -359,4 +359,130 @@ class Post extends Model implements SpatieHasMedia
     {
         return ['content', 'excerpt', 'meta'];
     }
+
+    /**
+     * News workflow states
+     */
+    const STATUS_DRAFT = 'draft';
+    const STATUS_UNDER_REVIEW = 'under_review';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_PUBLISHED = 'published';
+    const STATUS_ARCHIVED = 'archived';
+
+    /**
+     * Available transitions for news with permission requirements
+     */
+    public static function getAvailableTransitions($currentStatus, User $user = null)
+    {
+        $transitions = [
+            self::STATUS_DRAFT => [
+                'send_for_review' => [
+                    'target' => self::STATUS_UNDER_REVIEW,
+                    'label' => __('Send for Review'),
+                    'color' => 'yellow',
+                    'icon' => 'lucide:send',
+                    'required_permission' => 'news.review'
+                ],
+                'publish' => [
+                    'target' => self::STATUS_PUBLISHED,
+                    'label' => __('Publish Now'),
+                    'color' => 'green',
+                    'icon' => 'lucide:globe',
+                    'required_permission' => 'news.publish'
+                ]
+            ],
+            
+            self::STATUS_UNDER_REVIEW => [
+                'approve' => [
+                    'target' => self::STATUS_APPROVED,
+                    'label' => __('Approve'),
+                    'color' => 'green',
+                    'icon' => 'lucide:check-circle',
+                    'required_permission' => 'news.approve'
+                ],
+                'reject' => [
+                    'target' => self::STATUS_DRAFT,
+                    'label' => __('Request Changes'),
+                    'color' => 'red',
+                    'icon' => 'lucide:arrow-left',
+                    'required_permission' => 'news.approve'
+                ]
+            ],
+            
+            self::STATUS_APPROVED => [
+                'publish' => [
+                    'target' => self::STATUS_PUBLISHED,
+                    'label' => __('Publish'),
+                    'color' => 'green',
+                    'icon' => 'lucide:globe',
+                    'required_permission' => 'news.publish'
+                ],
+                'send_back' => [
+                    'target' => self::STATUS_UNDER_REVIEW,
+                    'label' => __('Send Back for Review'),
+                    'color' => 'yellow',
+                    'icon' => 'lucide:arrow-left',
+                    'required_permission' => 'news.review'
+                ]
+            ],
+            
+            self::STATUS_PUBLISHED => [
+                'unpublish' => [
+                    'target' => self::STATUS_DRAFT,
+                    'label' => __('Unpublish'),
+                    'color' => 'gray',
+                    'icon' => 'lucide:eye-off',
+                    'required_permission' => 'news.approve'
+                ],
+                'archive' => [
+                    'target' => self::STATUS_ARCHIVED,
+                    'label' => __('Archive'),
+                    'color' => 'orange',
+                    'icon' => 'lucide:archive',
+                    'required_permission' => 'news.archive'
+                ]
+            ],
+            
+            self::STATUS_ARCHIVED => [
+                'restore' => [
+                    'target' => self::STATUS_DRAFT,
+                    'label' => __('Restore'),
+                    'color' => 'blue',
+                    'icon' => 'lucide:refresh-cw',
+                    'required_permission' => 'news.restore'
+                ]
+            ]
+        ];
+
+        return $transitions[$currentStatus] ?? [];
+    }
+
+    /**
+     * Get available actions for current user based on permissions
+     */
+    public function getAvailableActions(User $user = null)
+    {
+        $user = $user ?: auth()->user();
+        $transitions = self::getAvailableTransitions($this->status, $user);
+        $availableActions = [];
+
+        foreach ($transitions as $action => $config) {
+            if ($user->hasPermissionTo($config['required_permission']) || $user->hasRole('Superadmin')) {
+                $availableActions[$action] = $config;
+            }
+        }
+
+        return $availableActions;
+    }
+
+    /**
+     * Check if user can perform specific action
+     */
+    public function canPerformAction($action, User $user = null)
+    {
+        $user = $user ?: auth()->user();
+        $availableActions = $this->getAvailableActions($user);
+        
+        return isset($availableActions[$action]);
+    }
 }
