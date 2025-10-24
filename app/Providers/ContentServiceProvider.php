@@ -60,7 +60,7 @@ class ContentServiceProvider extends ServiceProvider
             'label_singular' => 'News',
             'description' => 'Default News type for blog entries',
             'taxonomies' => ['category', 'tag'],
-            'show_in_menu' => true,
+            'show_in_menu' => false,
 
         ]);
 
