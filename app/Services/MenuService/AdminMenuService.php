@@ -320,9 +320,6 @@ class AdminMenuService
                         'active' => request()->is('admin/terms/' . $taxonomy->name . '*'),
                         'priority' => 30 + $taxonomy->id, // Prioritize after standard items
                         'permissions' => 'term.view',
-
-
-                        
                     ];
                 }
             }
@@ -337,8 +334,6 @@ class AdminMenuService
                 'priority' => 10,
                 'permissions' => 'news.view',
                 'children' => $children,
-                
-                
             ];
 
             $this->addMenuItem($menuItem, $group ?: __('Main'));
