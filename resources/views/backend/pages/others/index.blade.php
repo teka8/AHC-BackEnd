@@ -8,10 +8,73 @@
         statusDropdownOpen: false,
         bulkActionsDropdownOpen: false,
         uploadModalOpen: false,
+
+        // Change status modal state
+        changeStatusModalOpen: false,
+        changeStatusDocumentId: null,
+        changeStatusAction: null,
+        changeStatusModalTitle: '',
+        changeStatusModalMessage: '',
+        changeStatusButtonText: '',
+        changeStatusComment: '',
+        changeStatusLoading: false,
     
         showSingleDeleteModal(id) {
             this.selectedDocuments = [id.toString()];
             this.bulkDeleteModalOpen = true;
+        },
+
+        showChangeStatusModal(documentId, action, actionConfig) {
+            this.changeStatusDocumentId = documentId;
+            this.changeStatusAction = action;
+            this.changeStatusComment = '';
+            this.changeStatusLoading = false;
+            this.changeStatusModalTitle = actionConfig.label || 'Change Status';
+            this.changeStatusModalMessage = this.getStatusChangeMessage(action);
+            this.changeStatusButtonText = actionConfig.label || 'Confirm';
+            this.changeStatusModalOpen = true;
+        },
+
+        getStatusChangeMessage(action) {
+            const messages = {
+                'send_for_review': '{{ __("This will send the resource for review.") }}',
+                'approve': '{{ __("This will approve the resource for publication.") }}',
+                'publish': '{{ __("This will publish the resource.") }}',
+                'reject': '{{ __("This will send the resource back for changes.") }}',
+                'send_back': '{{ __("This will send the resource back for review.") }}',
+                'unpublish': '{{ __("This will unpublish the resource.") }}',
+                'archive': '{{ __("This will archive the resource.") }}',
+                'restore': '{{ __("This will restore the resource.") }}'
+            };
+            return messages[action] || '{{ __("Are you sure you want to change the resource status?") }}';
+        },
+
+        async performStatusChange() {
+            if (this.changeStatusLoading) return;
+            this.changeStatusLoading = true;
+            try {
+                const response = await fetch(`/admin/others/${this.changeStatusDocumentId}/change-status`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ action: this.changeStatusAction, comment: this.changeStatusComment })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    if (window.showToast) window.showToast('success', '{{ __("Success") }}', data.message);
+                    this.changeStatusModalOpen = false;
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    throw new Error(data.message || 'Failed');
+                }
+            } catch (e) {
+                if (window.showToast) window.showToast('error', '{{ __("Error") }}', e.message || 'Failed');
+            } finally {
+                this.changeStatusLoading = false;
+            }
         }
     }" id="documentManager">
         @if ($errors->any())
@@ -266,6 +329,9 @@
                                             {{ __('Status') }}
                                         </th>
                                         <th class="table-thead-th">
+                                            {{ __('S. Actions') }}
+                                        </th>
+                                        <th class="table-thead-th">
                                             {{ __('Downloads') }}
                                         </th>
                                         <th class="table-thead-th">
@@ -349,6 +415,22 @@
                                                     class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $statusColors[$document->status] }}">
                                                     {{ ucfirst(str_replace('_', ' ', $document->status)) }}
                                                 </span>
+                                            </td>
+                                            <td class="table-td">
+                                                <div class="flex flex-wrap gap-1">
+                                                    @foreach($document->getAvailableActions() as $action => $config)
+                                                        <button type="button" x-on:click="showChangeStatusModal({{ $document->id }}, '{{ $action }}', {{ json_encode($config) }})"
+                                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md 
+                                                                   bg-{{ $config['color'] }}-100 text-{{ $config['color'] }}-800 
+                                                                   hover:bg-{{ $config['color'] }}-200 dark:bg-{{ $config['color'] }}-900/20 
+                                                                   dark:text-{{ $config['color'] }}-300 dark:hover:bg-{{ $config['color'] }}-900/30
+                                                                   transition-colors duration-200"
+                                                            title="{{ $config['label'] }}">
+                                                            <iconify-icon icon="{{ $config['icon'] }}" class="w-3 h-3 mr-1"></iconify-icon>
+                                                            {{ $config['label'] }}
+                                                        </button>
+                                                    @endforeach
+                                                </div>
                                             </td>
                                             <td class="table-td">
                                                 <div class="flex items-center text-sm text-gray-900 dark:text-white">
@@ -440,6 +522,8 @@
         <div id="pdfModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-75" onclick="closePdfModal()">
             <!-- Your existing PDF modal code here -->
         </div>
+
+        @include('backend.pages.document.partials.workflow-tracker')
     </div>
 
     @push('scripts')

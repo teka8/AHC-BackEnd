@@ -62,6 +62,80 @@ class EducationRepositoryController extends Controller
     }
 
     /**
+     * Change educational resource status (workflow action)
+     */
+    public function changeStatus(Request $request, $id)
+    {
+        $document = EducationalResource::findOrFail($id);
+        $action = $request->input('action');
+        $comment = $request->input('comment', '');
+
+        // Derive available actions and target status
+        $availableActions = method_exists($document, 'getAvailableActions') ? $document->getAvailableActions() : [];
+
+        if (!isset($availableActions[$action])) {
+            return response()->json([
+                'success' => false,
+                'message' => __('This action is not available for the current resource status or you do not have permission.')
+            ], 403);
+        }
+
+        $targetStatus = $availableActions[$action]['target'];
+        $oldStatus = $document->status;
+
+        try {
+            \DB::beginTransaction();
+
+            $updateData = [
+                'status' => $targetStatus,
+                'updated_by' => Auth::id(),
+            ];
+
+            if ($targetStatus === EducationalResource::STATUS_PUBLISHED && !$document->published_at) {
+                $updateData['published_at'] = now();
+            }
+            if ($targetStatus === EducationalResource::STATUS_APPROVED) {
+                $updateData['approved_by'] = Auth::id();
+            }
+
+            $document->update($updateData);
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Resource status updated successfully'),
+                'data' => [
+                    'new_status' => $targetStatus,
+                    'status_display' => method_exists($document, 'getStatusDisplay') ? $document->getStatusDisplay() : $targetStatus,
+                    'status_color' => method_exists($document, 'getStatusColor') ? $document->getStatusColor() : 'gray',
+                    'available_actions' => method_exists($document, 'getAvailableActions') ? $document->getAvailableActions() : []
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Education status change failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to update resource status: ') . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Workflow history (placeholder)
+     */
+    public function workflowHistory($id)
+    {
+        // No dedicated workflow log model for education; return empty list
+        return response()->json([
+            'success' => true,
+            'data' => []
+        ]);
+    }
+
+    /**
      * Increment download count (AJAX)
      */
     public function incrementDownload($id)

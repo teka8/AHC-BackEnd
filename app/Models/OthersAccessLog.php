@@ -10,7 +10,7 @@ class OthersAccessLog extends Model
     use HasFactory;
 
     protected $fillable = [
-        'document_id',
+        'others_id',
         'user_id',
         'ip_address',
         'user_agent',

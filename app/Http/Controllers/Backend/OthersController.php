@@ -303,7 +303,7 @@ class OthersController extends Controller
 
                 // Generate unique filename
                 $filename = \Illuminate\Support\Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
-                $filePath = $file->storeAs('documents', $filename, 'public');
+                $filePath = $file->storeAs('others', $filename, 'public');
 
                 // Delete old file
                 if ($document->file_path && \Storage::disk('public')->exists($document->file_path)) {
@@ -898,6 +898,74 @@ class OthersController extends Controller
             return redirect()->back()
                 ->with('error', __('Failed to restore file'));
         }
+    }
+
+    /**
+     * Change Others resource status (workflow action)
+     */
+    public function changeStatus(Request $request, $id)
+    {
+        $document = Others::findOrFail($id);
+        $action = $request->input('action');
+        $comment = $request->input('comment', '');
+
+        $availableActions = method_exists($document, 'getAvailableActions') ? $document->getAvailableActions() : [];
+        if (!isset($availableActions[$action])) {
+            return response()->json([
+                'success' => false,
+                'message' => __('This action is not available for the current file status or you do not have permission.')
+            ], 403);
+        }
+
+        $targetStatus = $availableActions[$action]['target'];
+        $oldStatus = $document->status;
+
+        try {
+            \DB::beginTransaction();
+
+            $updateData = [
+                'status' => $targetStatus,
+                'updated_by' => Auth::id(),
+            ];
+
+            if ($targetStatus === Others::STATUS_PUBLISHED && !$document->published_at) {
+                $updateData['published_at'] = now();
+            }
+            if ($targetStatus === Others::STATUS_APPROVED) {
+                $updateData['approved_by'] = Auth::id();
+            }
+
+            $document->update($updateData);
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('File status updated successfully'),
+                'data' => [
+                    'new_status' => $targetStatus,
+                    'status_display' => method_exists($document, 'getStatusDisplay') ? $document->getStatusDisplay() : $targetStatus,
+                    'status_color' => method_exists($document, 'getStatusColor') ? $document->getStatusColor() : 'gray',
+                    'available_actions' => method_exists($document, 'getAvailableActions') ? $document->getAvailableActions() : []
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Others status change failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to update file status: ') . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function workflowHistory($id)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => []
+        ]);
     }
 
     public function api(Request $request)
