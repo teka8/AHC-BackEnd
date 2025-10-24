@@ -64,8 +64,10 @@
             <div class="max-h-64 overflow-y-auto">
                 @forelse(auth()->user()->unreadNotifications->take(5) as $notification)
                     <a href="#"
-                        onclick="markAsReadAndRedirect('{{ $notification->id }}', '{{ route('admin.posts.edit', ['postType' => $notification->data['post_type'], 'post' => $notification->data['news_id']]) }}')"
-                        class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0">
+                          @if(isset($notification->data['news_id']) && isset($notification->data['post_type']))
+                            onclick="markAsReadAndRedirect('{{ $notification->id }}', '{{ route('admin.posts.edit', ['postType' => $notification->data['post_type'], 'post' => $notification->data['news_id']]) }}')"
+                        class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0"
+                        @endif>
                         <div class="flex items-start gap-3">
                             <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                             <div class="flex-1 min-w-0">
