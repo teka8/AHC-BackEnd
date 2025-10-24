@@ -231,6 +231,18 @@ class PermissionService
                     'event.view',
                     'event.edit',
                     'event.delete',
+                    'event.publish',
+                    'event.unpublish',
+                    'event.approve',
+                    'event.review',
+                    'event.archive',
+                    'event.track.completion',
+                    'event.view.analytics',
+
+                    // Ownership-based permissions
+                    'event.view.own',
+                    'event.edit.own',
+                    'event.delete.own',
                 ],
             ],
         ];

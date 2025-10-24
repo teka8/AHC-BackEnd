@@ -6,7 +6,7 @@
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ isset($event) ? 'Edit Event' : 'Create New Event' }}</h1>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2 dark:text-gray-100">{{ isset($event) ? 'Edit Event' : 'Create New Event' }}</h1>
             <p class="text-gray-600 dark:text-gray-300">{{ __('Fill in the details to') }} {{ isset($event) ? 'update' : 'create' }} {{ __('your event') }}</p>
 
             @if($mode === 'edit')
@@ -71,7 +71,7 @@
                                         <option value="seminars" {{ old('category', $event->category ?? '') === 'seminars' ? 'selected' : '' }}>Seminars</option>
                                         <option value="anniversary" {{ old('category', $event->category ?? '') === 'anniversary' ? 'selected' : '' }}>Anniversary</option>
                                         <option value="hackathon" {{ old('category', $event->category ?? '') === 'hackathon' ? 'selected' : '' }}>Hackathon</option>
-                                        <option value="custom" {{ old('category', $event->category ?? '') === 'custom' ? 'selected' : '' }}>Custom</option>
+                                        <option value="custom" {{ !in_array(old('category', $event->category ?? ''), ['lectures','festivals','seminars','anniversary','hackathon','']) ? 'selected' : '' }}>Custom</option>
                                     </select>
                                 </div>
                             </div>
@@ -80,8 +80,9 @@
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Custom Category') }}</label>
                                 <input 
                                     type="text" 
-                                    name="category" 
-                                    value="{{ old('category', $event->category ?? '') }}" 
+                                    id="custom_category"
+                                    name="custom_category" 
+                                    value="{{ !in_array($event->category ?? '', ['lectures','festivals','seminars','anniversary','hackathon','']) ? ($event->category ?? '') : '' }}" 
                                     placeholder="Add your custom category" 
                                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                 >
@@ -222,16 +223,17 @@
                                         <option value="for_staff" {{ old('target_audience', $event->target_audience ?? '') === 'for_staff' ? 'selected' : '' }}>{{ __('Staff') }}</option>
                                         <option value="for_employees" {{ old('target_audience', $event->target_audience ?? '') === 'for_employees' ? 'selected' : '' }}>{{ __('Employees') }}</option>
                                         <option value="for_alumni" {{ old('target_audience', $event->target_audience ?? '') === 'for_alumni' ? 'selected' : '' }}>{{ __('Alumni') }}</option>
-                                        <option value="custom" {{ old('target_audience', $event->target_audience ?? '') === 'custom' ? 'selected' : '' }}>Custom</option>
+                                        <option value="custom" {{ !in_array(old('target_audience', $event->target_audience ?? ''), ['public', 'for_students', 'for_staff', 'for_employees', 'for_alumni', '']) ? 'selected' : '' }}>{{ __('Custom') }}</option>
                                     </select>
                                 </div>
 
                                 <div id="custom-audience-field" class="space-y-2 hidden">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">Custom {{ __('Target Audience') }}</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">{{ __('Custom') }} {{ __('Target Audience') }}</label>
                                     <input 
                                         type="text" 
-                                        name="target_audience" 
-                                        value="{{ old('target_audience', $event->target_audience ?? '') }}" 
+                                        id="custom_target_audience"
+                                        name="custom_target_audience" 
+                                        value="{{ !in_array($event->target_audience ?? '', ['public','for_students','for_staff','for_employees','for_alumni', '']) ? ($event->target_audience ?? '') : '' }}"
                                         placeholder="{{ __('e.g., Industry professionals, Investors, etc.') }}" 
                                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors dark:border-gray-700 dark:bg-gray-900"
                                     >
@@ -679,32 +681,74 @@
         // Toggle custom audience field
         const targetAudienceSelect = document.getElementById('target_audience');
         const customAudienceField = document.getElementById('custom-audience-field');
+        const customAudienceInput = document.getElementById('custom_target_audience');
         
         function toggleCustomAudience() {
+            if (!targetAudienceSelect || !customAudienceField) return;
             if (targetAudienceSelect.value === 'custom') {
                 customAudienceField.classList.remove('hidden');
             } else {
                 customAudienceField.classList.add('hidden');
+                if (customAudienceInput) customAudienceInput.value = '';
+
             }
         }
         
-        targetAudienceSelect.addEventListener('change', toggleCustomAudience);
-        toggleCustomAudience(); // Initial call
+        if (targetAudienceSelect) {
+            targetAudienceSelect.addEventListener('change', toggleCustomAudience);
+            toggleCustomAudience();
+
+            const audienceForm = targetAudienceSelect.closest('form');
+            if (audienceForm) {
+                audienceForm.addEventListener('submit', () => {
+                    if (targetAudienceSelect.value === 'custom') {
+                        const customValue = (customAudienceInput?.value || '').trim();
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'target_audience';
+                        hiddenInput.value = customValue || 'custom';
+                        audienceForm.appendChild(hiddenInput);
+                        targetAudienceSelect.disabled = true;
+                    }
+                });
+            }
+        }
+
 
         // Toggle custom audience field
         const categorySelect = document.getElementById('category');
         const customCategoryField = document.getElementById('custom-category-field');
+        const customCategoryInput = document.getElementById('custom_category');
         
         function toggleCustomCategory() {
+            if (!categorySelect || !customCategoryField) return;
             if (categorySelect.value === 'custom') {
                 customCategoryField.classList.remove('hidden');
             } else {
                 customCategoryField.classList.add('hidden');
+                if (customCategoryInput) customCategoryInput.value = '';
             }
         }
         
-        categorySelect.addEventListener('change', toggleCustomCategory);
-        toggleCustomCategory(); // Initial call
+        if (categorySelect) {
+            categorySelect.addEventListener('change', toggleCustomCategory);
+            toggleCustomCategory();
+
+            const categoryForm = categorySelect.closest('form');
+            if (categoryForm) {
+                categoryForm.addEventListener('submit', () => {
+                    if (categorySelect.value === 'custom') {
+                        const customValue = (customCategoryInput?.value || '').trim();
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'category';
+                        hiddenInput.value = customValue || 'custom';
+                        categoryForm.appendChild(hiddenInput);
+                        categorySelect.disabled = true;
+                    }
+                });
+            }
+        }
         
         // Toggle cost amount field
         const freeEventCheckbox = document.getElementById('free_event');
