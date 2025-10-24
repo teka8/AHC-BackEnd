@@ -329,4 +329,72 @@ class EventController extends Controller
 
         return redirect()->route('admin.events.index');
     }
+
+    /**
+ * Change event status (workflow action)
+ */
+public function changeStatus(Request $request, $id)
+{
+    $event = Event::findOrFail($id);
+    $action = $request->input('action');
+    $comment = $request->input('comment', '');
+
+    // Check if user can perform this action
+    if (!$event->canPerformAction($action)) {
+        return response()->json([
+            'success' => false,
+            'message' => __('You do not have permission to perform this action.')
+        ], 403);
+    }
+
+    $availableActions = $event->getAvailableActions();
+    $targetStatus = $availableActions[$action]['target'];
+
+    try {
+        \DB::beginTransaction();
+
+        $oldStatus = $event->status;
+        
+        // Update event status
+        $updateData = [
+            'status' => $targetStatus,
+        ];
+
+        // Set published_at if publishing
+        if ($targetStatus === Event::STATUS_PUBLISHED && !$event->published_at) {
+            $updateData['published_at'] = now();
+        }
+
+        // Set completed_at if completing
+        if ($targetStatus === Event::STATUS_COMPLETED && !$event->completed_at) {
+            $updateData['completed_at'] = now();
+        }
+
+        // Set cancelled_at if cancelling
+        if ($targetStatus === Event::STATUS_CANCELLED && !$event->cancelled_at) {
+            $updateData['cancelled_at'] = now();
+        }
+
+        $event->update($updateData);
+
+       
+
+        \DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Event status updated successfully'),
+        ]);
+
+    } catch (\Exception $e) {
+        \DB::rollBack();
+        
+        \Log::error('Event status change failed: ' . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => __('Failed to update event status: ') . $e->getMessage()
+        ], 500);
+    }
+}
 }

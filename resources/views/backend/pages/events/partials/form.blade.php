@@ -293,6 +293,160 @@
                 <!-- Right Column - Media and {{ __('Attachments') }} -->
                 <div class="xl:col-span-1 space-y-6">
                     <!-- Event Image -->
+                     @if (!empty($event))
+    <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <!-- Header with Current Status -->
+        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Status') }}</h3>
+                @php
+                    $statusColors = [
+                        'published' => 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
+                        'draft' => 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700',
+                        'under_review' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
+                        'approved' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+                        'cancelled' => 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
+                        'completed' => 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400 border-purple-200 dark:border-purple-800',
+                        'archived' => 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800',
+                    ];
+                    $colorClass = $statusColors[$event->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700';
+                @endphp
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $colorClass }}">
+                   
+                    {{ ucfirst(str_replace('_', ' ', $event->status)) }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Workflow Actions -->
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Event Actions') }}</span>
+                <iconify-icon icon="lucide:calendar" class="text-blue-500"></iconify-icon>
+            </div>
+
+            <div class="grid grid-cols-1 gap-2">
+                @php
+                    // Define available transitions based on current status
+                    $availableActions = $event->getAvailableActions();
+                @endphp
+
+                @foreach($availableActions as $action => $config)
+                    <button type="button"
+                            onclick="changeEventStatus({{ $event->id }}, '{{ $action }}')"
+                            class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
+                                   bg-{{ $config['color'] }}-100 text-{{ $config['color'] }}-800 
+                                   hover:bg-{{ $config['color'] }}-200 hover:scale-105
+                                   dark:bg-{{ $config['color'] }}-900/20 dark:text-{{ $config['color'] }}-300 
+                                   dark:hover:bg-{{ $config['color'] }}-900/30
+                                   focus:outline-none focus:ring-2 focus:ring-{{ $config['color'] }}-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                            title="{{ $config['label'] }}">
+                        <iconify-icon icon="{{ $config['icon'] }}" class="w-4 h-4 mr-2"></iconify-icon>
+                        {{ $config['label'] }}
+                    </button>
+                @endforeach
+
+                @if(empty($availableActions))
+                    <div class="text-center py-3 text-gray-500 dark:text-gray-400">
+                        <iconify-icon icon="lucide:lock" class="w-5 h-5 mx-auto mb-2"></iconify-icon>
+                        <p class="text-sm">{{ __('No actions available for current status') }}</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Event Status Information -->
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                    <iconify-icon icon="lucide:info" class="w-4 h-4 mr-2 text-blue-500"></iconify-icon>
+                    <span>
+                        @switch($event->status)
+                            @case('draft')
+                                {{ __('This event is in draft mode and not visible to the public.') }}
+                                @break
+                            @case('under_review')
+                                {{ __('This event is under review by the event management team.') }}
+                                @break
+                            @case('approved')
+                                {{ __('This event has been approved and is ready for publishing.') }}
+                                @break
+                            @case('published')
+                                {{ __('This event is live and visible to the public. Registration is open.') }}
+                                @break
+                            @case('cancelled')
+                                {{ __('This event has been cancelled and is no longer accepting registrations.') }}
+                                @break
+                            @case('completed')
+                                {{ __('This event has been completed.') }}
+                                @break
+                            @case('archived')
+                                {{ __('This event has been archived and is no longer visible.') }}
+                                @break
+                            @default
+                                {{ __('Current status: ') . ucfirst(str_replace('_', ' ', $event->status)) }}
+                        @endswitch
+                    </span>
+                </div>
+
+                <!-- Event Date Information -->
+                @if($event->event_date)
+                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    <iconify-icon icon="lucide:calendar" class="w-4 h-4 mr-2 text-green-500"></iconify-icon>
+                    <span>
+                        @if($event->status === 'published')
+                            {{ __('Event scheduled for: ') . $event->event_date->format('M d, Y g:i A') }}
+                        @elseif($event->status === 'completed')
+                            {{ __('Event was held on: ') . $event->event_date->format('M d, Y g:i A') }}
+                        @else
+                            {{ __('Scheduled for: ') . $event->event_date->format('M d, Y g:i A') }}
+                        @endif
+                    </span>
+                </div>
+                @endif
+            </div>
+
+            <!-- Event Timeline Progress -->
+            @if(in_array($event->status, ['draft', 'under_review', 'approved', 'published', 'completed']))
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    <span>{{ __('Event Timeline') }}</span>
+                    <span>
+                        @php
+                            $progressStages = ['draft', 'under_review', 'approved', 'published', 'completed'];
+                            $currentProgress = array_search($event->status, $progressStages);
+                            $progressPercent = ($currentProgress / (count($progressStages) - 1)) * 100;
+                        @endphp
+                        {{ round($progressPercent) }}%
+                    </span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" 
+                         style="width: {{ $progressPercent }}%">
+                    </div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <span class="text-center">Draft</span>
+                    <span class="text-center">Review</span>
+                    <span class="text-center">Approved</span>
+                    <span class="text-center">Live</span>
+                    <span class="text-center">Done</span>
+                </div>
+            </div>
+            @endif
+
+            <!-- Registration Stats (if published) -->
+            @if($event->status === 'published' && method_exists($event, 'registrations'))
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-gray-600 dark:text-gray-400">{{ __('Registrations') }}</span>
+                    <span class="font-semibold text-green-600 dark:text-green-400">
+                        {{ $event->registrations_count ?? 0 }} {{ __('registered') }}
+                    </span>
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+@endif
                     <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                             <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">

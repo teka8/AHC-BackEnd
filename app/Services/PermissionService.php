@@ -233,11 +233,17 @@ class PermissionService
                     'event.view',
                     'event.edit',
                     'event.delete',
-                    'event.publish',
-                    'event.unpublish',
-                    'event.approve',
-                    'event.review',
-                    'event.archive',
+
+                    'event.review',       // Send for review, send back for review
+                    'event.approve',      // Approve events
+                    'event.reject',       // Reject/request changes
+                    'event.publish',      // Publish events
+                    'event.unpublish',    // Unpublish events
+                    'event.cancel',       // Cancel events
+                    'event.complete',     // Mark events as completed
+                    'event.archive',      // Archive events
+                    'event.restore',      // Restore archived events
+
                     'event.track.completion',
                     'event.view.analytics',
 
