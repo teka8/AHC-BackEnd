@@ -22,7 +22,7 @@ class ContentServiceProvider extends ServiceProvider
     {
         // Skip registering taxonomies if tables don't exist yet.
         try {
-            if (! Schema::hasTable('taxonomies')) {
+            if (!Schema::hasTable('taxonomies')) {
                 return;
             }
 
@@ -41,7 +41,7 @@ class ContentServiceProvider extends ServiceProvider
     protected function tablesExist(array $tables): bool
     {
         foreach ($tables as $table) {
-            if (! Schema::hasTable($table)) {
+            if (!Schema::hasTable($table)) {
                 return false;
             }
         }
@@ -60,7 +60,7 @@ class ContentServiceProvider extends ServiceProvider
             'label_singular' => 'News',
             'description' => 'Default News type for blog entries',
             'taxonomies' => ['category', 'tag'],
-            'show_in_menu' => false,
+            'show_in_menu' => true,
 
         ]);
 
