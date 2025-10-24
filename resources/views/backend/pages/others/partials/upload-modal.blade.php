@@ -10,7 +10,7 @@
         <div
             class="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-700 z-10">
             <h3 class="font-semibold tracking-wide text-gray-700 dark:text-white">
-                {{ __('Upload Educational Document to Repository') }}
+                {{ __('Upload Other Documents to Repository') }}
             </h3>
             <button x-on:click="uploadModalOpen = false" aria-label="close modal"
                 class="text-gray-400 hover:bg-gray-200 hover:text-gray-700 rounded-md p-1 dark:hover:bg-gray-600 dark:hover:text-white">
@@ -81,13 +81,8 @@
                             <select id="document_type" name="document_type" required
                                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white">
                                 <option value="">{{ __('Select Document Type') }}</option>
-                                <option value="Curriculum Materials">{{ __('Curriculum Materials') }}</option>
-                                <option value="Teaching Modules">{{ __('Teaching Modules') }}</option>
-                                <option value="Educational Videos">{{ __('Educational Videos') }}</option>
-                                <option value="Podcasts">{{ __('Podcasts') }}</option>
-                                <option value="Interactive Learning Formats">{{ __('Interactive Learning Formats') }}
-                                </option>
-                                <option value="Lesson Plans">{{ __('Lesson Plans') }}</option>
+                                <option value="Newsletter">{{ __('Newsletter') }}</option>
+                                <option value="Presentation">{{ __('Presentation') }}</option>
                             </select>
                         </div>
 
@@ -100,14 +95,9 @@
                             <select id="document_category" name="category" required
                                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white">
                                 <option value="">{{ __('Select Category') }}</option>
-                                <option value="Medical Education">{{ __('Medical Education') }}</option>
-                                <option value="Public Health">{{ __('Public Health') }}</option>
-                                <option value="Curriculum Development">{{ __('Curriculum Development') }}</option>
-                                <option value="Student Assessment">{{ __('Student Assessment') }}</option>
-                                <option value="Faculty Development">{{ __('Faculty Development') }}</option>
-                                <option value="Healthcare Policy">{{ __('Healthcare Policy') }}</option>
-                                <option value="Research Methodology">{{ __('Research Methodology') }}</option>
-                                <option value="Other">{{ __('Other') }}</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->name }}">{{ $category->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -353,8 +343,8 @@
         uploadBtn.disabled = true;
         uploadBtn.textContent = '{{ __('Uploading Document...') }}';
 
-        // Use the document repository route instead of media route
-        fetch('{{ route('admin.education.store') }}', {
+        // Use the Others repository route
+        fetch('{{ route('admin.others.store') }}', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -375,7 +365,7 @@
                         const text = await response.text();
                         throw new Error(
                             `Unexpected response (status ${response.status}). If you were redirected to login or got a 419/CSRF page, please refresh and try again.\n\n${text.slice(0, 500)}...`
-                            );
+                        );
                     }
                 }
                 if (contentType.includes('application/json')) {

@@ -4,43 +4,43 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Backend;
 
-use App\Models\EducationalResource;
-use App\Models\EducationalResourceTag;
-use App\Http\Controllers\Controller;
-use App\Services\MediaLibraryService;
-use Illuminate\Http\Request;
 use App\Models\Media;
-
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Others;
+use App\Models\OthersTag;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 
-class EducationRepositoryController extends Controller
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use App\Services\MediaLibraryService;
+use Illuminate\Support\Facades\Storage;
+
+class OthersController extends Controller
 {
     public function __construct(private readonly MediaLibraryService $mediaLibraryService)
     {
     }
 
     /**
-     * Download the specified educational resource.
+     * Download the specified Others resource.
      */
     public function download($id)
     {
-        $document = EducationalResource::findOrFail($id);
+        $document = Others::findOrFail($id);
 
         if (!$document->isAccessibleBy(Auth::user())) {
-            abort(403, __('You do not have permission to download this resource'));
+            abort(403, __('You do not have permission to download this file'));
         }
 
         if (!$document->file_path || !\Storage::disk('public')->exists($document->file_path)) {
-            abort(404, __('Resource file not found'));
+            abort(404, __('File not found'));
         }
 
         try {
             $document->incrementDownloadCount();
 
-            \App\Models\EducationalResourceAccessLog::create([
-                'educational_resource_id' => $document->id,
+            \App\Models\OthersAccessLog::create([
+                'others_id' => $document->id,
                 'user_id' => Auth::id(),
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
@@ -50,89 +50,14 @@ class EducationRepositoryController extends Controller
 
             $filePath = \Storage::disk('public')->path($document->file_path);
             $fileName = $document->file_name ?: basename($filePath);
-
             return response()->download($filePath, $fileName);
         } catch (\Exception $e) {
-            \Log::error('Education download failed: ' . $e->getMessage(), [
+            \Log::error('Others download failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'id' => $id,
             ]);
-            return redirect()->back()->with('error', __('Failed to download resource'));
+            return redirect()->back()->with('error', __('Failed to download file'));
         }
-    }
-
-    /**
-     * Change educational resource status (workflow action)
-     */
-    public function changeStatus(Request $request, $id)
-    {
-        $document = EducationalResource::findOrFail($id);
-        $action = $request->input('action');
-        $comment = $request->input('comment', '');
-
-        // Derive available actions and target status
-        $availableActions = method_exists($document, 'getAvailableActions') ? $document->getAvailableActions() : [];
-
-        if (!isset($availableActions[$action])) {
-            return response()->json([
-                'success' => false,
-                'message' => __('This action is not available for the current resource status or you do not have permission.')
-            ], 403);
-        }
-
-        $targetStatus = $availableActions[$action]['target'];
-        $oldStatus = $document->status;
-
-        try {
-            \DB::beginTransaction();
-
-            $updateData = [
-                'status' => $targetStatus,
-                'updated_by' => Auth::id(),
-            ];
-
-            if ($targetStatus === EducationalResource::STATUS_PUBLISHED && !$document->published_at) {
-                $updateData['published_at'] = now();
-            }
-            if ($targetStatus === EducationalResource::STATUS_APPROVED) {
-                $updateData['approved_by'] = Auth::id();
-            }
-
-            $document->update($updateData);
-
-            \DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => __('Resource status updated successfully'),
-                'data' => [
-                    'new_status' => $targetStatus,
-                    'status_display' => method_exists($document, 'getStatusDisplay') ? $document->getStatusDisplay() : $targetStatus,
-                    'status_color' => method_exists($document, 'getStatusColor') ? $document->getStatusColor() : 'gray',
-                    'available_actions' => method_exists($document, 'getAvailableActions') ? $document->getAvailableActions() : []
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            \DB::rollBack();
-            \Log::error('Education status change failed: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => __('Failed to update resource status: ') . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Workflow history (placeholder)
-     */
-    public function workflowHistory($id)
-    {
-        // No dedicated workflow log model for education; return empty list
-        return response()->json([
-            'success' => true,
-            'data' => []
-        ]);
     }
 
     /**
@@ -140,33 +65,32 @@ class EducationRepositoryController extends Controller
      */
     public function incrementDownload($id)
     {
-        $document = EducationalResource::findOrFail($id);
+        $document = Others::findOrFail($id);
         $document->incrementDownloadCount();
         return response()->json(['success' => true, 'download_count' => $document->download_count]);
     }
 
     /**
-     * Preview resource (PDF inline if applicable)
+     * Preview resource (fallback to download)
      */
     public function preview($id)
     {
-        $document = EducationalResource::findOrFail($id);
+        $document = Others::findOrFail($id);
         if (!$document->isAccessibleBy(Auth::user())) {
             abort(403);
         }
         if (!$document->file_path || !\Storage::disk('public')->exists($document->file_path)) {
             abort(404);
         }
-        // Fallback to download if not a PDF (no extension stored reliably)
-        return redirect()->route('admin.education.download', $id);
+        return redirect()->route('admin.others.download', $id);
     }
 
     /**
-     * Basic download stats endpoint
+     * Basic download stats
      */
     public function downloadStats($id)
     {
-        $document = EducationalResource::findOrFail($id);
+        $document = Others::findOrFail($id);
         return response()->json([
             'success' => true,
             'download_count' => $document->download_count,
@@ -175,45 +99,24 @@ class EducationRepositoryController extends Controller
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', EducationalResource::class);
+        $this->authorize('viewAny', Others::class);
 
         $breadcrumbs = [
-            'title' => __('Educational Resource Hub'),
+            'title' => __('Others'),
             'links' => [
                 [
                     'name' => __('Dashboard'),
                     'url' => route('admin.dashboard'),
                 ],
                 [
-                    'name' => __('Educational Resource Hub'),
+                    'name' => __('Others'),
                     'url' => '#',
                 ],
             ],
         ];
 
         // Get documents with search, filter, and pagination
-        // Map UI type labels to enum values stored in DB
-        $typeMap = [
-            'Curriculum Materials' => EducationalResource::TYPE_TEACHING_GUIDE,
-            'Teaching Modules' => EducationalResource::TYPE_INTERACTIVE_MODULE,
-            'Educational Videos' => EducationalResource::TYPE_VIDEO,
-            'Podcasts' => EducationalResource::TYPE_PODCAST,
-            'Interactive Learning Formats' => EducationalResource::TYPE_INTERACTIVE_MODULE,
-            'Lesson Plans' => EducationalResource::TYPE_LESSON_PLAN,
-        ];
-        $allowedTypes = [
-            EducationalResource::TYPE_VIDEO,
-            EducationalResource::TYPE_PODCAST,
-            EducationalResource::TYPE_INTERACTIVE_MODULE,
-            EducationalResource::TYPE_LESSON_PLAN,
-            EducationalResource::TYPE_TEACHING_GUIDE,
-            EducationalResource::TYPE_PRESENTATION,
-            EducationalResource::TYPE_CASE_STUDY,
-            EducationalResource::TYPE_SIMULATION,
-            EducationalResource::TYPE_OTHER,
-        ];
-
-        $query = EducationalResource::with(['creator', 'tags'])
+        $query = Others::with(['creator', 'tags'])
             ->when($request->get('search'), function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
@@ -223,12 +126,8 @@ class EducationRepositoryController extends Controller
                         ->orWhere('subject_area', 'like', "%{$search}%");
                 });
             })
-            ->when($request->get('type'), function ($query, $type) use ($typeMap, $allowedTypes) {
-                $mapped = $typeMap[$type] ?? (in_array($type, $allowedTypes, true) ? $type : null);
-                if ($mapped) {
-                    return $query->where('resource_type', $mapped);
-                }
-                return $query;
+            ->when($request->get('type'), function ($query, $type) {
+                return $query->where('resource_type', $type);
             })
             ->when($request->get('category'), function ($query, $category) {
                 return $query->where('subject_area', $category);
@@ -246,12 +145,12 @@ class EducationRepositoryController extends Controller
 
         // Get statistics for the dashboard
         $stats = [
-            'total' => EducationalResource::count(),
-            'published' => EducationalResource::where('status', EducationalResource::STATUS_PUBLISHED)->count(),
-            'draft' => EducationalResource::where('status', EducationalResource::STATUS_DRAFT)->count(),
-            'under_review' => EducationalResource::where('status', EducationalResource::STATUS_UNDER_REVIEW)->count(),
-            'featured' => EducationalResource::where('is_featured', true)->count(),
-            'total_downloads' => EducationalResource::sum('download_count'),
+            'total' => Others::count(),
+            'published' => Others::where('status', Others::STATUS_PUBLISHED)->count(),
+            'draft' => Others::where('status', Others::STATUS_DRAFT)->count(),
+            'under_review' => Others::where('status', Others::STATUS_UNDER_REVIEW)->count(),
+            'featured' => Others::where('is_featured', true)->count(),
+            'total_downloads' => Others::sum('download_count'),
         ];
 
         // Get upload limits for frontend
@@ -272,26 +171,22 @@ class EducationRepositoryController extends Controller
             'post_max_size_formatted' => $this->formatBytes($this->convertToBytes(ini_get('post_max_size'))),
         ];
 
-        return view('backend.pages.education.index', [
+        return view('backend.pages.others.index', [
             'documents' => $documents,
             'breadcrumbs' => $breadcrumbs,
             'stats' => $stats,
             'uploadLimits' => $uploadLimits,
             'documentTypes' => [
-                'Curriculum Materials',
-                'Teaching Modules',
-                'Educational Videos',
-                'Podcasts',
-                'Interactive Learning Formats',
-                'Lesson Plans',
+                'Newsletter',
+                'Presentation',
             ],
-            'categories' => \App\Models\EducationalCategory::active()->ordered()->get(),
+            'categories' => \App\Models\OthersCategory::active()->ordered()->get(),
             'statuses' => [
-                EducationalResource::STATUS_DRAFT,
-                EducationalResource::STATUS_UNDER_REVIEW,
-                EducationalResource::STATUS_APPROVED,
-                EducationalResource::STATUS_PUBLISHED,
-                EducationalResource::STATUS_ARCHIVED
+                Others::STATUS_DRAFT,
+                Others::STATUS_UNDER_REVIEW,
+                Others::STATUS_APPROVED,
+                Others::STATUS_PUBLISHED,
+                Others::STATUS_ARCHIVED
             ]
         ]);
     }
@@ -324,51 +219,47 @@ class EducationRepositoryController extends Controller
      */
     public function edit($id)
     {
-        $document = EducationalResource::with('tags')->findOrFail($id);
+        $document = Others::with('tags')->findOrFail($id);
 
         $this->authorize('update', $document);
 
         $breadcrumbs = [
-            'title' => __('Edit Educational Resource Hub'),
+            'title' => __('Edit Other Resource'),
             'links' => [
                 [
                     'name' => __('Dashboard'),
                     'url' => route('admin.dashboard'),
                 ],
                 [
-                    'name' => __('Educational Resource Hub'),
-                    'url' => route('admin.education.index'),
+                    'name' => __('Others'),
+                    'url' => route('admin.others.index'),
                 ],
                 [
-                    'name' => __('Edit Educational Resource Hub'),
+                    'name' => __('Edit Other Resource'),
                     'url' => '#',
                 ],
             ],
         ];
 
-        return view('backend.pages.education.edit', [
+        return view('backend.pages.others.edit', [
             'document' => $document,
             'breadcrumbs' => $breadcrumbs,
             'documentTypes' => [
-                'Curriculum Materials',
-                'Teaching Modules',
-                'Educational Videos',
-                'Podcasts',
-                'Interactive Learning Formats',
-                'Lesson Plans',
+                'Newsletter',
+                'Presentation',
             ],
-            'categories' => \App\Models\EducationalCategory::active()->ordered()->get(),
+            'categories' => \App\Models\OthersCategory::active()->ordered()->get(),
             'statuses' => [
-                EducationalResource::STATUS_DRAFT => __('Draft'),
-                EducationalResource::STATUS_UNDER_REVIEW => __('Under Review'),
-                EducationalResource::STATUS_APPROVED => __('Approved'),
-                EducationalResource::STATUS_PUBLISHED => __('Published'),
-                EducationalResource::STATUS_ARCHIVED => __('Archived')
+                Others::STATUS_DRAFT => __('Draft'),
+                Others::STATUS_UNDER_REVIEW => __('Under Review'),
+                Others::STATUS_APPROVED => __('Approved'),
+                Others::STATUS_PUBLISHED => __('Published'),
+                Others::STATUS_ARCHIVED => __('Archived')
             ],
             'accessLevels' => [
-                EducationalResource::ACCESS_PUBLIC => __('Public'),
-                EducationalResource::ACCESS_PARTNER_ONLY => __('Partner Universities Only'),
-                EducationalResource::ACCESS_INTERNAL_ONLY => __('Internal Only')
+                Others::ACCESS_PUBLIC => __('Public'),
+                Others::ACCESS_PARTNER_ONLY => __('Partner Universities Only'),
+                Others::ACCESS_INTERNAL_ONLY => __('Internal Only')
             ]
         ]);
     }
@@ -378,7 +269,7 @@ class EducationRepositoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $document = EducationalResource::findOrFail($id);
+        $document = Others::findOrFail($id);
 
         $this->authorize('update', $document);
 
@@ -412,7 +303,7 @@ class EducationRepositoryController extends Controller
 
                 // Generate unique filename
                 $filename = \Illuminate\Support\Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
-                $filePath = $file->storeAs('documents', $filename, 'public');
+                $filePath = $file->storeAs('others', $filename, 'public');
 
                 // Delete old file
                 if ($document->file_path && \Storage::disk('public')->exists($document->file_path)) {
@@ -423,33 +314,20 @@ class EducationRepositoryController extends Controller
                     'file_path' => $filePath,
                     'file_name' => $originalName,
                     'file_size' => $fileSize,
-                    'file_extension' => $extension,
-                    'mime_type' => $mimeType,
                 ];
             }
 
             // Map UI labels used in create to enum values stored in DB
             $typeMap = [
-                'Curriculum Materials' => EducationalResource::TYPE_TEACHING_GUIDE,
-                'Teaching Modules' => EducationalResource::TYPE_INTERACTIVE_MODULE,
-                'Educational Videos' => EducationalResource::TYPE_VIDEO,
-                'Podcasts' => EducationalResource::TYPE_PODCAST,
-                'Interactive Learning Formats' => EducationalResource::TYPE_INTERACTIVE_MODULE,
-                'Lesson Plans' => EducationalResource::TYPE_LESSON_PLAN,
+                'Newsletter' => Others::TYPE_NEWSLETTER,
+                'Presentation' => Others::TYPE_PRESENTATION,
             ];
             $allowedTypes = [
-                EducationalResource::TYPE_VIDEO,
-                EducationalResource::TYPE_PODCAST,
-                EducationalResource::TYPE_INTERACTIVE_MODULE,
-                EducationalResource::TYPE_LESSON_PLAN,
-                EducationalResource::TYPE_TEACHING_GUIDE,
-                EducationalResource::TYPE_PRESENTATION,
-                EducationalResource::TYPE_CASE_STUDY,
-                EducationalResource::TYPE_SIMULATION,
-                EducationalResource::TYPE_OTHER,
+                Others::TYPE_NEWSLETTER,
+                Others::TYPE_PRESENTATION,
             ];
             $resourceTypeInput = $validated['document_type'];
-            $resourceType = $typeMap[$resourceTypeInput] ?? (in_array($resourceTypeInput, $allowedTypes, true) ? $resourceTypeInput : EducationalResource::TYPE_OTHER);
+            $resourceType = $typeMap[$resourceTypeInput] ?? (in_array($resourceTypeInput, $allowedTypes, true) ? $resourceTypeInput : Others::TYPE_PRESENTATION);
 
             // Update the document
             $document->update(array_merge([
@@ -458,9 +336,9 @@ class EducationRepositoryController extends Controller
                 'creator' => $validated['author'],
                 'description' => $validated['abstract'],
                 'resource_type' => $resourceType,
-                'subject_area' => $validated['category'],
+                'subject_area' => trim($validated['category']),
                 'published_at' => $validated['publication_date'] ? date('Y-m-d H:i:s', strtotime($validated['publication_date'])) : $document->published_at,
-                'version' => $validated['version'] ?? $document->version,
+                // 'version' is not stored in this schema
                 'is_featured' => $validated['is_featured'] ?? false,
                 'access_level' => $validated['access_level'],
                 'status' => $validated['status'],
@@ -475,7 +353,7 @@ class EducationRepositoryController extends Controller
             }
 
             // Handle status changes
-            if ($validated['status'] === EducationalResource::STATUS_PUBLISHED && !$document->published_at) {
+            if ($validated['status'] === Others::STATUS_PUBLISHED && !$document->published_at) {
                 $document->update(['published_at' => now()]);
             }
 
@@ -487,7 +365,7 @@ class EducationRepositoryController extends Controller
             //     ->performedOn($document)
             //     ->log('updated document: ' . $document->title);
 
-            return redirect()->route('admin.education.index')
+            return redirect()->route('admin.others.index')
                 ->with('success', __('Document updated successfully'));
 
         } catch (\Exception $e) {
@@ -510,13 +388,13 @@ class EducationRepositoryController extends Controller
      */
     public function publish($id)
     {
-        $document = EducationalResource::findOrFail($id);
+        $document = Others::findOrFail($id);
 
         $this->authorize('publish', $document);
 
         try {
             $document->update([
-                'status' => EducationalResource::STATUS_PUBLISHED,
+                'status' => Others::STATUS_PUBLISHED,
                 'published_at' => now(),
                 'updated_by' => Auth::id(),
             ]);
@@ -542,13 +420,13 @@ class EducationRepositoryController extends Controller
      */
     public function approve($id)
     {
-        $document = EducationalResource::findOrFail($id);
+        $document = Others::findOrFail($id);
 
         $this->authorize('approve', $document);
 
         try {
             $document->update([
-                'status' => EducationalResource::STATUS_APPROVED,
+                'status' => Others::STATUS_APPROVED,
                 'approved_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
@@ -602,33 +480,22 @@ class EducationRepositoryController extends Controller
 
             // Generate unique filename
             $filename = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
-            $filePath = $file->storeAs('education', $filename, 'public');
+            $filePath = $file->storeAs('others', $filename, 'public');
 
             // Map UI labels used in create to enum values stored in DB
             $typeMap = [
-                'Curriculum Materials' => EducationalResource::TYPE_TEACHING_GUIDE,
-                'Teaching Modules' => EducationalResource::TYPE_INTERACTIVE_MODULE,
-                'Educational Videos' => EducationalResource::TYPE_VIDEO,
-                'Podcasts' => EducationalResource::TYPE_PODCAST,
-                'Interactive Learning Formats' => EducationalResource::TYPE_INTERACTIVE_MODULE,
-                'Lesson Plans' => EducationalResource::TYPE_LESSON_PLAN,
+                'Newsletter' => Others::TYPE_NEWSLETTER,
+                'Presentation' => Others::TYPE_PRESENTATION,
             ];
             $allowedTypes = [
-                EducationalResource::TYPE_VIDEO,
-                EducationalResource::TYPE_PODCAST,
-                EducationalResource::TYPE_INTERACTIVE_MODULE,
-                EducationalResource::TYPE_LESSON_PLAN,
-                EducationalResource::TYPE_TEACHING_GUIDE,
-                EducationalResource::TYPE_PRESENTATION,
-                EducationalResource::TYPE_CASE_STUDY,
-                EducationalResource::TYPE_SIMULATION,
-                EducationalResource::TYPE_OTHER,
+                Others::TYPE_NEWSLETTER,
+                Others::TYPE_PRESENTATION,
             ];
             $resourceTypeInput = $validated['document_type'];
-            $resourceType = $typeMap[$resourceTypeInput] ?? (in_array($resourceTypeInput, $allowedTypes, true) ? $resourceTypeInput : EducationalResource::TYPE_OTHER);
+            $resourceType = $typeMap[$resourceTypeInput] ?? (in_array($resourceTypeInput, $allowedTypes, true) ? $resourceTypeInput : Others::TYPE_PRESENTATION);
 
             // Create the document
-            $document = EducationalResource::create([
+            $document = Others::create([
                 'title' => $validated['title'],
                 // Map incoming fields to schema columns
                 'creator' => $validated['author'],
@@ -638,12 +505,11 @@ class EducationRepositoryController extends Controller
                 'file_path' => $filePath,
                 'file_name' => $originalName,
                 'file_size' => $fileSize,
-                'file_extension' => $extension,
-                'mime_type' => $mimeType,
-                'version' => $validated['version'] ?? '1.0',
+                'published_at' => !empty($validated['publication_date']) ? date('Y-m-d H:i:s', strtotime($validated['publication_date'])) : null,
+                // 'version' is not stored in this schema
                 'is_featured' => $validated['is_featured'] ?? false,
                 'access_level' => $validated['access_level'],
-                'status' => EducationalResource::STATUS_DRAFT, // Default to draft, can be changed via workflow
+                'status' => Others::STATUS_DRAFT, // Default to draft, can be changed via workflow
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
@@ -666,7 +532,7 @@ class EducationRepositoryController extends Controller
                 Storage::disk('public')->delete($filePath);
             }
 
-            \Log::error('Document upload failed: ' . $e->getMessage(), [
+            \Log::error('File upload failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'file' => $request->file('files')[0]?->getClientOriginalName(),
                 'trace' => $e->getTraceAsString()
@@ -682,7 +548,7 @@ class EducationRepositoryController extends Controller
     /**
      * Process and attach tags to the document
      */
-    private function processTags(EducationalResource $document, string $tagsInput): void
+    private function processTags(Others $document, string $tagsInput): void
     {
         $tags = array_map('trim', explode(',', $tagsInput));
         $tagIds = [];
@@ -692,7 +558,7 @@ class EducationRepositoryController extends Controller
                 continue;
 
             // Find or create tag
-            $tag = EducationalResourceTag::firstOrCreate(
+            $tag = OthersTag::firstOrCreate(
                 ['name' => $tagName],
                 [
                     'slug' => Str::slug($tagName),
@@ -760,7 +626,7 @@ class EducationRepositoryController extends Controller
      */
     public function destroy($id)
     {
-        $document = EducationalResource::findOrFail($id);
+        $document = Others::findOrFail($id);
 
         $this->authorize('delete', $document);
 
@@ -795,17 +661,17 @@ class EducationRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __('Document deleted successfully')
+                    'message' => __('File deleted successfully')
                 ]);
             }
 
-            return redirect()->route('admin.document.index')
-                ->with('success', __('Document deleted successfully'));
+            return redirect()->route('admin.others.index')
+                ->with('success', __('File deleted successfully'));
 
         } catch (\Exception $e) {
             \DB::rollBack();
 
-            \Log::error('Document deletion failed: ' . $e->getMessage(), [
+            \Log::error('File deletion failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'document_id' => $id,
                 'trace' => $e->getTraceAsString()
@@ -814,12 +680,12 @@ class EducationRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to delete document: ') . $e->getMessage()
+                    'message' => __('Failed to delete file: ') . $e->getMessage()
                 ], 500);
             }
 
             return redirect()->back()
-                ->with('error', __('Failed to delete document: ') . $e->getMessage());
+                ->with('error', __('Failed to delete file: ') . $e->getMessage());
         }
     }
 
@@ -834,10 +700,10 @@ class EducationRepositoryController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('No documents selected for deletion')
+                    'message' => __('No files selected for deletion')
                 ], 400);
             }
-            return redirect()->back()->with('error', __('No documents selected for deletion'));
+            return redirect()->back()->with('error', __('No files selected for deletion'));
         }
 
         try {
@@ -848,7 +714,7 @@ class EducationRepositoryController extends Controller
             $deletedTitles = [];
 
             foreach ($documentIds as $documentId) {
-                $document = EducationalResource::find($documentId);
+                $document = Others::find($documentId);
 
                 if (!$document) {
                     $failedCount++;
@@ -908,7 +774,7 @@ class EducationRepositoryController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.education.index')
+            return redirect()->route('admin.others.index')
                 ->with($deletedCount > 0 ? 'success' : 'error', trim($message));
 
         } catch (\Exception $e) {
@@ -937,7 +803,7 @@ class EducationRepositoryController extends Controller
      */
     public function forceDelete($id)
     {
-        $document = EducationalResource::withTrashed()->findOrFail($id);
+        $document = Others::withTrashed()->findOrFail($id);
 
         $this->authorize('forceDelete', $document);
 
@@ -968,27 +834,27 @@ class EducationRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __('Document permanently deleted')
+                    'message' => __('File permanently deleted')
                 ]);
             }
 
-            return redirect()->route('admin.education.index')
-                ->with('success', __('Document permanently deleted'));
+            return redirect()->route('admin.others.index')
+                ->with('success', __('File permanently deleted'));
 
         } catch (\Exception $e) {
             \DB::rollBack();
 
-            \Log::error('Force document deletion failed: ' . $e->getMessage());
+            \Log::error('Force file deletion failed: ' . $e->getMessage());
 
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to permanently delete document')
+                    'message' => __('Failed to permanently delete file')
                 ], 500);
             }
 
             return redirect()->back()
-                ->with('error', __('Failed to permanently delete document'));
+                ->with('error', __('Failed to permanently delete file'));
         }
     }
 
@@ -997,7 +863,7 @@ class EducationRepositoryController extends Controller
      */
     public function restore($id)
     {
-        $document = EducationalResource::withTrashed()->findOrFail($id);
+        $document = Others::withTrashed()->findOrFail($id);
 
         $this->authorize('restore', $document);
 
@@ -1012,32 +878,99 @@ class EducationRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __('Document restored successfully')
+                    'message' => __('File restored successfully')
                 ]);
             }
 
-            return redirect()->route('admin.document.index')
-                ->with('success', __('Document restored successfully'));
+            return redirect()->route('admin.others.index')
+                ->with('success', __('File restored successfully'));
 
         } catch (\Exception $e) {
-            \Log::error('Document restoration failed: ' . $e->getMessage());
+            \Log::error('File restoration failed: ' . $e->getMessage());
 
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to restore document')
+                    'message' => __('Failed to restore file')
                 ], 500);
             }
 
             return redirect()->back()
-                ->with('error', __('Failed to restore document'));
+                ->with('error', __('Failed to restore file'));
         }
     }
 
+    /**
+     * Change Others resource status (workflow action)
+     */
+    public function changeStatus(Request $request, $id)
+    {
+        $document = Others::findOrFail($id);
+        $action = $request->input('action');
+        $comment = $request->input('comment', '');
+
+        $availableActions = method_exists($document, 'getAvailableActions') ? $document->getAvailableActions() : [];
+        if (!isset($availableActions[$action])) {
+            return response()->json([
+                'success' => false,
+                'message' => __('This action is not available for the current file status or you do not have permission.')
+            ], 403);
+        }
+
+        $targetStatus = $availableActions[$action]['target'];
+        $oldStatus = $document->status;
+
+        try {
+            \DB::beginTransaction();
+
+            $updateData = [
+                'status' => $targetStatus,
+                'updated_by' => Auth::id(),
+            ];
+
+            if ($targetStatus === Others::STATUS_PUBLISHED && !$document->published_at) {
+                $updateData['published_at'] = now();
+            }
+            if ($targetStatus === Others::STATUS_APPROVED) {
+                $updateData['approved_by'] = Auth::id();
+            }
+
+            $document->update($updateData);
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('File status updated successfully'),
+                'data' => [
+                    'new_status' => $targetStatus,
+                    'status_display' => method_exists($document, 'getStatusDisplay') ? $document->getStatusDisplay() : $targetStatus,
+                    'status_color' => method_exists($document, 'getStatusColor') ? $document->getStatusColor() : 'gray',
+                    'available_actions' => method_exists($document, 'getAvailableActions') ? $document->getAvailableActions() : []
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Others status change failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to update file status: ') . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function workflowHistory($id)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => []
+        ]);
+    }
 
     public function api(Request $request)
     {
-        $this->authorize('viewAny', EducationalResource::class);
+        $this->authorize('viewAny', Others::class);
 
         $result = $this->mediaLibraryService->getMediaList(
             $request->get('search'),
