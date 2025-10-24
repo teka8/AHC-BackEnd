@@ -473,7 +473,7 @@
                                                     @endif
                                                     @if (auth()->user()->can('document.delete'))
                                                         <button class="text-red-400 hover:text-red-600"
-                                                            onclick="performSingleDelete({{ $document->id }})"
+                                                            x-on:click="showSingleDeleteModal({{ $document->id }})"
                                                             title="{{ __('Delete') }}">
                                                             <iconify-icon icon="lucide:trash"
                                                                 class="text-sm"></iconify-icon>
