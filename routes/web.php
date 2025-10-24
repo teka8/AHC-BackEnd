@@ -168,6 +168,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/{id}/preview', [EducationRepositoryController::class, 'preview'])->name('preview');
         Route::get('/{id}/stats', [EducationRepositoryController::class, 'downloadStats'])->name('stats');
         Route::post('/{id}/increment-download', [EducationRepositoryController::class, 'incrementDownload'])->name('increment-download');
+        Route::post('/{id}/change-status', [EducationRepositoryController::class, 'changeStatus'])->name('change-status');
     });
 
     //Route for others
@@ -186,6 +187,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/{id}/preview', [OthersController::class, 'preview'])->name('preview');
         Route::get('/{id}/stats', [OthersController::class, 'downloadStats'])->name('stats');
         Route::post('/{id}/increment-download', [OthersController::class, 'incrementDownload'])->name('increment-download');
+        Route::post('/{id}/change-status', [OthersController::class, 'changeStatus'])->name('change-status');
     });
 
 

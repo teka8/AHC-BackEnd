@@ -8,10 +8,73 @@
         statusDropdownOpen: false,
         bulkActionsDropdownOpen: false,
         uploadModalOpen: false,
+
+        // Change status modal state
+        changeStatusModalOpen: false,
+        changeStatusDocumentId: null,
+        changeStatusAction: null,
+        changeStatusModalTitle: '',
+        changeStatusModalMessage: '',
+        changeStatusButtonText: '',
+        changeStatusComment: '',
+        changeStatusLoading: false,
     
         showSingleDeleteModal(id) {
             this.selectedDocuments = [id.toString()];
             this.bulkDeleteModalOpen = true;
+        },
+
+        showChangeStatusModal(documentId, action, actionConfig) {
+            this.changeStatusDocumentId = documentId;
+            this.changeStatusAction = action;
+            this.changeStatusComment = '';
+            this.changeStatusLoading = false;
+            this.changeStatusModalTitle = actionConfig.label || 'Change Status';
+            this.changeStatusModalMessage = this.getStatusChangeMessage(action);
+            this.changeStatusButtonText = actionConfig.label || 'Confirm';
+            this.changeStatusModalOpen = true;
+        },
+
+        getStatusChangeMessage(action) {
+            const messages = {
+                'send_for_review': '{{ __("This will send the resource for review.") }}',
+                'approve': '{{ __("This will approve the resource for publication.") }}',
+                'publish': '{{ __("This will publish the resource.") }}',
+                'reject': '{{ __("This will send the resource back for changes.") }}',
+                'send_back': '{{ __("This will send the resource back for review.") }}',
+                'unpublish': '{{ __("This will unpublish the resource.") }}',
+                'archive': '{{ __("This will archive the resource.") }}',
+                'restore': '{{ __("This will restore the resource.") }}'
+            };
+            return messages[action] || '{{ __("Are you sure you want to change the resource status?") }}';
+        },
+
+        async performStatusChange() {
+            if (this.changeStatusLoading) return;
+            this.changeStatusLoading = true;
+            try {
+                const response = await fetch(`/admin/others/${this.changeStatusDocumentId}/change-status`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ action: this.changeStatusAction, comment: this.changeStatusComment })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    if (window.showToast) window.showToast('success', '{{ __("Success") }}', data.message);
+                    this.changeStatusModalOpen = false;
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    throw new Error(data.message || 'Failed');
+                }
+            } catch (e) {
+                if (window.showToast) window.showToast('error', '{{ __("Error") }}', e.message || 'Failed');
+            } finally {
+                this.changeStatusLoading = false;
+            }
         }
     }" id="documentManager">
         @if ($errors->any())
@@ -266,6 +329,9 @@
                                             {{ __('Status') }}
                                         </th>
                                         <th class="table-thead-th">
+                                            {{ __('S. Actions') }}
+                                        </th>
+                                        <th class="table-thead-th">
                                             {{ __('Downloads') }}
                                         </th>
                                         <th class="table-thead-th">
@@ -349,6 +415,22 @@
                                                     class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $statusColors[$document->status] }}">
                                                     {{ ucfirst(str_replace('_', ' ', $document->status)) }}
                                                 </span>
+                                            </td>
+                                            <td class="table-td">
+                                                <div class="flex flex-wrap gap-1">
+                                                    @foreach($document->getAvailableActions() as $action => $config)
+                                                        <button x-on:click="showChangeStatusModal({{ $document->id }}, '{{ $action }}', {{ json_encode($config) }})"
+                                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md 
+                                                                   bg-{{ $config['color'] }}-100 text-{{ $config['color'] }}-800 
+                                                                   hover:bg-{{ $config['color'] }}-200 dark:bg-{{ $config['color'] }}-900/20 
+                                                                   dark:text-{{ $config['color'] }}-300 dark:hover:bg-{{ $config['color'] }}-900/30
+                                                                   transition-colors duration-200"
+                                                            title="{{ $config['label'] }}">
+                                                            <iconify-icon icon="{{ $config['icon'] }}" class="w-3 h-3 mr-1"></iconify-icon>
+                                                            {{ $config['label'] }}
+                                                        </button>
+                                                    @endforeach
+                                                </div>
                                             </td>
                                             <td class="table-td">
                                                 <div class="flex items-center text-sm text-gray-900 dark:text-white">
@@ -439,6 +521,39 @@
         <!-- PDF Modal (keep the same PDF modal from your original code) -->
         <div id="pdfModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-75" onclick="closePdfModal()">
             <!-- Your existing PDF modal code here -->
+        </div>
+    </div>
+
+    <!-- Change Status Modal -->
+    <div x-cloak x-show="changeStatusModalOpen"
+         x-transition.opacity.duration.200ms
+         x-trap.inert.noscroll="changeStatusModalOpen"
+         x-on:keydown.esc.window="changeStatusModalOpen = false"
+         x-on:click.self="changeStatusModalOpen = false"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4 backdrop-blur-md"
+         role="dialog" aria-modal="true">
+        <div x-show="changeStatusModalOpen"
+             x-transition:enter="transition ease-out duration-200 delay-100"
+             x-transition:enter-start="opacity-0 scale-50"
+             x-transition:enter-end="opacity-100 scale-100"
+             class="flex w-full max-w-md flex-col gap-4 overflow-hidden rounded-md border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-700 dark:text-gray-300">
+            <div class="flex items-center justify-between border-b border-gray-100 px-4 py-2 dark:border-gray-800">
+                <h3 class="font-semibold tracking-wide text-gray-700 dark:text-white" x-text="changeStatusModalTitle"></h3>
+                <button x-on:click="changeStatusModalOpen = false" class="text-gray-400 hover:bg-gray-200 hover:text-gray-700 rounded-md p-1 dark:hover:bg-gray-600 dark:hover:text-white">
+                    <iconify-icon icon="lucide:x" class="w-5 h-5"></iconify-icon>
+                </button>
+            </div>
+            <div class="px-4 py-2">
+                <p class="text-sm" x-text="changeStatusModalMessage"></p>
+                <textarea x-model="changeStatusComment" class="mt-3 w-full form-input" rows="3" placeholder="{{ __('Optional comment...') }}"></textarea>
+            </div>
+            <div class="flex items-center justify-end gap-3 border-t border-gray-100 p-4 dark:border-gray-800">
+                <button type="button" x-on:click="changeStatusModalOpen = false" class="btn-secondary">{{ __('Cancel') }}</button>
+                <button type="button" x-on:click="performStatusChange()" class="btn-primary" :disabled="changeStatusLoading">
+                    <span x-show="!changeStatusLoading" x-text="changeStatusButtonText"></span>
+                    <span x-show="changeStatusLoading">{{ __('Processing...') }}</span>
+                </button>
+            </div>
         </div>
     </div>
 

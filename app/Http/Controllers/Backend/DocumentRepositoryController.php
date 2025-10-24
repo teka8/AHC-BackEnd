@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+use App\Notifications\DocumentStatusChanged;
+use App\Models\User;
+
 class DocumentRepositoryController extends Controller
 {
     public function __construct(private readonly MediaLibraryService $mediaLibraryService)
@@ -1201,6 +1204,7 @@ class DocumentRepositoryController extends Controller
         return response()->json(['success' => true]);
     }
 
+<<<<<<< HEAD
     /**
      * Change document status (workflow action)
      */
@@ -1290,6 +1294,9 @@ class DocumentRepositoryController extends Controller
             ], 500);
         }
     }
+=======
+    
+>>>>>>> 2226b9ca4301ff3ecd2985353bbbe36f9af2f3d0
 
     /**
      * Get document workflow history
@@ -1309,4 +1316,152 @@ class DocumentRepositoryController extends Controller
             'data' => $history
         ]);
     }
+<<<<<<< HEAD
 }
+=======
+
+    /**
+ * Change document status (workflow action) with notifications
+ */
+public function changeStatus(Request $request, $id)
+{
+    $document = Document::findOrFail($id);
+    $action = $request->input('action');
+    $comment = $request->input('comment', '');
+
+    // Check if user can perform this action
+    if (!$document->canPerformAction($action)) {
+        return response()->json([
+            'success' => false,
+            'message' => __('You do not have permission to perform this action.')
+        ], 403);
+    }
+
+    $availableActions = $document->getAvailableActions();
+    $targetStatus = $availableActions[$action]['target'];
+    $oldStatus = $document->status;
+
+    try {
+        \DB::beginTransaction();
+
+        // Update document status
+        $updateData = [
+            'status' => $targetStatus,
+            'updated_by' => Auth::id(),
+        ];
+
+        // Set published_at if publishing
+        if ($targetStatus === Document::STATUS_PUBLISHED && !$document->published_at) {
+            $updateData['published_at'] = now();
+        }
+
+        // Set approved_by if approving
+        if ($targetStatus === Document::STATUS_APPROVED) {
+            $updateData['approved_by'] = Auth::id();
+        }
+
+        $document->update($updateData);
+
+        
+        // Send notifications to relevant users
+        $this->sendStatusChangeNotifications($document, $oldStatus, $targetStatus, $action);
+
+        // Log the status change (your existing code)
+        
+        // Create workflow log entry
+        \App\Models\DocumentWorkflowLog::create([
+            'document_id' => $document->id,
+            'user_id' => Auth::id(),
+            'from_status' => $oldStatus,
+            'to_status' => $targetStatus,
+            'action' => $action,
+            'comment' => $comment,
+            'required_permission' => $availableActions[$action]['required_permission'],
+            'ip_address' => request()->ip()
+        ]);
+
+        \DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Document status updated successfully'),
+            'data' => [
+                'new_status' => $targetStatus,
+                'status_display' => $document->getStatusDisplay(),
+                'status_color' => $document->getStatusColor(),
+                'available_actions' => $document->getAvailableActions()
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        \DB::rollBack();
+        
+        \Log::error('Document status change failed: ' . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => __('Failed to update document status: ') . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Send notifications to relevant users based on status change
+ */
+private function sendStatusChangeNotifications(Document $document, $oldStatus, $newStatus, $action)
+{
+    
+    $changerName = Auth::user()->name;
+    $notification = new DocumentStatusChanged($document, $oldStatus, $newStatus, $action, $changerName);
+
+    // Determine who should be notified based on the action
+    $usersToNotify = $this->getUsersToNotify($action, $document);
+   ;
+    // Send notifications (this will be queued)
+    foreach ($usersToNotify as $user) {
+         //dd($usersToNotify)
+        // Don't notify the user who made the change
+       
+        $user->notify($notification);
+        
+    }
+}
+
+/**
+ * Get users who should be notified based on the action
+ */
+private function getUsersToNotify($action, Document $document)
+{
+    $permissionMap = [
+        'send_for_review' => 'document.approve', // Notify approvers when document sent for review
+        'approve' => 'document.publish', // Notify publishers when document approved
+        'reject' => 'document.review', // Notify reviewers when document rejected
+        'publish' => null, // Notify document creator when published
+        'unpublish' => 'document.review', // Notify reviewers when unpublished
+        'archive' => 'document.restore', // Notify users who can restore
+        'restore' => 'document.review', // Notify reviewers when restored
+        'send_back' => 'document.review', // Notify reviewers when sent back
+    ];
+
+    $requiredPermission = $permissionMap[$action] ?? null;
+
+    if ($requiredPermission) {
+        // Notify users with specific permission
+        return User::permission($requiredPermission)->get();
+    }
+
+    // For publish action, notify the document creator
+    if ($action === 'publish' && $document->created_by) {
+        return User::where('id', $document->created_by)->get();
+    }
+
+    // Default: notify all users with document workflow permissions
+    return User::permission([
+        'document.review',
+        'document.approve', 
+        'document.publish',
+        'document.unpublish'
+    ])->get();
+}
+}
+>>>>>>> 2226b9ca4301ff3ecd2985353bbbe36f9af2f3d0

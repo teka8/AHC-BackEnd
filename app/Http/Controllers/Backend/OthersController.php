@@ -22,6 +22,73 @@ class OthersController extends Controller
     }
 
     /**
+     * Change status via workflow actions
+     */
+    public function changeStatus(Request $request, $id)
+    {
+        $document = Others::findOrFail($id);
+        $action = (string) $request->input('action');
+        $comment = (string) $request->input('comment', '');
+
+        $available = $document->getAvailableActions(Auth::user());
+        if (!isset($available[$action])) {
+            return response()->json([
+                'success' => false,
+                'message' => __('You are not allowed to perform this action')
+            ], 403);
+        }
+
+        $target = $available[$action]['target'] ?? null;
+        if (!$target) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Invalid action')
+            ], 400);
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            $oldStatus = $document->status;
+
+            $document->update([
+                'status' => $target,
+                'updated_by' => Auth::id(),
+            ]);
+
+            if ($target === Others::STATUS_PUBLISHED && !$document->published_at) {
+                $document->update(['published_at' => now()]);
+            }
+            if ($target === Others::STATUS_APPROVED) {
+                $document->update(['approved_by' => Auth::id()]);
+            }
+            if ($action === 'unpublish') {
+                $document->update(['published_at' => null]);
+            }
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Document status updated successfully'),
+                'data' => [
+                    'new_status' => $target,
+                    'status_display' => method_exists($document, 'getStatusDisplay') ? $document->getStatusDisplay() : $target,
+                    'status_color' => method_exists($document, 'getStatusColor') ? $document->getStatusColor() : 'gray',
+                    'available_actions' => $document->getAvailableActions()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Others change status failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to change status: ') . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Download the specified Others resource.
      */
     public function download($id)
