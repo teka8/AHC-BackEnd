@@ -271,6 +271,14 @@ class EducationalResource extends Model
     }
 
     /**
+     * Get download URL
+     */
+    public function getDownloadUrlAttribute(): string
+    {
+        return route('admin.education.download', $this->id);
+    }
+
+    /**
      * Increment view count
      */
     public function incrementViewCount(): void
