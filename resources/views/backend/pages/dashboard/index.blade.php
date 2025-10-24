@@ -33,12 +33,12 @@
                 ])
                 {!! Hook::applyFilters(DashboardFilterHook::DASHBOARD_CARDS_AFTER_ROLES, '') !!}
                 @include('backend.pages.dashboard.partials.card', [
-                    'icon' => 'bi:shield-check',
+                    'icon' => 'bi:calendar-event',
                     'icon_bg' => '#FF4D96',
-                    'label' => __('Permissions'),
-                    'value' => $total_permissions,
+                    'label' => __('Events'),
+                    'value' => $total_events,
                     'class' => 'bg-white',
-                    'url' => route('admin.permissions.index'),
+                    'url' => route('admin.events.index'),
                     'enable_full_div_click' => true,
                 ])
                 {!! Hook::applyFilters(DashboardFilterHook::DASHBOARD_CARDS_AFTER_PERMISSIONS, '') !!}

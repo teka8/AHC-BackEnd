@@ -49,7 +49,7 @@ class EventPolicy extends BasePolicy
     public function update(User $user, Event $event): bool
     {
         // Check if user has general edit permission
-        if ($this->checkPermission($user, 'event.edit')) {
+        if ($this->checkPermission($user, 'event.update')) {
             return true;
         }
 

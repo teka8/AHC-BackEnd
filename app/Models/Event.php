@@ -146,6 +146,6 @@ class Event extends Model implements SpatieHasMedia
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'id');
+        return $this->belongsTo(User::class, 'created_by', 'id');
     }
 }
