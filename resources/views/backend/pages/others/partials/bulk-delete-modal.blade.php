@@ -36,7 +36,7 @@
         </div>
         
         <div class="flex items-center justify-end gap-3 border-t border-gray-100 p-4 dark:border-gray-800">
-            <form id="bulk-delete-form" action="{{ route('admin.education.bulk-delete') }}" method="POST">
+            <form id="bulk-delete-form" action="{{ route('admin.others.bulk-delete') }}" method="POST">
                 @method('DELETE')
                 @csrf
                 

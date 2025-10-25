@@ -10,6 +10,7 @@ use App\Http\Controllers\Backend\MediaController;
 use App\Http\Controllers\Backend\DocumentRepositoryController;
 use App\Http\Controllers\Backend\EducationRepositoryController;
 use App\Http\Controllers\Backend\ModuleController;
+use App\Http\Controllers\Backend\OthersController;
 use App\Http\Controllers\Backend\PermissionController;
 use App\Http\Controllers\Backend\PostController;
 use App\Http\Controllers\Backend\ProfileController;
@@ -75,6 +76,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::post('/notifications/mark-all-read', [App\Http\Controllers\Backend\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/read/{id}', [App\Http\Controllers\Backend\NotificationController::class, 'markAsRead'])->name('notifications.read');
 
+    Route::post('/news/{id}/change-status', [PostController::class, 'changeStatus'])->name('change-status');
     // Posts/Pages Routes - Dynamic post types.
     Route::get('/posts/{postType?}', [PostController::class, 'index'])->name('posts.index');
     Route::get('/posts/{postType}/create', [PostController::class, 'create'])->name('posts.create');
@@ -95,6 +97,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
     Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
     Route::delete('/events/delete/bulk-delete', [EventController::class, 'bulkDelete'])->name('events.bulk-delete');
+    Route::post('events/{id}/change-status', [EventController::class, 'changeStatus'])->name('change-status');
 
 
 
@@ -123,7 +126,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/api', [DocumentRepositoryController::class, 'api'])->name('api');
         Route::post('/', [DocumentRepositoryController::class, 'store'])->name('store')->middleware('check.upload.limits');
         Route::get('/upload-limits', [DocumentRepositoryController::class, 'getUploadLimits'])->name('upload-limits');
-        
+
         // Additional routes you might want to add:
         Route::get('/{id}/edit', [DocumentRepositoryController::class, 'edit'])->name('edit');
         Route::put('/{id}', [DocumentRepositoryController::class, 'update'])->name('update');
@@ -157,8 +160,42 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/api', [EducationRepositoryController::class, 'api'])->name('api');
         Route::post('/', [EducationRepositoryController::class, 'store'])->name('store')->middleware('check.upload.limits');
         Route::get('/upload-limits', [EducationRepositoryController::class, 'getUploadLimits'])->name('upload-limits');
+        Route::get('/{id}/edit', [EducationRepositoryController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [EducationRepositoryController::class, 'update'])->name('update');
         Route::delete('/{id}', [EducationRepositoryController::class, 'destroy'])->name('destroy');
         Route::delete('/', [EducationRepositoryController::class, 'bulkDelete'])->name('bulk-delete');
+
+        // Download routes
+        Route::get('/{id}/download', [EducationRepositoryController::class, 'download'])->name('download');
+        Route::get('/{id}/preview', [EducationRepositoryController::class, 'preview'])->name('preview');
+        Route::get('/{id}/stats', [EducationRepositoryController::class, 'downloadStats'])->name('stats');
+        Route::post('/{id}/increment-download', [EducationRepositoryController::class, 'incrementDownload'])->name('increment-download');
+
+        // Workflow routes
+        Route::post('/{id}/change-status', [EducationRepositoryController::class, 'changeStatus'])->name('change-status');
+        Route::get('/{id}/workflow-history', [EducationRepositoryController::class, 'workflowHistory'])->name('workflow-history');
+    });
+
+    //Route for others
+    Route::prefix('others')->name('others.')->group(function () {
+        Route::get('/', [OthersController::class, 'index'])->name('index');
+        Route::get('/api', [OthersController::class, 'api'])->name('api');
+        Route::post('/', [OthersController::class, 'store'])->name('store')->middleware('check.upload.limits');
+        Route::get('/upload-limits', [OthersController::class, 'getUploadLimits'])->name('upload-limits');
+        Route::get('/{id}/edit', [OthersController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [OthersController::class, 'update'])->name('update');
+        Route::delete('/{id}', [OthersController::class, 'destroy'])->name('destroy');
+        Route::delete('/', [OthersController::class, 'bulkDelete'])->name('bulk-delete');
+
+        // Download routes
+        Route::get('/{id}/download', [OthersController::class, 'download'])->name('download');
+        Route::get('/{id}/preview', [OthersController::class, 'preview'])->name('preview');
+        Route::get('/{id}/stats', [OthersController::class, 'downloadStats'])->name('stats');
+        Route::post('/{id}/increment-download', [OthersController::class, 'incrementDownload'])->name('increment-download');
+
+        // Workflow routes
+        Route::post('/{id}/change-status', [OthersController::class, 'changeStatus'])->name('change-status');
+        Route::get('/{id}/workflow-history', [OthersController::class, 'workflowHistory'])->name('workflow-history');
     });
 
 

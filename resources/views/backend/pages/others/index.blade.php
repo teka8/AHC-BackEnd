@@ -53,7 +53,7 @@
             if (this.changeStatusLoading) return;
             this.changeStatusLoading = true;
             try {
-                const response = await fetch(`/admin/education/${this.changeStatusDocumentId}/change-status`, {
+                const response = await fetch(`/admin/others/${this.changeStatusDocumentId}/change-status`, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -220,7 +220,7 @@
                                 class="absolute top-full right-0 z-10 w-48 p-2 bg-white rounded-md shadow-lg dark:bg-gray-700 mt-2">
                                 <ul class="space-y-2">
                                     <li>
-                                        <a href="{{ route('admin.education.index', array_merge(request()->query(), ['type' => null])) }}"
+                                        <a href="{{ route('admin.others.index', array_merge(request()->query(), ['type' => null])) }}"
                                             @click="typeDropdownOpen = false"
                                             class="cursor-pointer flex items-center gap-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-400 hover:opacity-80 px-2 py-1.5 rounded transition-colors duration-300 {{ !request('type') ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
                                             <iconify-icon icon="lucide:layers"
@@ -230,7 +230,7 @@
                                     </li>
                                     @foreach ($documentTypes as $type)
                                         <li>
-                                            <a href="{{ route('admin.education.index', array_merge(request()->query(), ['type' => $type])) }}"
+                                            <a href="{{ route('admin.others.index', array_merge(request()->query(), ['type' => $type])) }}"
                                                 @click="typeDropdownOpen = false"
                                                 class="cursor-pointer flex items-center gap-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 px-2 py-1.5 rounded transition-colors duration-300 {{ request('type') === $type ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
                                                 <iconify-icon icon="lucide:file-text"
@@ -269,7 +269,7 @@
                                 class="absolute top-full right-0 z-10 w-48 p-2 bg-white rounded-md shadow-lg dark:bg-gray-700 mt-2">
                                 <ul class="space-y-2">
                                     <li>
-                                        <a href="{{ route('admin.education.index', array_merge(request()->query(), ['category' => null])) }}"
+                                        <a href="{{ route('admin.others.index', array_merge(request()->query(), ['category' => null])) }}"
                                             @click="categoryDropdownOpen = false"
                                             class="cursor-pointer flex items-center gap-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-400 hover:opacity-80 px-2 py-1.5 rounded transition-colors duration-300 {{ !request('category') ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
                                             <iconify-icon icon="lucide:layers"
@@ -279,7 +279,7 @@
                                     </li>
                                     @foreach ($categories as $category)
                                         <li>
-                                            <a href="{{ route('admin.education.index', array_merge(request()->query(), ['category' => $category->name])) }}"
+                                            <a href="{{ route('admin.others.index', array_merge(request()->query(), ['category' => $category->name])) }}"
                                                 @click="categoryDropdownOpen = false"
                                                 class="cursor-pointer flex items-center gap-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 px-2 py-1.5 rounded transition-colors duration-300 {{ request('category') === $category->name ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
                                                 <iconify-icon icon="lucide:folder"
@@ -292,7 +292,7 @@
                             </div>
                         </div>
 
-                        @if (auth()->user()->can('educational_resource.create'))
+                        @if (auth()->user()->can('others.create'))
                             <button @click="uploadModalOpen = true" class="btn-primary flex items-center gap-2">
                                 <iconify-icon icon="lucide:upload" height="16"></iconify-icon>
                                 {{ __('Upload File') }}
@@ -464,7 +464,7 @@
                                                             class="text-sm"></iconify-icon>
                                                     </button>
                                                     @if (auth()->user()->can('document.edit'))
-                                                        <a href="{{ route('admin.education.edit', $document->id) }}"
+                                                        <a href="{{ route('admin.others.edit', $document->id) }}"
                                                             class="text-yellow-400 hover:text-yellow-600 dark:hover:text-yellow-300"
                                                             title="{{ __('Edit') }}">
                                                             <iconify-icon icon="lucide:edit"
@@ -491,12 +491,12 @@
                                     class="text-6xl text-gray-300 dark:text-gray-600 mb-4 mx-auto"></iconify-icon>
                                 <p class="text-gray-500 dark:text-gray-400 mb-4">{{ __('No documents found') }}</p>
 
-                                @if (auth()->user()->can('educational_resource.create'))
+                                @if (auth()->user()->can('others.create'))
                                     <div class="flex justify-center">
                                         <button @click="uploadModalOpen = true"
                                             class="btn-primary flex items-center gap-2">
                                             <iconify-icon icon="lucide:upload" height="16"></iconify-icon>
-                                            {{ __('Upload Document') }}
+                                            {{ __('Upload File') }}
                                         </button>
                                     </div>
                                 @endif
@@ -513,10 +513,10 @@
         </div>
 
         <!-- Upload Modal -->
-        @include('backend.pages.education.partials.upload-modal')
+        @include('backend.pages.Others.partials.upload-modal')
 
         <!-- Bulk Delete Modal -->
-        @include('backend.pages.education.partials.bulk-delete-modal')
+        @include('backend.pages.others.partials.bulk-delete-modal')
 
         <!-- PDF Modal (keep the same PDF modal from your original code) -->
         <div id="pdfModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-75" onclick="closePdfModal()">
@@ -530,7 +530,7 @@
         <script>
             function incrementDownloadCount(documentId) {
                 // You can make an AJAX call here to increment the download count
-                fetch(`/admin/document/${documentId}/increment-download`, {
+                fetch(`/admin/others/${documentId}/increment-download`, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -539,12 +539,12 @@
                 }).catch(error => console.error('Error:', error));
             }
 
-            // Delete a single educational resource
+            // Delete a single others resource
             function performSingleDelete(id) {
                 if (!confirm('{{ __('Are you sure you want to delete this resource? This action cannot be undone.') }}')) {
                     return;
                 }
-                const url = "{{ route('admin.education.destroy', ':id') }}".replace(':id', id);
+                const url = "{{ route('admin.others.destroy', ':id') }}".replace(':id', id);
                 fetch(url, {
                     method: 'DELETE',
                     headers: {

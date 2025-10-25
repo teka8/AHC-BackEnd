@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class EducationalResource extends Model
+class Others extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -16,73 +16,44 @@ class EducationalResource extends Model
         'title',
         'creator',
         'description',
-        'learning_objectives',
         'resource_type',
-        'educational_level',
         'subject_area',
-        'duration_minutes',
-        'language',
         'file_path',
         'file_name',
         'file_size',
-        'embed_code',
-        'thumbnail_path',
+        'file_extension',
+        'mime_type',
         'tags',
-        'difficulty_level',
         'is_featured',
         'access_level',
-        'requires_enrollment',
         'status',
         'published_at',
         'created_by',
         'updated_by',
         'approved_by',
-        'view_count',
-        'completion_count',
         'download_count',
+        'view_count',
     ];
 
     protected $casts = [
-        'learning_objectives' => 'array',
         'tags' => 'array',
         'is_featured' => 'boolean',
-        'requires_enrollment' => 'boolean',
         'published_at' => 'datetime',
-        'duration_minutes' => 'integer',
-        'view_count' => 'integer',
-        'completion_count' => 'integer',
         'download_count' => 'integer',
+        'view_count' => 'integer',
     ];
 
     protected $attributes = [
-        'educational_level' => 'All Levels',
-        'language' => 'English',
         'is_featured' => false,
         'access_level' => 'public',
-        'requires_enrollment' => false,
         'status' => 'draft',
-        'view_count' => 0,
-        'completion_count' => 0,
         'download_count' => 0,
+        'view_count' => 0,
     ];
 
-    // Resource type constants
-    const TYPE_VIDEO = 'Video';
-    const TYPE_PODCAST = 'Podcast';
-    const TYPE_INTERACTIVE_MODULE = 'Interactive Module';
-    const TYPE_LESSON_PLAN = 'Lesson Plan';
-    const TYPE_TEACHING_GUIDE = 'Teaching Guide';
+    // Other Others Document type constants
+    const TYPE_NEWSLETTER = 'Newsletter';
     const TYPE_PRESENTATION = 'Presentation';
-    const TYPE_CASE_STUDY = 'Case Study';
-    const TYPE_SIMULATION = 'Simulation';
-    const TYPE_OTHER = 'Other';
-
-    // Educational level constants
-    const LEVEL_UNDERGRADUATE = 'Undergraduate';
-    const LEVEL_POSTGRADUATE = 'Postgraduate';
-    const LEVEL_FACULTY_DEVELOPMENT = 'Faculty Development';
-    const LEVEL_CONTINUING_EDUCATION = 'Continuing Education';
-    const LEVEL_ALL_LEVELS = 'All Levels';
 
     // Status constants
     const STATUS_DRAFT = 'draft';
@@ -97,7 +68,7 @@ class EducationalResource extends Model
     const ACCESS_INTERNAL_ONLY = 'internal_only';
 
     /**
-     * Get the user who created the resource
+     * Get the user who created the others document
      */
     public function creator(): BelongsTo
     {
@@ -105,7 +76,7 @@ class EducationalResource extends Model
     }
 
     /**
-     * Get the user who last updated the resource
+     * Get the user who last updated the others document
      */
     public function updater(): BelongsTo
     {
@@ -113,7 +84,7 @@ class EducationalResource extends Model
     }
 
     /**
-     * Get the user who approved the resource
+     * Get the user who approved the others document
      */
     public function approver(): BelongsTo
     {
@@ -121,23 +92,31 @@ class EducationalResource extends Model
     }
 
     /**
-     * Get all tags associated with the resource
+     * Get the previous version of this document
+     */
+    public function previousVersion(): BelongsTo
+    {
+        return $this->belongsTo(Others::class, 'previous_version_id');
+    }
+
+    /**
+     * Get all tags associated with the document
      */
     public function tags(): BelongsToMany
     {
-        return $this->belongsToMany(EducationalResourceTag::class, 'educational_resource_tag');
+        return $this->belongsToMany(OthersTag::class, 'others_tag');
     }
 
     /**
-     * Get all access logs for this resource
+     * Get all access logs for this document
      */
     public function accessLogs()
     {
-        return $this->hasMany(EducationalResourceAccessLog::class);
+        return $this->hasMany(OthersAccessLog::class);
     }
 
     /**
-     * Scope a query to only include published resources
+     * Scope a query to only include published documents
      */
     public function scopePublished($query)
     {
@@ -145,7 +124,7 @@ class EducationalResource extends Model
     }
 
     /**
-     * Scope a query to only include featured resources
+     * Scope a query to only include featured documents
      */
     public function scopeFeatured($query)
     {
@@ -153,7 +132,7 @@ class EducationalResource extends Model
     }
 
     /**
-     * Scope a query to only include resources with public access
+     * Scope a query to only include documents with public access
      */
     public function scopePublic($query)
     {
@@ -161,23 +140,23 @@ class EducationalResource extends Model
     }
 
     /**
-     * Scope a query to only include resources by type
+     * Scope a query to only include documents by type
      */
     public function scopeByType($query, $type)
     {
-        return $query->where('resource_type', $type);
+        return $query->where('document_type', $type);
     }
 
     /**
-     * Scope a query to only include resources by educational level
+     * Scope a query to only include documents by category
      */
-    public function scopeByEducationalLevel($query, $level)
+    public function scopeByCategory($query, $category)
     {
-        return $query->where('educational_level', $level);
+        return $query->where('category', $category);
     }
 
     /**
-     * Check if resource is published
+     * Check if document is published
      */
     public function isPublished(): bool
     {
@@ -185,7 +164,7 @@ class EducationalResource extends Model
     }
 
     /**
-     * Check if resource is featured
+     * Check if document is featured
      */
     public function isFeatured(): bool
     {
@@ -193,7 +172,7 @@ class EducationalResource extends Model
     }
 
     /**
-     * Check if resource is accessible by user
+     * Check if document is accessible by user
      */
     public function isAccessibleBy(User $user = null): bool
     {
@@ -217,36 +196,16 @@ class EducationalResource extends Model
     }
 
     /**
-     * Get duration in human readable format
-     */
-    public function getDurationFormattedAttribute(): string
-    {
-        if (!$this->duration_minutes) return 'N/A';
-
-        if ($this->duration_minutes < 60) {
-            return $this->duration_minutes . ' min';
-        }
-
-        $hours = floor($this->duration_minutes / 60);
-        $minutes = $this->duration_minutes % 60;
-
-        if ($minutes === 0) {
-            return $hours . ' hr';
-        }
-
-        return $hours . ' hr ' . $minutes . ' min';
-    }
-
-    /**
      * Get file size in human readable format
      */
     public function getFileSizeFormattedAttribute(): string
     {
-        if (!$this->file_size) return '0 B';
+        if (!$this->file_size)
+            return '0 B';
 
         $size = (int) $this->file_size;
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        
+
         for ($i = 0; $size > 1024 && $i < count($units) - 1; $i++) {
             $size /= 1024;
         }
@@ -255,27 +214,19 @@ class EducationalResource extends Model
     }
 
     /**
-     * Check if resource has embedded content
-     */
-    public function hasEmbeddedContent(): bool
-    {
-        return !empty($this->embed_code);
-    }
-
-    /**
-     * Check if resource has downloadable file
-     */
-    public function hasDownloadableFile(): bool
-    {
-        return !empty($this->file_path);
-    }
-
-    /**
      * Get download URL
      */
     public function getDownloadUrlAttribute(): string
     {
-        return route('admin.education.download', $this->id);
+        return route('admin.others.download', $this->id);
+    }
+
+    /**
+     * Increment download count
+     */
+    public function incrementDownloadCount(): void
+    {
+        $this->increment('download_count');
     }
 
     /**
@@ -286,20 +237,9 @@ class EducationalResource extends Model
         $this->increment('view_count');
     }
 
-    /**
-     * Increment completion count
-     */
-    public function incrementCompletionCount(): void
+    public function getTagsListAttribute(): string
     {
-        $this->increment('completion_count');
-    }
-
-    /**
-     * Increment download count
-     */
-    public function incrementDownloadCount(): void
-    {
-        $this->increment('download_count');
+        return $this->tags ? $this->tags->pluck('name')->implode(', ') : '';
     }
 
     /**

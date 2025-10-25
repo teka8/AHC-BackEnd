@@ -347,4 +347,63 @@ class PostController extends Controller
             PostActionHook::POST_META_UPDATED
         );
     }
+
+    /**
+ * Change news status (workflow action)
+ */
+public function changeStatus(Request $request, $id)
+{
+    $post = Post::findOrFail($id);
+    $action = $request->input('action');
+    $comment = $request->input('comment', '');
+
+    // Check if user can perform this action
+    if (!$post->canPerformAction($action)) {
+        return response()->json([
+            'success' => false,
+            'message' => __('You do not have permission to perform this action.')
+        ], 403);
+    }
+
+    $availableActions = $post->getAvailableActions();
+    $targetStatus = $availableActions[$action]['target'];
+
+    try {
+        \DB::beginTransaction();
+
+        $oldStatus = $post->status;
+        
+        // Update post status
+        $updateData = [
+            'status' => $targetStatus,
+        ];
+
+        // Set published_at if publishing
+        if ($targetStatus === Post::STATUS_PUBLISHED && !$post->published_at) {
+            $updateData['published_at'] = now();
+        }
+
+        $post->update($updateData);
+
+        // Log the status change
+        //$this->postService->logStatusChange($post, $oldStatus, $targetStatus, Auth::id(), $comment);
+
+        \DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => __('News status updated successfully'),
+        ]);
+
+    } catch (\Exception $e) {
+        \DB::rollBack();
+        
+        \Log::error('News status change failed: ' . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => __('Failed to update news status: ') . $e->getMessage()
+        ], 500);
+    }
+}
 }
