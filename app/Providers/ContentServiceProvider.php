@@ -80,6 +80,26 @@ class ContentServiceProvider extends ServiceProvider
         Hook::doAction(ContentActionHook::REGISTER_POST_TYPES, $contentService);
     }
 
+    protected function registerDefaultPageTypes(): void
+    {
+        $contentService = app(ContentService::class);
+
+        // Register page type.
+        $contentService->registerPostType([
+            'name' => 'page',
+            'label' => 'Pages',
+            'label_singular' => 'Page',
+            'description' => 'Default post type for static pages',
+            'has_archive' => false,
+            'hierarchical' => true,
+            'supports_excerpt' => true,
+            'taxonomies' => [],
+        ]);
+
+        // Allow other plugins/modules to register post types.
+        Hook::doAction(ContentActionHook::REGISTER_POST_TYPES, $contentService);
+    }
+
     protected function registerDefaultTaxonomies(): void
     {
         $contentService = app(ContentService::class);

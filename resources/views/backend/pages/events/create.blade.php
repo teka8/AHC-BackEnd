@@ -9,6 +9,9 @@
             'mode' => 'create'
         ])
     </form>
+    
+    {!! Hook::applyFilters('filter.event.create.after_form', '') !!}
+
 
     @push('scripts')
         {{-- Quill editor for description --}}
