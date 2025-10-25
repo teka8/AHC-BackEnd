@@ -33,7 +33,7 @@
     @endif
 
     <!-- Notifications -->
- <div class="relative" x-data="{ notificationOpen: false }" @click.outside="notificationOpen = false">
+ {{-- <div class="relative" x-data="{ notificationOpen: false }" @click.outside="notificationOpen = false">
             <button @click="notificationOpen = !notificationOpen"
                 class="hover:text-dark-900 relative flex p-2 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
                 <iconify-icon icon="lucide:bell" width="22" height="22"></iconify-icon>
@@ -61,17 +61,19 @@
                     </a>
                 </div>
             </div>
-            <div class="max-h-64 overflow-y-auto">
+            <div class="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
                 @forelse(auth()->user()->unreadNotifications->take(5) as $notification)
                     <a href="#"
                           @if(isset($notification->data['news_id']) && isset($notification->data['post_type']))
                             onclick="markAsReadAndRedirect('{{ $notification->id }}', '{{ route('admin.posts.edit', ['postType' => $notification->data['post_type'], 'post' => $notification->data['news_id']]) }}')"
-                        class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-                        @endif>
+                        @elseif(isset($notification->data['document_id']))
+                            onclick="markAsReadAndRedirect('{{ $notification->id }}', '{{ route('admin.document.edit', $notification->data['document_id']) }}')"
+                        @endif
+                        class="block px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0 transition-colors duration-200">
                         <div class="flex items-start gap-3">
-                            <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div class="w-2 h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mt-2 flex-shrink-0 shadow-sm"></div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm text-gray-900 dark:text-white truncate">
+                                <p class="text-sm text-gray-900 dark:text-white break-words leading-relaxed">
                                     {{ $notification->data['message'] }}
                                 </p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -114,6 +116,100 @@
         }
     </script>
 
+
+    {!! Hook::applyFilters(AdminFilterHook::HEADER_AFTER_ACTIONS, '') !!}
+</div> --}}
+
+
+<div class="relative" x-data="{ notificationOpen: false }" @click.outside="notificationOpen = false">
+    <!-- Notification Button -->
+    <button 
+        @click="notificationOpen = !notificationOpen"
+        class="relative flex items-center justify-center p-2 rounded-full text-gray-700 hover:bg-gray-100 hover:text-gray-800 transition dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+    >
+        <iconify-icon icon="lucide:bell" width="22" height="22"></iconify-icon>
+        @if(auth()->user()->unreadNotifications->count() > 0)
+            <span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-semibold rounded-full h-5 w-5 flex items-center justify-center shadow">
+                {{ auth()->user()->unreadNotifications->count() }}
+            </span>
+        @endif
+    </button>
+
+    <!-- Dropdown Panel -->
+    <div 
+        x-show="notificationOpen" 
+        x-transition:enter="transition ease-out duration-200" 
+        x-transition:enter-start="opacity-0 scale-95" 
+        x-transition:enter-end="opacity-100 scale-100" 
+        x-transition:leave="transition ease-in duration-150" 
+        x-transition:leave-start="opacity-100 scale-100" 
+        x-transition:leave-end="opacity-0 scale-95"
+        class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden"
+    >
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40">
+            <div class="flex items-center gap-2">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">{{ __('Notifications') }}</h3>
+                @if(auth()->user()->unreadNotifications->count() > 0)
+                    <span class="bg-red-500 text-white text-[10px] font-semibold rounded-full px-2 py-0.5">
+                        {{ auth()->user()->unreadNotifications->count() }}
+                    </span>
+                @endif
+            </div>
+            <a href="{{ route('admin.notifications.index') }}" class="text-xs text-blue-600 hover:text-blue-500 font-medium">
+                {{ __('View All') }}
+            </a>
+        </div>
+
+        <!-- Notifications List -->
+        @php
+            $notifications = auth()->user()->unreadNotifications;
+            $hasMany = $notifications->count() > 4;
+        @endphp
+
+        <div class="{{ $hasMany ? 'max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent' : '' }}">
+            @forelse($notifications->take(10) as $notification)
+                <a href="#"
+                    @if(isset($notification->data['news_id']) && isset($notification->data['post_type']))
+                        onclick="markAsReadAndRedirect('{{ $notification->id }}', '{{ route('admin.posts.edit', ['postType' => $notification->data['post_type'], 'post' => $notification->data['news_id']]) }}')"
+                    @elseif(isset($notification->data['document_id']))
+                        onclick="markAsReadAndRedirect('{{ $notification->id }}', '{{ route('admin.document.edit', $notification->data['document_id']) }}')"
+                    @endif
+                    class="flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150 last:border-b-0"
+                >
+                    <div class="flex-shrink-0 mt-1.5">
+                        <div class="h-2 w-2 bg-blue-500 rounded-full shadow-sm"></div>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm text-gray-900 dark:text-gray-100 leading-snug">
+                            {{ $notification->data['message'] }}
+                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {{ $notification->created_at->diffForHumans() }}
+                        </p>
+                    </div>
+                </a>
+            @empty
+                <div class="flex flex-col items-center justify-center px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                    <iconify-icon icon="lucide:bell-off" class="w-8 h-8 mb-2 opacity-60"></iconify-icon>
+                    <p class="text-sm">{{ __('No new notifications') }}</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
+
+    <script>
+        function markAsReadAndRedirect(notificationId, redirectUrl) {
+            fetch(`{{ url('admin/notifications/read') }}/${notificationId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            }).then(() => window.location.href = redirectUrl)
+              .catch(() => window.location.href = redirectUrl);
+        }
+    </script>
 
     {!! Hook::applyFilters(AdminFilterHook::HEADER_AFTER_ACTIONS, '') !!}
 </div>
