@@ -332,7 +332,7 @@
                                             {{ __('S. Actions') }}
                                         </th>
                                         <th class="table-thead-th">
-                                            {{ __('Downloads') }}
+                                            {{ __('Dw') }}
                                         </th>
                                         <th class="table-thead-th">
                                             {{ __('Date') }}
