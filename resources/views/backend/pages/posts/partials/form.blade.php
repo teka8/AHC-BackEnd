@@ -128,12 +128,12 @@
                                 <div>
 
 
-                                    <x-media-selector name="featured_image" :multiple="false" allowedTypes="images"
+                                    <x-media-selector name="featured_image" :multiple="true" allowedTypes="images"
                                         :existingMedia="isset($post) && $post->hasFeaturedImage()
                                             ? $post->getFeaturedImageUrl()
                                             : null" :existingAltText="isset($post) ? $post->title : ''" removeCheckboxName="remove_featured_image"
                                         removeCheckboxLabel="{{ 'Remove featured image' }}" :showPreview="true"
-                                        class="mt-1" />
+                                        class="mt-1 " />
 
                                 </div>
                                 <p class="text-xs text-gray-500">{{ __('PNG, JPG, GIF up to 10MB each') }}</p>

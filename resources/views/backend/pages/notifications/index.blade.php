@@ -37,6 +37,11 @@
                                        class="text-blue-600 hover:text-blue-500 text-sm">
                                         {{ __('View') }}
                                     </a>
+                                @elseif(isset($notification->data['document_id']))
+                                    <a href="{{ route('admin.document.edit', $notification->data['document_id']) }}" 
+                                       class="text-blue-600 hover:text-blue-500 text-sm">
+                                        {{ __('View') }}
+                                    </a>
                                 @endif
                                 @if(!$notification->read_at)
                                     <button onclick="markAsRead('{{ $notification->id }}')" 

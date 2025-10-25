@@ -159,7 +159,7 @@ class PostController extends Controller
         $users = User::permission('blog.edit')->get();
         Notification::send($users, new StatusChanged($post, "Editable News: {$post->title}"));
 
-        return redirect()->route('admin.posts.edit', [$postType, $post->id]);
+        return redirect()->route('admin.posts.index', [$postType, $post->id]);
     }
 
     public function show(string $postType, string $id): Renderable
