@@ -139,7 +139,14 @@ class PostController extends Controller
                 $post->clearMediaCollection('featured');
                 $post->addMediaFromRequest('featured_image')->toMediaCollection('featured');
             } else {
-                $this->mediaService->associateExistingMedia($post, $data['featured_image'], 'featured');
+                // Handle array of media IDs from media selector
+                $mediaIds = is_array($data['featured_image']) ? $data['featured_image'] : [$data['featured_image']];
+                $post->clearMediaCollection('featured');
+                foreach ($mediaIds as $mediaId) {
+                    if (!empty($mediaId)) {
+                        $this->mediaService->associateExistingMedia($post, $mediaId, 'featured');
+                    }
+                }
             }
         }
 
