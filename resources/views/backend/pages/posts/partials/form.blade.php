@@ -133,7 +133,7 @@
                                             ? $post->getFeaturedImageUrl()
                                             : null" :existingAltText="isset($post) ? $post->title : ''" removeCheckboxName="remove_featured_image"
                                         removeCheckboxLabel="{{ 'Remove featured image' }}" :showPreview="true"
-                                        class="mt-1 " />
+                                        label="" class="mt-1 " />
 
                                 </div>
                                 <p class="text-xs text-gray-500">{{ __('PNG, JPG, GIF up to 10MB each') }}</p>
