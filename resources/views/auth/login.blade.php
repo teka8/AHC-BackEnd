@@ -1,9 +1,27 @@
 @extends('layouts.app')
 
+@push('styles')
+<style>
+.login-container { animation: fadeInUp 0.6s ease-out; }
+.form-group { animation: slideInLeft 0.5s ease-out; animation-fill-mode: both; }
+.form-group:nth-child(1) { animation-delay: 0.1s; }
+.form-group:nth-child(2) { animation-delay: 0.2s; }
+.form-group:nth-child(3) { animation-delay: 0.3s; }
+.form-group:nth-child(4) { animation-delay: 0.4s; }
+.form-group:nth-child(5) { animation-delay: 0.5s; }
+.btn { transition: all 0.3s ease; }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+.form-control { transition: all 0.3s ease; }
+.form-control:focus { transform: scale(1.02); }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideInLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+</style>
+@endpush
+
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-8 login-container">
             <div class="card">
                 <div class="card-header">{{ __("Login") }}</div>
 
