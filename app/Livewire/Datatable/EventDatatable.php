@@ -64,8 +64,11 @@ class EventDatatable extends Datatable
                 'allLabel' => __('All Statuses'),
                 'options' => [
                     'draft' => __('Draft'),
-                    'ongoing' => __('Ongoing'),
+                    'under_review' => __('Under Review'),
+                    'approved' => __('Approved'),
+                    'published' => __('Published'),
                     'completed' => __('Completed'),
+                    'archived' => __('Archived'),
                     'cancelled' => __('Cancelled'),
                 ],
                 'selected' => $this->status,

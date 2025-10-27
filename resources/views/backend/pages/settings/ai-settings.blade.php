@@ -22,6 +22,9 @@
                         <option value="claude" {{ (config('settings.ai_default_provider', 'openai') == 'claude') ? 'selected' : '' }}>
                             {{ __('Claude (Anthropic)') }}
                         </option>
+                        <option value="gemini" {{ (config('settings.ai_default_provider', 'openai') == 'gemini') ? 'selected' : '' }}>
+                            {{ __('Gemini (Google)') }}
+                        </option>
                     </select>
                     <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">
                         {{ __('Select the default AI provider for your application.') }}
@@ -89,6 +92,31 @@
                     {{ __('Get your API key from:') }}
                     <a href="https://console.anthropic.com/" target="_blank" class="text-primary hover:underline">
                         {{ __('Anthropic Console') }}
+                    </a>
+                </p>
+            </div>
+
+            <!-- Gemini API Key -->
+            <div class="relative">
+                <label for="ai_gemini_api_key" class="form-label">
+                    {{ __('Gemini API Key (Google)') }}
+                </label>
+                <div class="relative">
+                    <input type="text" name="ai_gemini_api_key"
+                        id="ai_gemini_api_key"
+                        value="{{ config('settings.ai_gemini_api_key') ?? '' }}"
+                        placeholder="{{ __('Enter your Gemini API key') }}"
+                        class="form-control pr-14">
+                    <button type="button" 
+                        onclick="copyToClipboard('ai_gemini_api_key')" 
+                        class="absolute z-30 text-gray-500 -translate-y-1/2 cursor-pointer right-4 top-1/2 dark:text-gray-300 flex items-center justify-center w-6 h-6 hover:text-gray-700 dark:hover:text-gray-100 transition-colors">
+                        <iconify-icon icon="lucide:copy" width="18" height="18"></iconify-icon>
+                    </button>
+                </div>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">
+                    {{ __('Get your API key from:') }}
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-primary hover:underline">
+                        {{ __('Google AI Studio') }}
                     </a>
                 </p>
             </div>
