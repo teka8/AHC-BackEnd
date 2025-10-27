@@ -124,7 +124,7 @@ class PostController extends Controller
         $post->slug = $data['slug'] ?? Str::slug($data['title']);
         $post->content = $data['content'];
         $post->excerpt = $data['excerpt'] ?? Str::limit(strip_tags($data['content']), 200);
-        $post->status = $data['status'] ?? 'created';
+        $post->status = $data['status'] ?? PostStatus::DRAFT->value;
         $post->post_type = $postType;
         $post->user_id = Auth::id();
         $post->parent_id = $data['parent_id'] ?? null;
@@ -139,7 +139,14 @@ class PostController extends Controller
                 $post->clearMediaCollection('featured');
                 $post->addMediaFromRequest('featured_image')->toMediaCollection('featured');
             } else {
-                $this->mediaService->associateExistingMedia($post, $data['featured_image'], 'featured');
+                // Handle array of media IDs from media selector
+                $mediaIds = is_array($data['featured_image']) ? $data['featured_image'] : [$data['featured_image']];
+                $post->clearMediaCollection('featured');
+                foreach ($mediaIds as $mediaId) {
+                    if (!empty($mediaId)) {
+                        $this->mediaService->associateExistingMedia($post, $mediaId, 'featured');
+                    }
+                }
             }
         }
 
@@ -242,9 +249,9 @@ class PostController extends Controller
         $post->excerpt = $data['excerpt'];
         $post->parent_id = $data['parent_id'] ?? null;
 
-        // Auto-change status from 'created' to 'edited' when post is updated
-        if ($post->status === 'created') {
-            $post->status = 'edited';
+        // Auto-change status from 'draft' to 'edited' when post is updated
+        if ($post->status === PostStatus::DRAFT->value) {
+            $post->status = PostStatus::EDITED->value;
         }
 
         // Handle publish date.
@@ -273,7 +280,7 @@ class PostController extends Controller
         $this->authorize('update', $post);
         
         $request->validate([
-            'status' => 'required|string|in:created,edited,approved,published,unpublished,archived'
+            'status' => 'required|string|in:draft,edited,approved,published,unpublished,archived'
         ]);
         
         $post->update(['status' => $request->status]);

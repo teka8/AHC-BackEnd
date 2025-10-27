@@ -35,7 +35,17 @@ class EventController extends Controller
         $this->authorize('viewAny', Event::class);
 
         $breadcrumbs = [
-            ['name' => __('Events'), 'url' => route('admin.events.index')],
+            'title' => __('Events'),
+            'links' => [
+                [
+                    'name' => __('Home'),
+                    'url' => route('admin.dashboard'),
+                ],
+                [
+                    'name' => __('Events'),
+                    'url' => '#',
+                ],
+            ],
         ];
 
         return view('backend.pages.events.index', compact('breadcrumbs'));
@@ -45,12 +55,10 @@ class EventController extends Controller
     {
         $this->authorize('create', Event::class);
 
-        $breadcrumbs = [
-            ['name' => __('Events'), 'url' => route('admin.events.index')],
-            ['name' => __('New Event')],
-        ];
+        $this->setBreadcrumbTitle(__('New Event'))
+            ->addBreadcrumbItem("Events", route('admin.events.index'));
 
-        return view('backend.pages.events.create', compact('breadcrumbs'));
+        return $this->renderViewWithBreadcrumbs('backend.pages.events.create');
     }
 
     public function store(StoreEventRequest $storeEventRequest): RedirectResponse{
@@ -153,12 +161,10 @@ class EventController extends Controller
     {
         $this->authorize('update', $event);
 
-        $breadcrumbs = [
-            ['name' => __('Events'), 'url' => route('admin.events.index')],
-            ['name' => __('Edit Event')],
-        ];
+        $this->setBreadcrumbTitle(__('Edit Event'))
+            ->addBreadcrumbItem("Events", route('admin.events.index'));
 
-        return view('backend.pages.events.edit', compact('event', 'breadcrumbs'));
+        return $this->renderViewWithBreadcrumbs('backend.pages.events.edit', compact('event'));
     }
 
 
@@ -187,7 +193,6 @@ class EventController extends Controller
         $event->register_on_site = $data['register_on_site'] ?? 0;
         $event->cost_amount = $data['cost_amount'] ?? 0;
         $event->target_audience = $data['target_audience'];
-        $event->status = $data['status'];
 
         /**
          * Handle Event Image Update

@@ -20,9 +20,26 @@
     </style>
     @endif
 
-    <!-- Prevent FOUC (Flash of Unstyled Content) -->
     <style>
         [x-cloak] { display: none !important; }
+        .login-card {
+            width: 100% !important;
+            max-width: 500px !important;
+            border-radius: 16px !important;
+        }
+        .login-input {
+            transition: all 0.3s ease !important;
+            border: 2px solid #e5e7eb !important;
+        }
+        .login-input:hover {
+            border-color: #3b82f6 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+        }
+        .login-input:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+        }
     </style>
 
     @include('backend.layouts.partials.integration-scripts')
@@ -61,32 +78,11 @@ x-init="
             <main>
                 <div class="relative flex flex-col justify-center w-full h-screen dark:bg-gray-900 sm:p-0 lg:flex-row">
                     <div class="flex flex-col flex-1 w-full lg:w-1/2">
-                        <div class="flex flex-col justify-center flex-1 w-full max-w-md mx-auto px-10">
+                        <div class="flex flex-col justify-center flex-1 w-full max-w-2xl mx-auto px-10">
                             @yield('admin-content')
                         </div>
                     </div>
 
-                    <div class="relative items-center hidden w-full h-full bg-brand-950 dark:bg-white/5 lg:grid lg:w-1/2">
-                        <div class="flex items-center justify-center z-1">
-                            <!-- ===== Common Grid Shape Start ===== -->
-                            <div class="absolute right-0 top-0 -z-1 w-full max-w-[250px] xl:max-w-[450px]">
-                                <img src="/images/shape/grid-01.svg" alt="grid">
-                            </div>
-                            <div class="absolute bottom-0 left-0 -z-1 w-full max-w-[250px] rotate-180 xl:max-w-[450px]">
-                                <img src="/images/shape/grid-01.svg" alt="grid">
-                            </div>
-
-                            <div class="flex flex-col items-center max-w-xs">
-                                <a href="#" class="block mb-4">
-                                    <img src="/images/logo/lara-dashboard-dark.png" alt="Logo">
-                                </a>
-                                <p class="text-center text-gray-400 dark:text-white/60">
-                                    {{ __('Free and Open-Source Laravel Admin Dashboard Template') }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
                     <!-- Toggler -->
                     <div class="fixed z-50 hidden bottom-6 right-6 sm:flex gap-2 items-center justify-center">
                         @include('backend.layouts.partials.locale-switcher', [

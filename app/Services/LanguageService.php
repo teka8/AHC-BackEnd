@@ -213,19 +213,23 @@ class LanguageService
      */
     public function getActiveLanguages(): array
     {
+        // Limit to only English and Amharic languages
+        $allowedLanguages = ['en', 'am'];
+        
         // Get all the languages inside /resources/lang folder as key.
-        // The key is the language code (e.g., 'en', 'bn').
         $languages = array_diff(scandir(resource_path('lang')), ['..', '.', '.DS_Store']);
 
-        // Process languages to get unique keys
+        // Process languages to get unique keys, but only include allowed ones
         $uniqueLanguages = [];
         foreach ($languages as $language) {
             // Remove .json extension if present
             $langKey = preg_replace('/\.json$/', '', $language);
-            // Add to unique languages if not already added
-            $uniqueLanguages[$langKey] = [
-                'name' => $this->getLanguageNameByLocale($langKey),
-            ];
+            // Only add if it's in the allowed languages list
+            if (in_array($langKey, $allowedLanguages)) {
+                $uniqueLanguages[$langKey] = [
+                    'name' => $this->getLanguageNameByLocale($langKey),
+                ];
+            }
         }
 
         $languages = Hook::applyFilters(CommonFilterHook::LANGUAGES, $uniqueLanguages);

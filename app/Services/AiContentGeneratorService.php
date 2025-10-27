@@ -33,6 +33,7 @@ class AiContentGeneratorService
         $this->apiKey = match ($this->provider) {
             'openai' => config('settings.ai_openai_api_key'),
             'claude' => config('settings.ai_claude_api_key'),
+            'gemini' => config('settings.ai_gemini_api_key'),
             default => throw new Exception("Unsupported AI provider: {$this->provider}")
         };
 
@@ -94,6 +95,7 @@ Example format:
         return match ($this->provider) {
             'openai' => $this->sendOpenAiRequest($systemPrompt, $userPrompt),
             'claude' => $this->sendClaudeRequest($systemPrompt, $userPrompt),
+            'gemini' => $this->sendGeminiRequest($systemPrompt, $userPrompt),
             default => throw new Exception("Unsupported provider: {$this->provider}")
         };
     }
@@ -138,6 +140,45 @@ Example format:
             );
     }
 
+    private function sendGeminiRequest(string $systemPrompt, string $userPrompt): Response
+    {
+        // 1. The model is now part of the URL
+        $model = 'gemini-2.5-flash';
+        
+        // 2. The URL is different, and the API key is passed as a query parameter
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$this->apiKey}";
+
+        // 3. The payload (body) structure is different
+        $payload = [
+            // 'system' prompt is now 'systemInstruction'
+            'systemInstruction' => [
+                'parts' => [
+                    ['text' => $systemPrompt]
+                ]
+            ],
+            // 'messages' is now 'contents'
+            'contents' => [
+                [
+                    'role' => 'user',
+                    'parts' => [
+                        ['text' => $userPrompt]
+                    ]
+                ]
+            ],
+            // 'temperature' and 'max_tokens' are inside 'generationConfig'
+            'generationConfig' => [
+                'temperature' => 0.7,
+                'maxOutputTokens' => $this->getMaxTokens(), // Note: 'max_tokens' is 'maxOutputTokens'
+            ]
+        ];
+
+        // 4. We remove the 'Authorization' header since the key is in the URL
+        return Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])->timeout(60)
+        ->post($url, $payload);
+    }
+
     private function parseResponse(Response $response): array
     {
         if (! $response->successful()) {
@@ -149,6 +190,7 @@ Example format:
         $content = match ($this->provider) {
             'openai' => $data['choices'][0]['message']['content'] ?? '',
             'claude' => $data['content'][0]['text'] ?? '',
+            'gemini' => $data['candidates'][0]['content']['parts'][0]['text'] ?? '',
             default => throw new Exception("Unknown provider: {$this->provider}")
         };
 
@@ -206,6 +248,10 @@ Example format:
 
         if (config('settings.ai_claude_api_key')) {
             $providers['claude'] = 'Claude (Anthropic)';
+        }
+
+        if (config('settings.ai_gemini_api_key')) {
+            $providers['gemini'] = 'Gemini';
         }
 
         return $providers;

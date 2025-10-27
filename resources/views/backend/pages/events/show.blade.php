@@ -92,7 +92,7 @@
                     <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
                         <div class="text-sm text-gray-500">{{ __('Cost') }}</div>
                         <div class="font-medium text-gray-800 dark:text-white mt-1">
-                            {{ $event->cost_amount !== null ? number_format($event->cost_amount, 2) . ' ETB' : __('Free') }}
+                            {{ (float) $event->cost_amount !== 0.0 ? number_format($event->cost_amount, 2) . ' ETB' : __('Free') }}
                         </div>
                     </div>
                     <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
@@ -131,12 +131,14 @@
                 @endif
 
                 {{-- Description --}}
-                <div class="mt-6">
-                    <h4 class="text-lg font-semibold text-gray-700 dark:text-white/90 mb-2">{{ __('Description') }}</h4>
-                    <div class="prose max-w-none dark:prose-invert text-sm">
-                        {!! $event->description ?? '<p>—</p>' !!}
+                @if($event->description !== "<p><br></p>")
+                    <div class="mt-6">
+                        <h4 class="text-lg font-semibold text-gray-700 dark:text-white/90 mb-2">{{ __('Description') }}</h4>
+                        <div class="prose max-w-none dark:prose-invert text-sm">
+                            {!! $event->description ?? '<p>—</p>' !!}
+                        </div>
                     </div>
-                </div>
+                @endif
 
                 {{-- Attachments --}}
                 <div class="mt-6">

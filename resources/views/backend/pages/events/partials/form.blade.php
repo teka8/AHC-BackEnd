@@ -6,15 +6,7 @@
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2 dark:text-gray-100">{{ isset($event) ? 'Edit Event' : 'Create New Event' }}</h1>
             <p class="text-gray-600 dark:text-gray-300">{{ __('Fill in the details to') }} {{ isset($event) ? 'update' : 'create' }} {{ __('your event') }}</p>
-
-            @if($mode === 'edit')
-                <div class="mt-4 max-w-xs">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Status') }}</label>
-                    <x-inputs.select name="status" :options="['draft' => 'Draft', 'created' => 'Created', 'reviewed' => 'Reviewed', 'approved' => 'Approved', 'published' => 'Published', 'archived' => 'Archived']" :value="old('status', $event->status ?? 'draft')"/>
-                </div>
-            @endif
         </div>
 
         <form method="POST" action="{{ isset($event) ? route('admin.events.update', $event) : route('admin.events.store') }}" enctype="multipart/form-data">
@@ -104,6 +96,135 @@
                     </div>
 
                     {!! Hook::applyFilters('filter.event.form_after_title', '') !!}
+                    {{-- Event Image --}}
+                    <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                            <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                                <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                                    </svg>
+                                    {{ __('Event Image') }}
+                                </h3>
+                                <p class="text-gray-500 text-sm mt-1">{{ __('Add event visual') }}</p>
+                            </div>
+                            <div class="p-6">
+    @if(isset($event) && $event->event_image)
+        <div class="relative mb-4">
+            <img 
+                src="{{ asset('storage/' . $event->event_image) }}" 
+                alt="Event preview" 
+                class="w-full h-32 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
+                onclick="showEventImageModal('{{ asset('storage/' . $event->event_image) }}')"
+            >
+            <div class="absolute top-2 right-2">
+                <button 
+                    type="button" 
+                    class="bg-blue-500 text-white p-1 rounded-full hover:bg-blue-600 transition-colors text-xs"
+                    onclick="showEventImageModal('{{ asset('storage/' . $event->event_image) }}')"
+                    title="{{ __('View full image') }}"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3-3H7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    @endif
+    
+    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors">
+        <input 
+            id="event_image" 
+            name="event_image" 
+            type="file" 
+            accept="image/*" 
+            class="hidden"
+            onchange="previewImage(this)"
+        >
+        <label 
+            for="event_image" 
+            class="cursor-pointer flex flex-col items-center gap-2"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <span class="text-sm text-gray-500">
+                {{ __('Upload event image') }}
+            </span>
+            <span class="text-xs text-gray-400">
+                {{ __('PNG, JPG up to 10MB') }}
+            </span>
+        </label>
+    </div>
+    
+    <p class="text-xs text-gray-500 mt-3">
+        {{ __('Upload an image or provide image URL') }}
+    </p>
+    
+    <div id="image-preview" class="mt-4 hidden">
+        <div class="relative">
+            <img id="preview" class="w-full h-32 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity" onclick="showEventImageModal(this.src)">
+            <div class="absolute top-2 right-2 flex gap-1">
+                <button 
+                    type="button" 
+                    class="bg-blue-500 text-white p-1 rounded-full hover:bg-blue-600 transition-colors text-xs"
+                    onclick="showEventImageModal(document.getElementById('preview').src)"
+                    title="{{ __('View full image') }}"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3-3H7" />
+                    </svg>
+                </button>
+                <button type="button" onclick="removePreview()" class="bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors text-xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Image Modal -->
+<div id="eventImageModal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 hidden">
+    <div class="relative max-w-4xl max-h-full w-full">
+        <!-- Close Button -->
+        <button 
+            type="button" 
+            onclick="hideEventImageModal()"
+            class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors z-10"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        
+        <!-- Image -->
+        <img 
+            id="modalEventImage" 
+            src="" 
+            alt="Event image" 
+            class="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+        >
+        
+        <!-- Download Button -->
+        <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+            <a 
+                id="downloadEventImage" 
+                href="#" 
+                download
+                class="bg-white text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-lg"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {{ __('Download') }}
+            </a>
+        </div>
+    </div>
+</div>
+
+                    </div>
+                    
 
                     <!-- Row 1: Date, Time & Location AND Registration & Participants -->
                     <div class="flex flex-nowrap gap-6">
@@ -278,243 +399,237 @@
                                 </div>
                             </div>
                         </div>
-
-                        
-
-                        
+   
                     </div>
-
-                    
-
-                    
+    
                 </div>
 
 
                 <!-- Right Column - Media and {{ __('Attachments') }} -->
                 <div class="xl:col-span-1 space-y-6">
                     <!-- Event Image -->
-                     @if (!empty($event))
-    <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <!-- Header with Current Status -->
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Status') }}</h3>
-                @php
-                    $statusColors = [
-                        'published' => 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
-                        'draft' => 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700',
-                        'under_review' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
-                        'approved' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800',
-                        'cancelled' => 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
-                        'completed' => 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400 border-purple-200 dark:border-purple-800',
-                        'archived' => 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800',
-                    ];
-                    $colorClass = $statusColors[$event->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700';
-                @endphp
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $colorClass }}">
-                   
-                    {{ ucfirst(str_replace('_', ' ', $event->status)) }}
-                </span>
-            </div>
-        </div>
-
-        <!-- Workflow Actions -->
-        <div class="p-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Event Actions') }}</span>
-                <iconify-icon icon="lucide:calendar" class="text-blue-500"></iconify-icon>
-            </div>
-
-            <div class="grid grid-cols-1 gap-2">
-                @php
-                    // Define available transitions based on current status
-                    $availableActions = $event->getAvailableActions();
-                @endphp
-
-                @foreach($availableActions as $action => $config)
-                    <button type="button"
-                            onclick="changeEventStatus({{ $event->id }}, '{{ $action }}')"
-                            class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
-                                   bg-{{ $config['color'] }}-100 text-{{ $config['color'] }}-800 
-                                   hover:bg-{{ $config['color'] }}-200 hover:scale-105
-                                   dark:bg-{{ $config['color'] }}-900/20 dark:text-{{ $config['color'] }}-300 
-                                   dark:hover:bg-{{ $config['color'] }}-900/30
-                                   focus:outline-none focus:ring-2 focus:ring-{{ $config['color'] }}-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-                            title="{{ $config['label'] }}">
-                        <iconify-icon icon="{{ $config['icon'] }}" class="w-4 h-4 mr-2"></iconify-icon>
-                        {{ $config['label'] }}
-                    </button>
-                @endforeach
-
-                @if(empty($availableActions))
-                    <div class="text-center py-3 text-gray-500 dark:text-gray-400">
-                        <iconify-icon icon="lucide:lock" class="w-5 h-5 mx-auto mb-2"></iconify-icon>
-                        <p class="text-sm">{{ __('No actions available for current status') }}</p>
-                    </div>
-                @endif
-            </div>
-
-            <!-- Event Status Information -->
-            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                    <iconify-icon icon="lucide:info" class="w-4 h-4 mr-2 text-blue-500"></iconify-icon>
-                    <span>
-                        @switch($event->status)
-                            @case('draft')
-                                {{ __('This event is in draft mode and not visible to the public.') }}
-                                @break
-                            @case('under_review')
-                                {{ __('This event is under review by the event management team.') }}
-                                @break
-                            @case('approved')
-                                {{ __('This event has been approved and is ready for publishing.') }}
-                                @break
-                            @case('published')
-                                {{ __('This event is live and visible to the public. Registration is open.') }}
-                                @break
-                            @case('cancelled')
-                                {{ __('This event has been cancelled and is no longer accepting registrations.') }}
-                                @break
-                            @case('completed')
-                                {{ __('This event has been completed.') }}
-                                @break
-                            @case('archived')
-                                {{ __('This event has been archived and is no longer visible.') }}
-                                @break
-                            @default
-                                {{ __('Current status: ') . ucfirst(str_replace('_', ' ', $event->status)) }}
-                        @endswitch
-                    </span>
-                </div>
-
-                <!-- Event Date Information -->
-                @if($event->event_date)
-                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    <iconify-icon icon="lucide:calendar" class="w-4 h-4 mr-2 text-green-500"></iconify-icon>
-                    <span>
-                        @if($event->status === 'published')
-                            {{ __('Event scheduled for: ') . $event->event_date->format('M d, Y g:i A') }}
-                        @elseif($event->status === 'completed')
-                            {{ __('Event was held on: ') . $event->event_date->format('M d, Y g:i A') }}
-                        @else
-                            {{ __('Scheduled for: ') . $event->event_date->format('M d, Y g:i A') }}
-                        @endif
-                    </span>
-                </div>
-                @endif
-            </div>
-
-            <!-- Event Timeline Progress -->
-            @if(in_array($event->status, ['draft', 'under_review', 'approved', 'published', 'completed']))
-            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
-                    <span>{{ __('Event Timeline') }}</span>
-                    <span>
-                        @php
-                            $progressStages = ['draft', 'under_review', 'approved', 'published', 'completed'];
-                            $currentProgress = array_search($event->status, $progressStages);
-                            $progressPercent = ($currentProgress / (count($progressStages) - 1)) * 100;
-                        @endphp
-                        {{ round($progressPercent) }}%
-                    </span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" 
-                         style="width: {{ $progressPercent }}%">
-                    </div>
-                </div>
-                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    <span class="text-center">Draft</span>
-                    <span class="text-center">Review</span>
-                    <span class="text-center">Approved</span>
-                    <span class="text-center">Live</span>
-                    <span class="text-center">Done</span>
-                </div>
-            </div>
-            @endif
-
-            <!-- Registration Stats (if published) -->
-            @if($event->status === 'published' && method_exists($event, 'registrations'))
-            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-600 dark:text-gray-400">{{ __('Registrations') }}</span>
-                    <span class="font-semibold text-green-600 dark:text-green-400">
-                        {{ $event->registrations_count ?? 0 }} {{ __('registered') }}
-                    </span>
-                </div>
-            </div>
-            @endif
-        </div>
-    </div>
-@endif
-                    <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-                            <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-                                </svg>
-                                {{ __('Event Image') }}
-                            </h3>
-                            <p class="text-gray-500 text-sm mt-1">{{ __('Add event visual') }}</p>
-                        </div>
-                        <div class="p-6">
-                            @if(isset($event) && $event->event_image)
-                                <div class="relative mb-4">
-                                    <img 
-                                        src="{{ asset('storage/' . $event->event_image) }}" 
-                                        alt="Event preview" 
-                                        class="w-full h-32 object-cover rounded-lg border border-gray-300"
-                                    >
-                                </div>
-                            @endif
-                            
-                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors">
-                                <input 
-                                    id="event_image" 
-                                    name="event_image" 
-                                    type="file" 
-                                    accept="image/*" 
-                                    class="hidden"
-                                    onchange="previewImage(this)"
-                                >
-                                <label 
-                                    for="event_image" 
-                                    class="cursor-pointer flex flex-col items-center gap-2"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                    </svg>
-                                    <span class="text-sm text-gray-500">
-                                        {{ __('Upload event image') }}
+                    @if (!empty($event))
+                        <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                            <!-- Header with Current Status -->
+                            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Status') }}</h3>
+                                    @php
+                                        $statusColors = [
+                                            'published' => 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
+                                            'draft' => 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700',
+                                            'under_review' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
+                                            'approved' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+                                            'cancelled' => 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
+                                            'completed' => 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400 border-purple-200 dark:border-purple-800',
+                                            'archived' => 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800',
+                                        ];
+                                        $colorClass = $statusColors[$event->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700';
+                                    @endphp
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $colorClass }}">
+                                    
+                                        {{ ucfirst(str_replace('_', ' ', $event->status)) }}
                                     </span>
-                                    <span class="text-xs text-gray-400">
-                                        {{ __('PNG, JPG up to 10MB') }}
-                                    </span>
-                                </label>
-                            </div>
-                            
-                            <p class="text-xs text-gray-500 mt-3">
-                                {{ __('Upload an image or provide image URL') }}
-                            </p>
-                            
-                            <div id="image-preview" class="mt-4 hidden">
-                                <div class="relative">
-                                    <img id="preview" class="w-full h-32 object-cover rounded-lg border border-gray-300">
-                                    <button type="button" onclick="removePreview()" class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
                                 </div>
                             </div>
+
+                            <!-- Workflow Actions -->
+                            <div class="p-6 space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Event Actions') }}</span>
+                                    <iconify-icon icon="lucide:calendar" class="text-blue-500"></iconify-icon>
+                                </div>
+
+                                <div class="grid grid-cols-1 gap-2">
+                                    @php
+                                        // Define available transitions based on current status
+                                        $availableActions = $event->getAvailableActions();
+                                    @endphp
+
+                                    @foreach($availableActions as $action => $config)
+                                        <button type="button"
+                                                onclick="changeEventStatus({{ $event->id }}, '{{ $action }}')"
+                                                class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
+                                                    bg-{{ $config['color'] }}-100 text-{{ $config['color'] }}-800 
+                                                    hover:bg-{{ $config['color'] }}-200 hover:scale-105
+                                                    dark:bg-{{ $config['color'] }}-900/20 dark:text-{{ $config['color'] }}-300 
+                                                    dark:hover:bg-{{ $config['color'] }}-900/30
+                                                    focus:outline-none focus:ring-2 focus:ring-{{ $config['color'] }}-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                                                title="{{ $config['label'] }}">
+                                            <iconify-icon icon="{{ $config['icon'] }}" class="w-4 h-4 mr-2"></iconify-icon>
+                                            {{ $config['label'] }}
+                                        </button>
+                                    @endforeach
+
+                                    @if(empty($availableActions))
+                                        <div class="text-center py-3 text-gray-500 dark:text-gray-400">
+                                            <iconify-icon icon="lucide:lock" class="w-5 h-5 mx-auto mb-2"></iconify-icon>
+                                            <p class="text-sm">{{ __('No actions available for current status') }}</p>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- Event Status Information -->
+                                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                        <iconify-icon icon="lucide:info" class="w-4 h-4 mr-2 text-blue-500"></iconify-icon>
+                                        <span>
+                                            @switch($event->status)
+                                                @case('draft')
+                                                    {{ __('This event is in draft mode and not visible to the public.') }}
+                                                    @break
+                                                @case('under_review')
+                                                    {{ __('This event is under review by the event management team.') }}
+                                                    @break
+                                                @case('approved')
+                                                    {{ __('This event has been approved and is ready for publishing.') }}
+                                                    @break
+                                                @case('published')
+                                                    {{ __('This event is live and visible to the public. Registration is open.') }}
+                                                    @break
+                                                @case('cancelled')
+                                                    {{ __('This event has been cancelled and is no longer accepting registrations.') }}
+                                                    @break
+                                                @case('completed')
+                                                    {{ __('This event has been completed.') }}
+                                                    @break
+                                                @case('archived')
+                                                    {{ __('This event has been archived and is no longer visible.') }}
+                                                    @break
+                                                @default
+                                                    {{ __('Current status: ') . ucfirst(str_replace('_', ' ', $event->status)) }}
+                                            @endswitch
+                                        </span>
+                                    </div>
+
+                                    <!-- Event Date Information -->
+                                    @if($event->event_date)
+                                    <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-2">
+                                        <iconify-icon icon="lucide:calendar" class="w-4 h-4 mr-2 text-green-500"></iconify-icon>
+                                        <span>
+                                            @if($event->status === 'published')
+                                                {{ __('Event scheduled for: ') . $event->event_date->format('M d, Y g:i A') }}
+                                            @elseif($event->status === 'completed')
+                                                {{ __('Event was held on: ') . $event->event_date->format('M d, Y g:i A') }}
+                                            @else
+                                                {{ __('Scheduled for: ') . $event->event_date->format('M d, Y g:i A') }}
+                                            @endif
+                                        </span>
+                                    </div>
+                                    @endif
+                                </div>
+
+                                <!-- Event Timeline Progress -->
+                                @if(in_array($event->status, ['draft', 'under_review', 'approved', 'published', 'completed']))
+                                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                        <span>{{ __('Event Timeline') }}</span>
+                                        <span>
+                                            @php
+                                                $progressStages = ['draft', 'under_review', 'approved', 'published', 'completed'];
+                                                $currentProgress = array_search($event->status, $progressStages);
+                                                $progressPercent = ($currentProgress / (count($progressStages) - 1)) * 100;
+                                            @endphp
+                                            {{ round($progressPercent) }}%
+                                        </span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" 
+                                            style="width: {{ $progressPercent }}%">
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        <span class="text-center">Draft</span>
+                                        <span class="text-center">Review</span>
+                                        <span class="text-center">Approved</span>
+                                        <span class="text-center">Live</span>
+                                        <span class="text-center">Done</span>
+                                    </div>
+                                </div>
+                                @endif
+                                
+
+                                <!-- Registration Stats (if published) -->
+                                @if($event->status === 'published' && method_exists($event, 'registrations'))
+                                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-600 dark:text-gray-400">{{ __('Registrations') }}</span>
+                                        <span class="font-semibold text-green-600 dark:text-green-400">
+                                            {{ $event->registrations_count ?? 0 }} {{ __('registered') }}
+                                        </span>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                                @endif
+
 
                     {{-- Attachments  --}}
                     <div 
                         class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden"
                         x-data="attachmentUploader()"
                     >
+                        <!-- Delete Confirmation Modal -->
+                        <div 
+                            x-show="showDeleteModal" 
+                            x-cloak
+                            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                            x-transition:enter="ease-out duration-300"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            x-transition:leave="ease-in duration-200"
+                            x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0"
+                        >
+                            <div 
+                                class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6"
+                                x-show="showDeleteModal"
+                                x-transition:enter="ease-out duration-300"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="ease-in duration-200"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                @click.away="cancelDelete()"
+                            >
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="flex-shrink-0 h-10 w-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+                                        <svg class="h-5 w-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ __('Delete Attachment') }}
+                                    </h3>
+                                </div>
+                                
+                                <p class="text-gray-600 dark:text-gray-300 mb-6">
+                                    {{ __('Are you sure you want to delete this attachment? This action cannot be undone.') }}
+                                </p>
+                                
+                                <div class="flex justify-end gap-3">
+                                    <button 
+                                        type="button"
+                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
+                                        @click="cancelDelete()"
+                                    >
+                                        {{ __('Cancel') }}
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors flex items-center gap-2"
+                                        @click="removeExistingAttachmentConfirmed()"
+                                    >
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        {{ __('Delete') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                             <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
@@ -549,7 +664,17 @@
                             <!-- Newly selected attachments -->
                             <template x-if="newAttachments.length > 0">
                                 <div class="space-y-2">
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-100">{{ __('New Attachments') }}</label>
+                                    <div class="flex justify-between items-center">
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-100">{{ __('New Attachments') }}</label>
+
+                                        <button 
+                                            type="button" 
+                                            class="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                                            @click="clearNewAttachments()"
+                                        >
+                                            {{ __('Clear All') }}
+                                        </button>
+                                    </div>
                                     <div class="space-y-2 max-h-40 overflow-y-auto">
                                         <template x-for="(file, index) in newAttachments" :key="index">
                                             <div class="flex items-center justify-between p-2 bg-green-50 rounded-lg border border-green-200 dark:bg-green-800 dark:border-green-700">
@@ -566,7 +691,6 @@
                                             </div>
                                         </template>
                                     </div>
-                                    
                                 </div>
                             </template>
 
@@ -576,7 +700,7 @@
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-100">{{ __('Current Attachments') }}</label>
                                     <div class="space-y-2 max-h-40 overflow-y-auto">
                                         @foreach($event->attachments as $index => $attachment)
-                                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-200 existing-attachment dark:bg-gray-800 dark:border-gray-700">
+                                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-200 existing-attachment dark:bg-gray-800 dark:border-gray-700" id="currentAttachment_{{ $index }}">
                                                 <div class="flex items-center gap-2">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
@@ -589,13 +713,13 @@
                                                 <!-- Remove Button -->
                                                 <button 
                                                     type="button"
-                                                    class="text-red-500 hover:text-red-700 text-xs"
-                                                    @click.prevent="removeExistingAttachment({{ $index }}, '{{ $attachment['path'] }}')"
-                                                    >
+                                                    class="text-red-500 hover:text-red-700 text-xs transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900"
+                                                    @click.prevent="confirmDeleteExistingAttachment({{ $index }}, '{{ $attachment['path'] }}')"
+                                                    title="{{ __('Delete attachment') }}"
+                                                >
                                                     ✕
                                                 </button>
                                                 <input type="hidden" name="existing_attachments[]" value="{{ $attachment['path'] }}">
-
                                             </div>
                                         @endforeach
                                     </div>
@@ -605,10 +729,7 @@
                     </div>
 
 
-
-
-                    <!-- Row 2: {{ __('Pricing') }} AND Create Event Card -->
-                    <!-- {{ __('Pricing') }} -->
+                    <!-- Pricing -->
                     <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                             <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -656,7 +777,6 @@
                             </div>
                         </div>
                     </div>
-
 
                     <!-- Create Event Card -->
                     <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
@@ -712,7 +832,7 @@
 {!! Hook::applyFilters('filter.event.form_end', '') !!}
 
 
-{{-- Alpine.js attachments upload and remove --}}
+                    {{-- Alpine.js attachments upload and remove --}}
 <script>
     function attachmentUploader() {
         return {
@@ -720,6 +840,9 @@
             existingAttachments: @json($event->attachments ?? []),
             removedAttachments: [],
             fileInput: null,
+            showDeleteModal: false,
+            attachmentToDelete: null,
+            deleteIndex: null,
 
             init() {
                 this.fileInput = this.$el.querySelector('input[type="file"][name="attachments[]"]');
@@ -730,30 +853,37 @@
             },
 
             /**
-             * Remove an existing attachment visually and mark it for removal on submit.
-             * index: numeric index from blade loop (not strictly required)
-             * path: the storage path (string) of the attachment to remove
+             * Show confirmation modal for existing attachment deletion
              */
-            removeExistingAttachment(index, path) {
+            confirmDeleteExistingAttachment(index, path) {
                 if (!path) return;
+                
+                this.attachmentToDelete = path;
+                this.deleteIndex = index;
+                this.showDeleteModal = true;
+            },
+
+            /**
+             * Confirm and remove existing attachment
+             */
+            removeExistingAttachmentConfirmed() {
+                if (!this.attachmentToDelete) return;
+
+                const path = this.attachmentToDelete;
+                const index = this.deleteIndex;
 
                 // 1) mark for removal (used by server)
                 this.removedAttachments.push(path);
 
                 // 2) Remove the visible wrapper element (closest .existing-attachment)
-                // Find the input element that holds the existing_attachments[] value
                 const existingInputs = Array.from(this.$el.querySelectorAll('input[name="existing_attachments[]"]'));
-                let removedWrapper = null;
-
+                
                 existingInputs.forEach((inputEl) => {
                     if (inputEl.value === path) {
-                        // remove the visible wrapper (closest element with .existing-attachment)
                         const wrapper = inputEl.closest('.existing-attachment');
                         if (wrapper) {
                             wrapper.remove();
-                            removedWrapper = wrapper;
                         } else {
-                            // fallback: remove the input itself
                             inputEl.remove();
                         }
                     }
@@ -773,6 +903,24 @@
                 removeInput.name = 'remove_attachments[]';
                 removeInput.value = path;
                 this.$el.appendChild(removeInput);
+
+                // Hide the attachment visually
+                const attachmentElement = document.getElementById('currentAttachment_' + index);
+                if (attachmentElement) {
+                    attachmentElement.style.display = 'none';
+                }
+
+                // Close modal and reset
+                this.cancelDelete();
+            },
+
+            /**
+             * Cancel deletion
+             */
+            cancelDelete() {
+                this.showDeleteModal = false;
+                this.attachmentToDelete = null;
+                this.deleteIndex = null;
             },
 
             clearNewAttachments() {
@@ -813,8 +961,47 @@
 
     function removePreview() {
         document.getElementById('image-preview').classList.add('hidden');
-        document.getElementById('image').value = '';
+        document.getElementById('event_image').value = '';
     }
+
+    // Event Image Modal Functions
+    function showEventImageModal(imageSrc) {
+        const modal = document.getElementById('eventImageModal');
+        const modalImage = document.getElementById('modalEventImage');
+        const downloadLink = document.getElementById('downloadEventImage');
+        
+        modalImage.src = imageSrc;
+        downloadLink.href = imageSrc;
+        downloadLink.download = 'event-image.' + getFileExtension(imageSrc);
+        
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    function hideEventImageModal() {
+        const modal = document.getElementById('eventImageModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+
+    function getFileExtension(filename) {
+        return filename.split('.').pop().split('?')[0];
+    }
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideEventImageModal();
+        }
+    });
+
+    // Close modal when clicking on backdrop
+    document.getElementById('eventImageModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideEventImageModal();
+        }
+    });
+
 
     // Toggle location fields based on event type
     document.addEventListener('DOMContentLoaded', function() {

@@ -141,7 +141,7 @@ return new class extends Migration {
                 $table->timestamps();
 
                 $table->index(['others_id', 'action'], 'others_action');
-                $table->index(['user_id', 'action'], 'others_action');
+                $table->index(['user_id', 'action'], 'others_user_action');
                 $table->index('created_at', 'others_log_created_at');
             });
         }

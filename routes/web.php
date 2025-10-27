@@ -22,6 +22,7 @@ use App\Http\Controllers\Backend\UserLoginAsController;
 use App\Http\Controllers\Backend\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Backend\EventController;
+use App\Http\Controllers\Backend\PageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -87,6 +88,18 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::patch('/posts/{postType}/{post}/status', [PostController::class, 'updateStatus'])->name('posts.update-status');
     Route::delete('/posts/{postType}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::delete('/posts/{postType}/delete/bulk-delete', [PostController::class, 'bulkDelete'])->name('posts.bulk-delete');
+
+
+    // Pages Routes - Dynamic post types.
+    Route::get('/pages/{postType?}', [PageController::class, 'index'])->name('pages.index');
+    Route::get('/pages/{postType}/create', [PageController::class, 'create'])->name('pages.create');
+    Route::post('/pages/{postType}', [PageController::class, 'store'])->name('pages.store');
+    Route::get('/pages/{postType}/{post}', [PageController::class, 'show'])->name('pages.show');
+    Route::get('/pages/{postType}/{post}/edit', [PageController::class, 'edit'])->name('pages.edit');
+    Route::put('/pages/{postType}/{post}', [PageController::class, 'update'])->name('pages.update');
+    Route::patch('/pages/{postType}/{post}/status', [PageController::class, 'updateStatus'])->name('pages.update-status');
+    Route::delete('/pages/{postType}/{post}', [PageController::class, 'destroy'])->name('pages.destroy');
+    Route::delete('/pages/{postType}/delete/bulk-delete', [PageController::class, 'bulkDelete'])->name('pages.bulk-delete');
 
     // Event Routes.
     Route::get('events', [EventController::class, 'index'])->name('events.index');

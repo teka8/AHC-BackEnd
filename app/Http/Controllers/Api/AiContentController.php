@@ -24,7 +24,7 @@ class AiContentController extends ApiController
 
         $validator = Validator::make($request->all(), [
             'prompt' => 'required|string|min:10|max:1000',
-            'provider' => 'nullable|string|in:openai,claude',
+            'provider' => 'nullable|string|in:openai,claude,gemini',
             'content_type' => 'nullable|string|in:post_content,page_content,general',
         ]);
 
