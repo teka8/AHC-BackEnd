@@ -9,12 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class EventResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    public function toArray($request)
     {
         return [
             'id' => $this->id,
@@ -26,21 +21,23 @@ class EventResource extends JsonResource
             'location' => $this->location,
             'google_map_location_link' => $this->google_map_location_link,
             'category' => $this->category,
-            'register_on_site' => (bool) $this->register_on_site,
-            'registration_link' => $this->registration_link,
-            'cost_amount' => $this->cost_amount,
-            'event_type' => $this->event_type,
             'target_audience' => $this->target_audience,
+            'event_type' => $this->event_type,
             'status' => $this->status,
-            'image_url' => $this->image_url,
-            'is_archived' => (bool) $this->is_archived,
-            'created_by' => $this->created_by,
-            'approved_by' => $this->approved_by,
-            'reviewed_by' => $this->reviewed_by,
-            'archived_by' => $this->archived_by,
-            'attachments' => is_array($this->attachments) ? $this->attachments : json_decode($this->attachments ?? '[]', true),
+            'cost_amount' => $this->cost_amount,
+            'register_on_site' => $this->register_on_site,
+            'registration_link' => $this->registration_link,
+            'event_image' => $this->event_image ? asset('storage/' . $this->event_image) : null,
+            'attachments' => $this->attachments ? collect($this->attachments)->map(function($att) {
+                return [
+                    'file_name' => $att['file_name'] ?? null,
+                    'path' => isset($att['path']) ? asset('storage/' . $att['path']) : null,
+                    'size' => $att['size'] ?? null
+                ];
+            }) : [],
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
     }
 }
+
