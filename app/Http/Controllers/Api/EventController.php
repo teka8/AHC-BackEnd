@@ -32,7 +32,7 @@ class EventController extends Controller
         $costFrom = $request->input('cost_from');
         $costTo = $request->input('cost_to');
 
-        $query = Event::query()->where('status', 'published');
+        $query = Event::query()->whereIn('status', ['published', 'cancelled']);
 
         // Search filter
         if ($search) {
@@ -97,28 +97,10 @@ class EventController extends Controller
 
     public function show($id)
     {
-        // Fetch a single published event by ID
-        $event = Event::where('status', 'published')->findOrFail($id);
+        // Fetch the published event or fail
+        $event = Event::whereIn('status', ['published', 'cancelled'])->findOrFail($id);
 
-        return response()->json([
-            'event' => [
-                'id' => $event->id,
-                'title' => $event->title,
-                'description' => $event->description,
-                'event_date' => $event->event_date,
-                'start_time' => $event->start_time,
-                'end_time' => $event->end_time,
-                'location' => $event->location,
-                'category' => $event->category,
-                'target_audience' => $event->target_audience,
-                'event_type' => $event->event_type,
-                'cost_amount' => $event->cost_amount,
-                'register_on_site' => $event->register_on_site,
-                'registration_link' => $event->registration_link,
-                'featured_image' => $event->getFeaturedImageUrl('large'),
-                'attachments' => $event->getAttachments(),
-            ]
-        ]);
+        // Return it using the EventResource
+        return new EventResource($event);
     }
-
 }
