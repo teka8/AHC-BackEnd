@@ -5,43 +5,47 @@
 @endsection
 
 @section('admin-content')
-<div>
-    <div class="mb-5 sm:mb-8">
-      <h1 class="mb-2 font-semibold text-gray-700 text-title-sm dark:text-white/90 sm:text-title-md">
-        {{ __('Sign In') }}
-      </h1>
-      <p class="text-sm text-gray-500 dark:text-gray-300">
-        {{ __('Enter your email and password to sign in!') }}
-      </p>
+<x-card class="login-card mx-auto shadow-lg p-8">
+    <div class="text-center mb-8">
+        <img src="{{ asset('images/logo/african healt.jpg') }}" alt="{{ config('app.name') }}" class="h-16 mx-auto mb-6">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">
+            {{ __('Welcome Back') }}
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+            {{ __('Please sign in to your account') }}
+        </p>
     </div>
     <div>
       <form action="{{ route('admin.login.submit') }}" method="POST" x-data="{ loading: false }" @submit="loading = true">
         @csrf
-        <div class="space-y-5">
+        <div class="space-y-6">
           <x-messages />
 
-          <div>
-            <label class="form-label" for="email">{{ __('Email') }}</label>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="email">{{ __('Email Address') }}</label> 
             <input
               autofocus
               type="text"
               id="email"
               name="email"
               autocomplete="username"
-              placeholder="{{ __('Enter your email') }}"
-              class="form-control"
+              placeholder="{{ __('Enter your email address') }}"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               value="{{ old('email') ?? config('app.demo_mode', false) ? 'superadmin@example.com' : '' }}"
               required
             />
           </div>
 
-          <x-inputs.password 
-            name="password" 
-            label="{{ __('Password') }}"
-            placeholder="{{ __('Enter your password') }}" 
-            value="{{ (config('app.demo_mode', false) ? '12345678' : '') }}" 
-            required
-          />
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="password">{{ __('Password') }}</label>
+            <x-inputs.password 
+              name="password" 
+              placeholder="{{ __('Enter your password') }}" 
+              value="{{ (config('app.demo_mode', false) ? '12345678' : '') }}" 
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
 
           <div class="flex items-center justify-between">
             <label for="remember" class="flex items-center justify-center gap-2 text-sm font-medium has-checked:text-gray-900 dark:has-checked:text-white has-disabled:cursor-not-allowed">
@@ -59,8 +63,8 @@
           <x-recaptcha page="login" />
 
           <div>
-            <button type="submit" class="btn-primary w-full" :disabled="loading">
-              <span x-text="loading ? '' : '{{ __('Sign In') }}'">{{ __('Sign In') }}</span>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center" :disabled="loading">
+              <span x-text="loading ? '{{ __('Signing In...') }}' : '{{ __('Sign In') }}'">{{ __('Sign In') }}</span>
               <iconify-icon :icon="loading ? 'lucide:loader-circle' : 'lucide:log-in'" :class="{ 'animate-spin': loading, 'ml-2': !loading }" />
             </button>
           </div>
@@ -108,7 +112,7 @@
         </div>
       </form>
     </div>
-</div>
+</x-card>
 @endsection
 
 @if (config('app.demo_mode', false))

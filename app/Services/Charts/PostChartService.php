@@ -54,7 +54,7 @@ class PostChartService
             }
 
             // Count posts by status
-            $createdCount = Post::where('status', PostStatus::CREATED->value)
+            $createdCount = Post::where('status', PostStatus::DRAFT->value)
                 ->where('post_type', 'News')
                 ->whereBetween('created_at', [$rangeStart, $rangeEnd])
                 ->count();

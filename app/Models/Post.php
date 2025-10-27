@@ -364,7 +364,7 @@ class Post extends Model implements SpatieHasMedia
      * News workflow states
      */
     const STATUS_DRAFT = 'draft';
-    const STATUS_UNDER_REVIEW = 'under_review';
+    const STATUS_REVIEWED = 'reviewed';
     const STATUS_APPROVED = 'approved';
     const STATUS_PUBLISHED = 'published';
     const STATUS_ARCHIVED = 'archived';
@@ -377,11 +377,11 @@ class Post extends Model implements SpatieHasMedia
         $transitions = [
             self::STATUS_DRAFT => [
                 'send_for_review' => [
-                    'target' => self::STATUS_UNDER_REVIEW,
+                    'target' => self::STATUS_REVIEWED,
                     'label' => __('Send for Review'),
                     'color' => 'yellow',
                     'icon' => 'lucide:send',
-                    'required_permission' => 'news.review'
+                    'required_permission' => 'news.view'
                 ],
                 'publish' => [
                     'target' => self::STATUS_PUBLISHED,
@@ -392,7 +392,7 @@ class Post extends Model implements SpatieHasMedia
                 ]
             ],
             
-            self::STATUS_UNDER_REVIEW => [
+            self::STATUS_REVIEWED => [
                 'approve' => [
                     'target' => self::STATUS_APPROVED,
                     'label' => __('Approve'),
@@ -418,11 +418,11 @@ class Post extends Model implements SpatieHasMedia
                     'required_permission' => 'news.publish'
                 ],
                 'send_back' => [
-                    'target' => self::STATUS_UNDER_REVIEW,
+                    'target' => self::STATUS_REVIEWED,
                     'label' => __('Send Back for Review'),
                     'color' => 'yellow',
                     'icon' => 'lucide:arrow-left',
-                    'required_permission' => 'news.review'
+                    'required_permission' => 'news.view'
                 ]
             ],
             
@@ -433,13 +433,6 @@ class Post extends Model implements SpatieHasMedia
                     'color' => 'gray',
                     'icon' => 'lucide:eye-off',
                     'required_permission' => 'news.approve'
-                ],
-                'archive' => [
-                    'target' => self::STATUS_ARCHIVED,
-                    'label' => __('Archive'),
-                    'color' => 'orange',
-                    'icon' => 'lucide:archive',
-                    'required_permission' => 'news.archive'
                 ]
             ],
             
@@ -449,7 +442,7 @@ class Post extends Model implements SpatieHasMedia
                     'label' => __('Restore'),
                     'color' => 'blue',
                     'icon' => 'lucide:refresh-cw',
-                    'required_permission' => 'news.restore'
+                    'required_permission' => 'news.view'
                 ]
             ]
         ];
