@@ -534,7 +534,7 @@ function createMediaItem(modalId, file) {
         ${modalData.multiple ? `
             <div class="absolute top-2 left-2">
                 <input type="checkbox"
-                       class="form-checkbox media-checkbox w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                       class="form-checkbox media-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                        data-file-id="${file.id}"
                        onchange="toggleFileSelection(event, '${modalId}', ${file.id})"
                        onclick="event.stopPropagation()">
