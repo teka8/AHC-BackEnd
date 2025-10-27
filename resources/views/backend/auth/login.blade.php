@@ -64,7 +64,7 @@
 
           <div>
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center" :disabled="loading">
-              <span x-text="loading ? '{{ __('Signing In...') }}' : '{{ __('Sign In') }}'">{{ __('Sign In') }}</span>
+              <span x-show="!loading">{{ __('Sign In') }}</span>
               <iconify-icon :icon="loading ? 'lucide:loader-circle' : 'lucide:log-in'" :class="{ 'animate-spin': loading, 'ml-2': !loading }" />
             </button>
           </div>
