@@ -1,6 +1,7 @@
 <x-layouts.backend-layout :breadcrumbs="$breadcrumbs">
     <div class="flex justify-between items-center mb-6">
         {{-- <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ __('Notifications') }}</h1> --}}
+       {{-- comment --}}
         @if(auth()->user()->unreadNotifications->count() > 0)
             <form method="POST" action="{{ route('admin.notifications.mark-all-read') }}">
                 @csrf
