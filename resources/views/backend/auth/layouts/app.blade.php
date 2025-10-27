@@ -20,12 +20,25 @@
     </style>
     @endif
 
-    <!-- Prevent FOUC (Flash of Unstyled Content) -->
     <style>
         [x-cloak] { display: none !important; }
         .login-card {
             width: 100% !important;
             max-width: 500px !important;
+            border-radius: 16px !important;
+        }
+        .login-input {
+            transition: all 0.3s ease !important;
+            border: 2px solid #e5e7eb !important;
+        }
+        .login-input:hover {
+            border-color: #3b82f6 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+        }
+        .login-input:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
         }
     </style>
 
