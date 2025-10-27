@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const options = {
         series: [
             {
-                name: '{{ __("Created") }}',
-                data: postData.created || []
+                name: '{{ __("Draft") }}',
+                data: postData.created ||postData.draft || []
             },
             {
                 name: '{{ __("Reviewed") }}',

@@ -93,7 +93,7 @@ class PostChartService
 
         return [
             'labels' => $labels,
-            'created' => $createdData,
+            'draft' => $createdData,
             'reviewed' => $reviewedData,
             'approved' => $approvedData,
             'published' => $publishedData,

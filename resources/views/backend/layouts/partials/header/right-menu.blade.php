@@ -93,8 +93,8 @@
                         <div class="h-2 w-2 bg-blue-500 rounded-full shadow-sm"></div>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="text-sm text-gray-900 dark:text-gray-100 leading-snug">
-                            {{ $notification->data['message'] }}
+                        <p class="text-sm text-gray-900 dark:text-gray-100 leading-snug" title="{{ $notification->data['message'] }}">
+                               {{ Str::limit($notification->data['message'], 35, '...') }}
                         </p>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             {{ $notification->created_at->diffForHumans() }}
