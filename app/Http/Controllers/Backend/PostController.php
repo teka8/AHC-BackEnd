@@ -249,10 +249,7 @@ class PostController extends Controller
         $post->excerpt = $data['excerpt'];
         $post->parent_id = $data['parent_id'] ?? null;
 
-        // Auto-change status from 'draft' to 'edited' when post is updated
-        if ($post->status === PostStatus::DRAFT->value) {
-            $post->status = PostStatus::EDITED->value;
-        }
+
 
         // Handle publish date.
         if (isset($data['schedule_post']) && $data['schedule_post'] && !empty($data['published_at'])) {
