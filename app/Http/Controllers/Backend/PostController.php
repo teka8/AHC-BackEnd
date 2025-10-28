@@ -249,10 +249,7 @@ class PostController extends Controller
         $post->excerpt = $data['excerpt'];
         $post->parent_id = $data['parent_id'] ?? null;
 
-        // Auto-change status from 'draft' to 'edited' when post is updated
-        if ($post->status === PostStatus::DRAFT->value) {
-            $post->status = PostStatus::EDITED->value;
-        }
+
 
         // Handle publish date.
         if (isset($data['schedule_post']) && $data['schedule_post'] && !empty($data['published_at'])) {
@@ -266,12 +263,31 @@ class PostController extends Controller
 
         $post->save();
 
+        // Handle featured image
+        if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
+            $post->clearMediaCollection('featured');
+        } elseif (!empty($data['featured_image'])) {
+            if ($request->hasFile('featured_image')) {
+                $post->clearMediaCollection('featured');
+                $post->addMediaFromRequest('featured_image')->toMediaCollection('featured');
+            } else {
+                // Handle array of media IDs from media selector
+                $mediaIds = is_array($data['featured_image']) ? $data['featured_image'] : [$data['featured_image']];
+                $post->clearMediaCollection('featured');
+                foreach ($mediaIds as $mediaId) {
+                    if (!empty($mediaId)) {
+                        $this->mediaService->associateExistingMedia($post, $mediaId, 'featured');
+                    }
+                }
+            }
+        }
+
         $this->handlePostMeta($request, $post);
         $this->handleTaxonomies($request, $post);
 
         session()->flash('success', __('Post updated successfully.'));
 
-        return back();
+        return redirect()->route('admin.posts.index', $postType);
     }
 
     public function updateStatus(Request $request, string $postType, string $id): RedirectResponse
