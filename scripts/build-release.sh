@@ -21,7 +21,7 @@ if [ -z "$VERSION" ]; then
     VERSION=$(date +"%Y%m%d_%H%M%S")
 fi
 
-RELEASE_NAME="laradashboard-v$VERSION"
+RELEASE_NAME="ahcdashboard-v$VERSION"
 RELEASE_PATH="$RELEASE_DIR/$RELEASE_NAME"
 EXCLUDE_FILE="$SCRIPT_DIR/exclude-from-zip.txt"
 

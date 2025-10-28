@@ -1,12 +1,15 @@
-import './bootstrap';
-import 'iconify-icon/dist/iconify-icon.min.js';
+import "./bootstrap";
+import "iconify-icon/dist/iconify-icon.min.js";
 import "jsvectormap/dist/jsvectormap.min.css";
 import "flatpickr/dist/flatpickr.min.css";
 import "dropzone/dist/dropzone.css";
 
-import { Livewire, Alpine } from '../../vendor/livewire/livewire/dist/livewire.esm';
+import {
+    Livewire,
+    Alpine,
+} from "../../vendor/livewire/livewire/dist/livewire.esm";
 
-import focus from '@alpinejs/focus'
+import focus from "@alpinejs/focus";
 import flatpickr from "flatpickr";
 import Dropzone from "dropzone";
 
@@ -18,13 +21,13 @@ import map01 from "./components/map-01";
 import "./components/calendar-init.js";
 import "./components/image-resize";
 import SlugGenerator from "./components/slug-generator";
-import * as Popper from '@popperjs/core';
+import * as Popper from "@popperjs/core";
 
 // Make Popper available globally with the correct structure
 window.Popper = Popper;
 
 // Register a slug generator component with Alpine.
-Alpine.data('slugGenerator', (initialTitle = '', initialSlug = '') => {
+Alpine.data("slugGenerator", (initialTitle = "", initialSlug = "") => {
     return SlugGenerator.alpineComponent(initialTitle, initialSlug);
 });
 
@@ -32,7 +35,7 @@ Alpine.data('slugGenerator', (initialTitle = '', initialSlug = '') => {
 Livewire.start();
 
 // Register an advanced fields component with Alpine.
-Alpine.data('advancedFields', (initialMeta = {}) => {
+Alpine.data("advancedFields", (initialMeta = {}) => {
     return {
         fields: [],
         initialized: false,
@@ -41,20 +44,24 @@ Alpine.data('advancedFields', (initialMeta = {}) => {
             // Convert initial meta object to array format.
             if (initialMeta && Object.keys(initialMeta).length > 0) {
                 this.fields = Object.entries(initialMeta).map(([key, data]) => {
-                    if (typeof data === 'object' && data !== null && data.value !== undefined) {
+                    if (
+                        typeof data === "object" &&
+                        data !== null &&
+                        data.value !== undefined
+                    ) {
                         return {
                             key: key,
-                            value: data.value || '',
-                            type: data.type || 'input',
-                            default_value: data.default_value || ''
+                            value: data.value || "",
+                            type: data.type || "input",
+                            default_value: data.default_value || "",
                         };
                     } else {
                         // Handle legacy format where data is just the value
                         return {
                             key: key,
-                            value: typeof data === 'string' ? data : '',
-                            type: 'input',
-                            default_value: ''
+                            value: typeof data === "string" ? data : "",
+                            type: "input",
+                            default_value: "",
                         };
                     }
                 });
@@ -70,10 +77,10 @@ Alpine.data('advancedFields', (initialMeta = {}) => {
 
         addField() {
             this.fields.push({
-                key: '',
-                value: '',
-                type: 'input',
-                default_value: ''
+                key: "",
+                value: "",
+                type: "input",
+                default_value: "",
             });
         },
 
@@ -84,8 +91,8 @@ Alpine.data('advancedFields', (initialMeta = {}) => {
         },
 
         get fieldsJson() {
-            return this.initialized ? JSON.stringify(this.fields) : '[]';
-        }
+            return this.initialized ? JSON.stringify(this.fields) : "[]";
+        },
     };
 });
 
@@ -111,31 +118,31 @@ window.openDrawer = function (drawerId) {
                 return;
             }
         } catch (e) {
-            console.error('Alpine error:', e);
+            console.error("Alpine error:", e);
         }
     }
 
-    window.dispatchEvent(new CustomEvent('open-drawer-' + drawerId));
+    window.dispatchEvent(new CustomEvent("open-drawer-" + drawerId));
 };
 
 // Dark mode toggle.
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener("DOMContentLoaded", function () {
     const html = document.documentElement;
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const header = document.getElementById('appHeader');
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    const header = document.getElementById("appHeader");
 
     // Update header background based on current mode
     function updateHeaderBg() {
         if (!header) return;
-        const isDark = html.classList.contains('dark');
+        const isDark = html.classList.contains("dark");
     }
 
     // Initialize dark mode
-    const savedDarkMode = localStorage.getItem('darkMode');
-    if (savedDarkMode === 'true') {
-        html.classList.add('dark');
-    } else if (savedDarkMode === 'false') {
-        html.classList.remove('dark');
+    const savedDarkMode = localStorage.getItem("darkMode");
+    if (savedDarkMode === "true") {
+        html.classList.add("dark");
+    } else if (savedDarkMode === "false") {
+        html.classList.remove("dark");
     }
 
     updateHeaderBg();
@@ -143,28 +150,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const observer = new MutationObserver(updateHeaderBg);
     observer.observe(html, {
         attributes: true,
-        attributeFilter: ['class']
+        attributeFilter: ["class"],
     });
 
     if (darkModeToggle) {
-        darkModeToggle.addEventListener('click', function (e) {
+        darkModeToggle.addEventListener("click", function (e) {
             e.preventDefault();
-            const isDark = html.classList.toggle('dark');
-            localStorage.setItem('darkMode', isDark);
+            const isDark = html.classList.toggle("dark");
+            localStorage.setItem("darkMode", isDark);
             updateHeaderBg();
         });
     }
 
     // Initialize sidebar state from localStorage if it exists
     if (window.Alpine) {
-        const sidebarState = localStorage.getItem('sidebarToggle');
+        const sidebarState = localStorage.getItem("sidebarToggle");
         if (sidebarState !== null) {
-            document.addEventListener('alpine:initialized', () => {
+            document.addEventListener("alpine:initialized", () => {
                 // Ensure the Alpine.js instance is ready
                 setTimeout(() => {
-                    const alpineData = document.querySelector('body').__x;
-                    if (alpineData && typeof alpineData.$data !== 'undefined') {
-                        alpineData.$data.sidebarToggle = JSON.parse(sidebarState);
+                    const alpineData = document.querySelector("body").__x;
+                    if (alpineData && typeof alpineData.$data !== "undefined") {
+                        alpineData.$data.sidebarToggle =
+                            JSON.parse(sidebarState);
                     }
                 }, 0);
             });
@@ -173,19 +181,20 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Initialize all drawer triggers on page load
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('[data-drawer-trigger]').forEach(function (element) {
-        element.addEventListener('click', function (e) {
-            const drawerId = this.getAttribute('data-drawer-trigger');
-            if (drawerId) {
-                e.preventDefault();
-                window.openDrawer(drawerId);
-                return false;
-            }
+document.addEventListener("DOMContentLoaded", function () {
+    document
+        .querySelectorAll("[data-drawer-trigger]")
+        .forEach(function (element) {
+            element.addEventListener("click", function (e) {
+                const drawerId = this.getAttribute("data-drawer-trigger");
+                if (drawerId) {
+                    e.preventDefault();
+                    window.openDrawer(drawerId);
+                    return false;
+                }
+            });
         });
-    });
 });
-
 
 // Init Dropzone
 const dropzoneArea = document.querySelectorAll("#demo-upload");
@@ -257,9 +266,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("keydown", function (event) {
         // Check if the active element is an input, textarea, or contenteditable element
         const activeElement = document.activeElement;
-        const isInputField = activeElement.tagName === 'INPUT' ||
-            activeElement.tagName === 'TEXTAREA' ||
-            activeElement.contentEditable === 'true';
+        const isInputField =
+            activeElement.tagName === "INPUT" ||
+            activeElement.tagName === "TEXTAREA" ||
+            activeElement.contentEditable === "true";
 
         if (event.key === "/" && !isInputField) {
             event.preventDefault(); // Prevent the "/" character from being typed
@@ -271,20 +281,22 @@ document.addEventListener("DOMContentLoaded", function () {
 // Toast notification helper function
 window.showToast = function (variant, title, message) {
     // Dispatch the notify event that the toast component listens for
-    window.dispatchEvent(new CustomEvent('notify', {
-        detail: {
-            variant, // 'success', 'error', 'warning', 'info'
-            title,
-            message
-        }
-    }));
+    window.dispatchEvent(
+        new CustomEvent("notify", {
+            detail: {
+                variant, // 'success', 'error', 'warning', 'info'
+                title,
+                message,
+            },
+        })
+    );
 };
 
 // Import term drawer functionality
-import './term-drawer.js';
+import "./term-drawer.js";
 
 // Prevent navigation if form is dirty (unsaved changes).
-import './prevent-dirty-form-changes.js';
+import "./prevent-dirty-form-changes.js";
 
 // Import menu handling functionality
-import './components/menu-handler.js';
+import "./components/menu-handler.js";

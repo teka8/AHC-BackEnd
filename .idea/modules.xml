@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/laradashboard.iml" filepath="$PROJECT_DIR$/.idea/laradashboard.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ahcdashboard.iml" filepath="$PROJECT_DIR$/.idea/ahcdashboard.iml" />
     </modules>
   </component>
 </project>

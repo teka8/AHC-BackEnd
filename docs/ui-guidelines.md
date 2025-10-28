@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document provides guidelines for UI development in the LaraBoard project. It aims to ensure consistency across the application by documenting the UI patterns, components, and best practices established in the codebase.
+This document provides guidelines for UI development in the AHCBoard project. It aims to ensure consistency across the application by documenting the UI patterns, components, and best practices established in the codebase.
 
 ## Table of Contents
 
@@ -271,10 +271,7 @@ For empty states, use this pattern:
 
 ```html
 <div class="space-y-1">
-    <label
-        for="input-id"
-        class="form-label"
-    >
+    <label for="input-id" class="form-label">
         Label <span class="text-red-500">*</span>
     </label>
     <input
@@ -302,9 +299,7 @@ The `form-control` class applies consistent styling with:
 
 ```html
 <div class="space-y-1">
-    <label for="textarea-id" class="form-label">
-        Label
-    </label>
+    <label for="textarea-id" class="form-label"> Label </label>
     <textarea
         id="textarea-id"
         name="textarea_name"
@@ -319,9 +314,7 @@ The `form-control` class applies consistent styling with:
 
 ```html
 <div class="space-y-1">
-    <label for="select-id" class="form-label">
-        Label
-    </label>
+    <label for="select-id" class="form-label"> Label </label>
     <select id="select-id" name="select_name" class="form-control">
         <option value="">Select an option</option>
         <option value="1">Option 1</option>
@@ -343,10 +336,7 @@ For select, you can use the `x-inputs.combobox` component for enhanced functiona
         value="1"
         class="form-checkbox"
     />
-    <label
-        for="checkbox-id"
-        class="form-label ml-2 mb-0"
-    >
+    <label for="checkbox-id" class="form-label ml-2 mb-0">
         Checkbox label
     </label>
 </div>
@@ -356,11 +346,7 @@ For select, you can use the `x-inputs.combobox` component for enhanced functiona
 
 ```html
 <div>
-    <label
-        class="form-label mb-3"
-    >
-        Options
-    </label>
+    <label class="form-label mb-3"> Options </label>
     <div class="space-y-2">
         <label class="flex items-center">
             <input type="radio" name="option" value="1" class="form-radio" />
@@ -403,11 +389,7 @@ The component handles displaying existing images and provides a checkbox to remo
 
 ```html
 <div class="mb-4 space-y-1">
-    <label
-        for="file-id"
-        class="form-label"
-        >File Label</label
-    >
+    <label for="file-id" class="form-label">File Label</label>
     <input
         type="file"
         name="file_name"
@@ -617,7 +599,6 @@ Our application supports dark mode. Use these patterns:
 
 ```html
 <x-layouts.backend-layout :breadcrumbs="$breadcrumbs">
-
 </x-layouts.backend-layout>
 ```
 
@@ -635,10 +616,7 @@ Our application supports dark mode. Use these patterns:
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Name Field -->
         <div class="space-y-1">
-            <label
-                for="name"
-                class="form-label"
-            >
+            <label for="name" class="form-label">
                 {{ __('Name') }} <span class="text-red-500">*</span>
             </label>
             <input
@@ -656,10 +634,7 @@ Our application supports dark mode. Use these patterns:
 
         <!-- Email Field -->
         <div class="space-y-1">
-            <label
-                for="email"
-                class="form-label"
-            >
+            <label for="email" class="form-label">
                 {{ __('Email') }} <span class="text-red-500">*</span>
             </label>
             <input

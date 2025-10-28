@@ -15,10 +15,10 @@ class SettingsSeeder extends Seeder
     public function run(): void
     {
         $options = [
-            ['option_name' => 'app_name', 'option_value' => 'Lara Dashboard'],
+            ['option_name' => 'app_name', 'option_value' => 'AHC Dashboard'],
 
             // theme colors.
-            ['option_name' => 'theme_primary_color', 'option_value' => '#635bff'],
+            ['option_name' => 'theme_primary_color', 'option_value' => '#7AC943'],
             ['option_name' => 'theme_secondary_color', 'option_value' => '#1f2937'],
 
             // Sidebar colors.
@@ -41,8 +41,8 @@ class SettingsSeeder extends Seeder
             ['option_name' => 'text_color_dark', 'option_value' => '#f8f9fa'],
 
             // Site logo and icons.
-            ['option_name' => 'site_logo_lite', 'option_value' => '/images/logo/lara-dashboard.png'],
-            ['option_name' => 'site_logo_dark', 'option_value' => '/images/logo/lara-dashboard-dark.png'],
+            ['option_name' => 'site_logo_lite', 'option_value' => '/images/logo/logo_dark.png'],
+            ['option_name' => 'site_logo_dark', 'option_value' => '/images/logo/logo_light.png'],
             ['option_name' => 'site_icon', 'option_value' => '/images/logo/icon.png'],
             ['option_name' => 'site_favicon', 'option_value' => '/images/logo/icon.png'],
 
