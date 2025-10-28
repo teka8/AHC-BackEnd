@@ -6,7 +6,9 @@
     <x-buttons.button :loading="true" variant="info">Info</x-buttons.button>
     <x-buttons.button :loading="true" variant="secondary">Secondary</x-buttons.button>
     <x-buttons.button :loading="true">Default</x-buttons.button>
-    <x-buttons.button :loading="true" class="bg-purple-600 hover:bg-purple-700 text-white">Custom Class</x-buttons.button>
+    <x-buttons.button :loading="true" class="bg-purple-600 hover:bg-purple-700 text-white">Custom
+        Class</x-buttons.button>
     <x-buttons.button :loading="true" variant="primary" disabled>Disabled</x-buttons.button>
-    <x-buttons.button :loading="true" as="a" href="https://laradashboard.com" variant="info">Link Button</x-buttons.button>
+    <x-buttons.button :loading="true" as="a" href="https://ahcdashboard.com" variant="info">Link
+        Button</x-buttons.button>
 </div>

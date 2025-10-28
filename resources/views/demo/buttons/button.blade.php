@@ -8,5 +8,5 @@
     <x-buttons.button>Default</x-buttons.button>
     <x-buttons.button class="bg-purple-600 hover:bg-purple-700 text-white">Custom Class</x-buttons.button>
     <x-buttons.button variant="primary" disabled>Disabled</x-buttons.button>
-    <x-buttons.button as="a" href="https://laradashboard.com" variant="info">Link Button</x-buttons.button>
+    <x-buttons.button as="a" href="https://ahcdashboard.com" variant="info">Link Button</x-buttons.button>
 </div>

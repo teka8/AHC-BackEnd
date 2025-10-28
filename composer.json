@@ -1,7 +1,7 @@
 {
-    "name": "laradashboard/laradashboard",
+    "name": "ahcdashboard/ahcdashboard",
     "type": "project",
-    "description": "Lara Dashboard - A Laravel CMS with Role, Permission, Module, Translation, Content Management",
+    "description": "AHC Dashboard - A Laravel CMS with Role, Permission, Module, Translation, Content Management",
     "keywords": [
         "framework",
         "laravel",
