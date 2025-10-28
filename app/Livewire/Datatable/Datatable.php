@@ -160,7 +160,8 @@ abstract class Datatable extends Component
             return __('Add News');
         }
         else{
-            return __('New :model', ['model' => $this->getModelNameSingular()]);
+            $name = __('New :model', ['model' => $this->getModelNameSingular()]);
+            return __($name);
         }
     }
 
