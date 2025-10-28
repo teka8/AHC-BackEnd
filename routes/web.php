@@ -49,10 +49,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::patch('/permissions/{permission}/toggle-status', [PermissionController::class, 'toggleStatus'])->name('permissions.toggle-status');
 
     // Modules Routes.
-    Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
-    Route::post('/modules/toggle-status/{module}', [ModuleController::class, 'toggleStatus'])->name('modules.toggle-status');
-    Route::post('/modules/upload', [ModuleController::class, 'store'])->name('modules.store');
-    Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])->name('modules.delete');
+    // Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
+    // Route::post('/modules/toggle-status/{module}', [ModuleController::class, 'toggleStatus'])->name('modules.toggle-status');
+    // Route::post('/modules/upload', [ModuleController::class, 'store'])->name('modules.store');
+    // Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])->name('modules.delete');
 
     // Settings Routes.
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
@@ -90,16 +90,18 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::delete('/posts/{postType}/delete/bulk-delete', [PostController::class, 'bulkDelete'])->name('posts.bulk-delete');
 
 
-    // Pages Routes - Dynamic post types.
-    Route::get('/pages/{postType?}', [PageController::class, 'index'])->name('pages.index');
-    Route::get('/pages/{postType}/create', [PageController::class, 'create'])->name('pages.create');
-    Route::post('/pages/{postType}', [PageController::class, 'store'])->name('pages.store');
-    Route::get('/pages/{postType}/{post}', [PageController::class, 'show'])->name('pages.show');
-    Route::get('/pages/{postType}/{post}/edit', [PageController::class, 'edit'])->name('pages.edit');
-    Route::put('/pages/{postType}/{post}', [PageController::class, 'update'])->name('pages.update');
-    Route::patch('/pages/{postType}/{post}/status', [PageController::class, 'updateStatus'])->name('pages.update-status');
-    Route::delete('/pages/{postType}/{post}', [PageController::class, 'destroy'])->name('pages.destroy');
-    Route::delete('/pages/{postType}/delete/bulk-delete', [PageController::class, 'bulkDelete'])->name('pages.bulk-delete');
+    // Pages Routes 
+    Route::get('pages', [PageController::class, 'index'])->name('pages.index');
+    Route::get('pages/create', [PageController::class, 'create'])->name('pages.create');
+    Route::post('pages', [PageController::class, 'store'])->name('pages.store');
+    Route::put('pages/{page}/status', [PageController::class, 'changeStatus'])->name('status');
+    Route::get('/pages/{page}', [PageController::class, 'show'])->name('pages.show');
+    Route::get('/pages/{page}/edit', [PageController::class, 'edit'])->name('pages.edit');
+    Route::put('/pages/{page}', [PageController::class, 'update'])->name('pages.update');
+    Route::delete('/pages/{page}', [PageController::class, 'destroy'])->name('pages.destroy');
+    Route::delete('/pages/delete/bulk-delete', [PageController::class, 'bulkDelete'])->name('pages.bulk-delete');
+
+
 
     // Event Routes.
     Route::get('events', [EventController::class, 'index'])->name('events.index');

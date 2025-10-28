@@ -12,6 +12,9 @@ enum DatatableHook: string
     // Lifecycle hooks
     case POST_DATATABLE_MOUNTED = 'post_datatable_mounted';
     case EVENT_DATATABLE_MOUNTED = 'event_datatable_mounted';
+
+    case PAGE_DATATABLE_MOUNTED = 'page_datatable_mounted';
+    
     case USER_DATATABLE_MOUNTED = 'user_datatable_mounted';
     case DATATABLE_MOUNTED = 'datatable_mounted';
 

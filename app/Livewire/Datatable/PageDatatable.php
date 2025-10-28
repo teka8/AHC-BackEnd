@@ -5,35 +5,24 @@ declare(strict_types=1);
 namespace App\Livewire\Datatable;
 
 use App\Enums\Hooks\DatatableHook;
-use App\Enums\PageStatus;
 use App\Models\Page;
-use App\Models\Term;
-use App\Models\User;
-use App\Notifications\PageStatusChanged;
-use App\Services\Content\ContentService;
-use App\Services\Content\PostType;
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Support\Facades\Notification;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class PageDatatable extends Datatable
 {
     public string $status = '';
-    public string $tag = '';
-    public string $category = '';
-    public string $postType = PostType::POST;
+    public string $section = '';
     public array $queryString = [
         ...parent::QUERY_STRING_DEFAULTS,
         'status' => [],
-        'tag' => [],
-        'category' => [],
+        'section' => [],
     ];
-    public array $categories = [];
     public string $model = Page::class;
 
     public function getSearchbarPlaceholder(): string
     {
-        return __('Search by title or content...');
+        return __('Search by page title, content, or slug...');
     }
 
     public function updatingStatus()
@@ -41,12 +30,7 @@ class PageDatatable extends Datatable
         $this->resetPage();
     }
 
-    public function updatingTag()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingCategory()
+    public function updatingSection()
     {
         $this->resetPage();
     }
@@ -55,63 +39,50 @@ class PageDatatable extends Datatable
     {
         parent::mount();
 
-        $postTypeModel = $this->getPostTypeModelProperty();
-        if ($postTypeModel->supports_taxonomies && $postTypeModel->taxonomies && in_array('category', $postTypeModel->taxonomies)) {
-            $this->categories = Term::where('taxonomy', 'category')->get()->toArray();
-        }
-
-        // Apply hooks to modify datatable initialization.
+        // Hook to allow additional initialization from other modules
         $this->addHooks(
             $this,
-            DatatableHook::POST_DATATABLE_MOUNTED
+            DatatableHook::PAGE_DATATABLE_MOUNTED
         );
-    }
-
-    public function getPostTypeModelProperty(): PostType
-    {
-        return app(ContentService::class)->getPostType($this->postType);
     }
 
     public function getFilters(): array
     {
-        $postTypeModel = $this->getPostTypeModelProperty();
-        $filters = [];
-
-        $filters[] = [
-            'id' => 'status',
-            'label' => __('Status'),
-            'filterLabel' => __('Status'),
-            'icon' => 'lucide:filter',
-            'allLabel' => __('All Statuses'),
-            'options' => Page::getPostStatuses(),
-            'selected' => $this->status,
+        $filters = [
+            [
+                'id' => 'status',
+                'label' => __('Status'),
+                'filterLabel' => __('Status'),
+                'icon' => 'lucide:filter',
+                'allLabel' => __('All Statuses'),
+                'options' => [
+                    'published' => __('Published'),
+                    'draft' => __('Draft'),
+                    'archived' => __('Archived'),
+                ],
+                'selected' => $this->status,
+            ],
+            [
+                'id' => 'section',
+                'label' => __('Section'),
+                'filterLabel' => __('Section'),
+                'icon' => 'lucide:folder',
+                'allLabel' => __('All Sections'),
+                'options' => [
+                    'about' => __('About Us'),
+                    'terms' => __('Terms & Conditions'),
+                    'privacy' => __('Privacy Policy'),
+                    'contact' => __('Contact Information'),
+                    'faq' => __('FAQ'),
+                    'shipping' => __('Shipping Policy'),
+                    'returns' => __('Return Policy'),
+                    'custom' => __('Custom Sections'),
+                ],
+                'selected' => $this->section,
+            ],
         ];
 
-        if ($postTypeModel->supports_taxonomies && $postTypeModel->taxonomies && in_array('tag', $postTypeModel->taxonomies)) {
-            $filters[] = [
-                'id' => 'tag',
-                'label' => __('Tag'),
-                'filterLabel' => __('Tag'),
-                'icon' => 'lucide:tag',
-                'allLabel' => __('All Tags'),
-                'options' => Term::where('taxonomy', 'tag')->pluck('name', 'id'),
-                'selected' => $this->tag,
-            ];
-        }
-
-        if ($postTypeModel->supports_taxonomies && $postTypeModel->taxonomies && in_array('category', $postTypeModel->taxonomies)) {
-            $filters[] = [
-                'id' => 'category',
-                'label' => __('Category'),
-                'filterLabel' => __('Category'),
-                'icon' => 'lucide:folder',
-                'allLabel' => __('All Categories'),
-                'options' => collect($this->categories)->pluck('name', 'id')->toArray(),
-                'selected' => $this->category,
-            ];
-        }
-
-        // Apply hooks to modify filters
+        // Allow external modules to modify filters
         $filters = $this->addHooks(
             $filters,
             null,
@@ -123,276 +94,148 @@ class PageDatatable extends Datatable
 
     protected function getRouteParameters(): array
     {
-        return ['postType' => $this->postType];
+        return [];
     }
 
     protected function getItemRouteParameters($item): array
     {
-        return [
-            'postType' => $this->postType,
-            'post' => $item->id,
-        ];
+        return ['page' => $item->id];
     }
 
     protected function getHeaders(): array
     {
-        $postTypeModel = $this->getPostTypeModelProperty();
-
-        $headers = [
+        return [
             [
                 'id' => 'title',
-                'title' => __('Title'),
-                'width' => null,
+                'title' => __('Page Title'),
                 'sortable' => true,
                 'sortBy' => 'title',
             ],
             [
-                'id' => 'author',
-                'title' => __('Author'),
-                'width' => null,
+                'id' => 'section',
+                'title' => __('Section'),
                 'sortable' => true,
-                'sortBy' => 'author',
+                'sortBy' => 'section',
+            ],
+            [
+                'id' => 'slug',
+                'title' => __('Slug'),
+                'sortable' => true,
+                'sortBy' => 'slug',
             ],
             [
                 'id' => 'status',
                 'title' => __('Status'),
-                'width' => null,
                 'sortable' => true,
                 'sortBy' => 'status',
             ],
-        ];
-
-        if ($postTypeModel->supports_taxonomies && $postTypeModel->taxonomies && in_array('category', $postTypeModel->taxonomies)) {
-            $headers[] = [
-                'id' => 'category',
-                'title' => __('Category'),
-                'width' => null,
+            [
+                'id' => 'navigation',
+                'title' => __('Navigation'),
                 'sortable' => true,
-                'sortBy' => 'category',
-            ];
-        }
-
-        $headers[] = [
-            'id' => 'created_at',
-            'title' => __('Created At'),
-            'width' => null,
-            'sortable' => true,
-            'sortBy' => 'created_at',
-        ];
-
-        if (auth()->user()->can('post.edit_status') || auth()->user()->can('post.archive') || auth()->user()->can('post.publish') || auth()->user()->can('post.unpublish') || auth()->user()->can('post.schedule')) {
-            $headers[] = [
-                'id' => 'post_actions',
-                'title' => __('Post Actions'),
-                'width' => null,
+                'sortBy' => 'show_in_nav',
+            ],
+            [
+                'id' => 'footer',
+                'title' => __('Footer'),
+                'sortable' => true,
+                'sortBy' => 'show_in_footer',
+            ],
+            [
+                'id' => 'created_at',
+                'title' => __('Created At'),
+                'sortable' => true,
+                'sortBy' => 'created_at',
+            ],
+            [
+                'id' => 'actions',
+                'title' => __('Actions'),
                 'sortable' => false,
-            ];
-        }
-
-        $headers[] = [
-            'id' => 'actions',
-            'title' => __('Actions'),
-            'width' => null,
-            'sortable' => false,
-            'is_action' => true,
+                'is_action' => true,
+            ],
         ];
-
-        return $headers;
     }
 
     protected function buildQuery(): QueryBuilder
     {
         $query = QueryBuilder::for($this->model)
-            ->where('post_type', $this->postType)
-            ->with('author')
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('title', 'like', "%{$this->search}%")
-                        ->orWhere('excerpt', 'like', "%{$this->search}%")
-                        ->orWhere('content', 'like', "%{$this->search}%");
+                        ->orWhere('content', 'like', "%{$this->search}%")
+                        ->orWhere('slug', 'like', "%{$this->search}%")
+                        ->orWhere('section', 'like', "%{$this->search}%");
                 });
             })
             ->when($this->status, function ($q) {
                 $q->where('status', $this->status);
             })
-            ->when($this->tag, function ($q) {
-                $q->whereHas('terms', function ($q) {
-                    $q->where('taxonomy', 'tag')
-                        ->where('terms.id', $this->tag);
-                });
-            })
-            ->when($this->category, function ($q) {
-                $q->whereHas('terms', function ($q) {
-                    $q->where('taxonomy', 'category')
-                        ->where('terms.id', $this->category);
-                });
+            ->when($this->section, function ($q) {
+                if ($this->section === 'custom') {
+                    $q->where('is_custom_section', true);
+                } else {
+                    $q->where('section', $this->section);
+                }
             });
 
         return $this->sortQuery($query);
     }
 
-    public function renderTitleColumn(Post $post): string|Renderable
+    public function renderTitleColumn(Page $page): string|Renderable
     {
-        ob_start();
-        ?>
-        <div class="flex gap-0.5 items-center">
-            <?php if ($post->hasFeaturedImage()): ?>
-                <img src="<?php echo $post->getFeaturedImageUrl('thumb') ?>" alt="<?php echo $post->title ?>"
-                    class="w-12 object-cover rounded mr-3 min-w-10">
-            <?php else: ?>
-                <div class="bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center mr-2 h-10 w-10 min-w-10">
-                    <iconify-icon icon="lucide:image" class=" text-center text-gray-400"></iconify-icon>
-                </div>
-            <?php endif; ?>
-            <a href="<?php echo route('admin.posts.edit', [$this->postType, $post->id]) ?>"
-                class="text-gray-700 dark:text-white font-medium hover:text-primary dark:hover:text-primary">
-                <?php echo $post->title; ?>
+        return <<<HTML
+            <a href="{$this->getEditUrl($page)}" class="text-gray-700 dark:text-white font-medium hover:text-primary">
+                {$page->title}
             </a>
-        </div>
-        <?php
-        return ob_get_clean();
+        HTML;
     }
 
-    public function renderStatusColumn(Post $post): string|Renderable
+    public function renderSectionColumn(Page $page): string|Renderable
     {
-        $html = "<span class='" . get_post_status_class($post->status) . "'>" . ucfirst($post->status) . "</span>";
-
-        if ($post->status === PostStatus::SCHEDULED->value && ! empty($post->published_at)) {
-            $html .= "<br><small class='text-xs text-gray-500 mt-1'>" . __('(Scheduled for :date)', ['date' => $post->published_at->format('M d, Y h:i A')]) . "</small>";
+        $section = e($page->section ?? __('N/A'));
+        if ($page->is_custom_section) {
+            $section .= ' <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(' . __('Custom') . ')</span>';
         }
-
-        return $html;
+        return $section;
     }
 
-    public function renderAuthorColumn(Post $post): string|Renderable
+    public function renderSlugColumn(Page $page): string|Renderable
     {
-        return ucfirst($post->author->full_name ?? '');
+        return '<code class="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/' . e($page->slug) . '</code>';
     }
 
-    public function renderCategoryColumn(Post $post): string|Renderable
+    public function renderStatusColumn(Page $page): string|Renderable
     {
-        return $post->categories->pluck('name')->map(fn ($name) => "<span class='badge'>" . ucfirst($name) . "</span>")->join(' ');
+        $class = match ($page->status) {
+            'published' => 'badge badge-success',
+            'draft' => 'badge badge-info',
+            'archived' => 'badge badge-secondary',
+            default => 'badge badge-light',
+        };
+
+        return "<span class='{$class}'>" . ucfirst($page->status) . "</span>";
     }
 
-    public function renderPostActionsColumn(Post $post): string|Renderable
+    public function renderNavigationColumn(Page $page): string|Renderable
     {
-        $actions = [];
-        
-        // Sequential workflow: created → edited → approved → published → unpublished → archived
-        switch ($post->status) {
-            case 'created':
-                // Mark as Edited is now handled in the edit page
-                break;
-                
-            case 'edited':
-                if (auth()->user()->can('post.approve')) {
-                    $actions[] = '<button wire:click="updatePostStatus(' . $post->id . ', \'approved\')" class="inline-flex items-center px-2 py-1 text-xs font-medium text-green-600 bg-green-50 border border-green-200 rounded hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 mr-1 mb-1"><iconify-icon icon="lucide:check-circle" class="w-3 h-3 mr-1"></iconify-icon>' . __('Approve') . '</button>';
-                }
-                break;
-                
-            case 'approved':
-                if (auth()->user()->can('post.publish') || auth()->user()->can('post.schedule')) {
-                    $actions[] = '<div class="relative inline-block" x-data="{ open: false }">';
-                    $actions[] = '<button @click="open = !open" class="inline-flex items-center px-2 py-1 text-xs font-medium text-green-600 bg-green-50 border border-green-200 rounded hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 mr-1 mb-1">';
-                    $actions[] = '<iconify-icon icon="lucide:send" class="w-3 h-3 mr-1"></iconify-icon>' . __('Publish') . '<iconify-icon icon="lucide:chevron-down" class="w-3 h-3 ml-1"></iconify-icon>';
-                    $actions[] = '</button>';
-                    $actions[] = '<div x-show="open" @click.away="open = false" class="absolute z-10 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg min-w-32">';
-                    
-                    if (auth()->user()->can('post.publish')) {
-                        $actions[] = '<button wire:click="updatePostStatus(' . $post->id . ', \'published\')" class="block w-full px-3 py-2 text-xs text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"><iconify-icon icon="lucide:send" class="w-3 h-3 mr-2"></iconify-icon>' . __('Publish Now') . '</button>';
-                    }
-                    
-                    if (auth()->user()->can('post.schedule')) {
-                        $actions[] = '<div class="px-3 py-2 border-t border-gray-200 dark:border-gray-700">';
-                        $actions[] = '<div class="text-xs text-gray-500 dark:text-gray-400 mb-2">' . __('Schedule for:') . '</div>';
-                        $actions[] = '<div class="flex gap-1 mb-2">';
-                        $actions[] = '<input type="date" wire:model="scheduledDate_' . $post->id . '" class="text-xs px-1 py-1 border rounded w-24" min="' . now()->format('Y-m-d') . '" value="' . now()->addDay()->format('Y-m-d') . '">';
-                        $actions[] = '<input type="time" wire:model="scheduledTime_' . $post->id . '" class="text-xs px-1 py-1 border rounded w-16" value="09:00">';
-                        $actions[] = '</div>';
-                        $actions[] = '<button wire:click="schedulePost(' . $post->id . ')" class="w-full text-xs px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"><iconify-icon icon="lucide:clock" class="w-3 h-3 mr-1"></iconify-icon>' . __('Schedule') . '</button>';
-                        $actions[] = '</div>';
-                    }
-                    
-                    $actions[] = '</div></div>';
-                }
-                break;
-                
-            case 'published':
-                if (auth()->user()->can('post.unpublish')) {
-                    $actions[] = '<button wire:click="updatePostStatus(' . $post->id . ', \'unpublished\')" class="inline-flex items-center px-2 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 mr-1 mb-1"><iconify-icon icon="lucide:eye-off" class="w-3 h-3 mr-1"></iconify-icon>' . __('Unpublish') . '</button>';
-                }
-                break;
-                
-            case 'unpublished':
-                if (auth()->user()->can('post.archive')) {
-                    $actions[] = '<button wire:click="updatePostStatus(' . $post->id . ', \'archived\')" class="inline-flex items-center px-2 py-1 text-xs font-medium text-orange-600 bg-orange-50 border border-orange-200 rounded hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800 mr-1 mb-1"><iconify-icon icon="lucide:archive" class="w-3 h-3 mr-1"></iconify-icon>' . __('Archive') . '</button>';
-                }
-                break;
+        if ($page->show_in_nav) {
+            return '<span class="badge badge-success">' . __('Visible') . '</span>';
+        } else {
+            return '<span class="badge badge-secondary">' . __('Hidden') . '</span>';
         }
-        
-        return empty($actions) ? '<span class="text-gray-400 text-sm">-</span>' : implode('', $actions);
     }
 
-    public function updatePostStatus($postId, $status)
+    public function renderFooterColumn(Page $page): string|Renderable
     {
-        $post = Post::findOrFail($postId);
-        
-        // Check permissions and validate sequential workflow
-        switch ($status) {
-            case 'edited':
-                if (!auth()->user()->can('post.edit_status') || $post->status !== 'created') abort(403);
-                break;
-            case 'approved':
-                if (!auth()->user()->can('post.approve') || $post->status !== 'edited') abort(403);
-                break;
-            case 'published':
-                if (!auth()->user()->can('post.publish') || $post->status !== 'approved') abort(403);
-                break;
-            case 'unpublished':
-                if (!auth()->user()->can('post.unpublish') || $post->status !== 'published') abort(403);
-                break;
-            case 'archived':
-                if (!auth()->user()->can('post.archive') || $post->status !== 'unpublished') abort(403);
-                break;
-            default:
-                abort(403);
+        if ($page->show_in_footer) {
+            return '<span class="badge badge-success">' . __('Visible') . '</span>';
+        } else {
+            return '<span class="badge badge-secondary">' . __('Hidden') . '</span>';
         }
-        
-        $oldStatus = $post->status;
-        $post->update(['status' => $status]);
-        
-        // Notifications are handled by PostObserver
-        
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => __('Post status updated successfully')
-        ]);
     }
-    
-    public function schedulePost($postId)
+
+    protected function getEditUrl(Page $page): string
     {
-        $post = Post::findOrFail($postId);
-        
-        if (!auth()->user()->can('post.schedule') || $post->status !== 'approved') {
-            abort(403);
-        }
-        
-        $dateProperty = 'scheduledDate_' . $postId;
-        $timeProperty = 'scheduledTime_' . $postId;
-        
-        $scheduledDate = $this->$dateProperty ?? now()->addDay()->format('Y-m-d');
-        $scheduledTime = $this->$timeProperty ?? '09:00';
-        
-        $scheduledDateTime = $scheduledDate . ' ' . $scheduledTime;
-        
-        $post->update([
-            'status' => 'scheduled',
-            'published_at' => $scheduledDateTime
-        ]);
-        
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => __('Post scheduled successfully for :date', ['date' => $scheduledDateTime])
-        ]);
+        return route('admin.pages.edit', $page->id);
     }
 }

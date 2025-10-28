@@ -4,31 +4,29 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Page;
 
-use App\Http\Requests\FormRequest;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Http\FormRequest;
 
 class BulkDeletePageRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return $this->checkAuthorization(Auth::user(), ['page.delete']);
+        // Authorize against an Event policy bulkDelete method (register EventPolicy accordingly)
+        return $this->user()->can('bulkDelete', \App\Models\Page::class);
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            /** @example [1, 2, 3] */
-            'ids' => 'required|array|min:1',
-            /** @example 1 */
-            'ids.*' => 'integer|exists:pages,id',
+            'ids'       => ['required', 'array', 'min:1'],
+            'ids.*'     => ['integer', 'distinct', 'exists:pages,id'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'ids.required' => __('Please select at least one page to delete.'),
+            'ids.*.exists' => __('Selected page does not exist.'),
         ];
     }
 }

@@ -4,126 +4,82 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Backend;
 
-use Carbon\Carbon;
-use App\Models\Page;
-use App\Models\Term;
-use App\Models\User;
-use App\Enums\PageStatus;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use App\Services\PageService;
 use App\Enums\Hooks\PageActionHook;
 use App\Enums\Hooks\PageFilterHook;
 use App\Http\Controllers\Controller;
-use App\Notifications\StatusChanged;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\RedirectResponse;
-use App\Services\Content\ContentService;
-use App\Http\Requests\Page\StorePageRequest;
-use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Support\Facades\Notification;
-use App\Http\Requests\Page\UpdatePageRequest;
 use App\Http\Requests\Common\BulkDeleteRequest;
+use App\Models\Page;
+use App\Http\Requests\Page\StorePageRequest;
+use App\Http\Requests\Page\UpdatePageRequest;
+use App\Support\Facades\Hook;
+use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Http\Request;
+use App\Services\PageService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
 
 class PageController extends Controller
 {
     public function __construct(
-        private readonly ContentService $contentService,
-        private readonly PageService $postService,
+        private readonly PageService $pageService,
     ) {
     }
 
-    public function index(Request $request, string $postType = 'page'): RedirectResponse|Renderable
+    public function index(): Renderable
     {
         $this->authorize('viewAny', Page::class);
 
-        // Get post type.
-        $pageTypeModel = $this->contentService->getPostType($postType);
-
-        if (!$pageTypeModel) {
-            return redirect()->route('admin.pages.index')->with('error', 'Post type not found');
-        }
-
-        // Prepare filters
-        $filters = [
-            'post_type' => $postType,
-            'search' => $request->search,
-            'status' => $request->status,
-            'category' => $request->category,
-            'tag' => $request->tag,
+        $breadcrumbs = [
+            'title' => __('Pages'),
+            'links' => [
+                [
+                    'name' => __('Home'),
+                    'url' => route('admin.dashboard'),
+                ],
+                [
+                    'name' => __('Pages'),
+                    'url' => '#',
+                ],
+            ],
         ];
 
-        $this->setBreadcrumbTitle($pageTypeModel->label);
+        // Get statistics for the dashboard
+        $stats = [
+            'total' => Page::count(),
+            'published' => Page::where('status', Page::STATUS_PUBLISHED)->count(),
+            'draft' => Page::where('status', Page::STATUS_DRAFT)->count(),
+            'archived' => Page::where('status', Page::STATUS_ARCHIVED)->count(),
+        ];
 
-        // Get categories and tags for filters.
-        $categories = Term::where('taxonomy', 'category')->select('id', 'name')->get();
-        $tags = Term::where('taxonomy', 'tag')->select('id', 'name')->get();
-
-        return $this->renderViewWithBreadcrumbs('backend.pages.pages.index', compact('postType', 'pageTypeModel', 'categories', 'tags'));
+        return view('backend.pages.pages.index', compact('breadcrumbs', 'stats'));
     }
 
-    public function create(string $postType = 'page'): RedirectResponse|Renderable
+    public function create(): Renderable
     {
         $this->authorize('create', Page::class);
 
-        // Get post type.
-        $pageTypeModel = $this->contentService->getPostType($postType);
+        $this->setBreadcrumbTitle(__('New Page'))
+            ->addBreadcrumbItem("Pages", route('admin.pages.index'));
 
-        if (!$pageTypeModel) {
-            return redirect()->route('admin.pages.index')->with('error', 'Post type not found');
-        }
-
-        // Get taxonomies.
-        $taxonomies = [];
-        if (!empty($pageTypeModel->taxonomies)) {
-            $taxonomies = $this->contentService->getTaxonomies()
-                ->whereIn('name', $pageTypeModel->taxonomies)
-                ->all();
-        }
-
-        // Get parent posts for hierarchical post types.
-        $parentPosts = [];
-        if ($pageTypeModel->hierarchical) {
-            $parentPosts = Page::where('post_type', $postType)
-                ->pluck('title', 'id')
-                ->toArray();
-        }
-
-        $this->setBreadcrumbTitle(__('New :postType', ['postType' => $pageTypeModel->label_singular]))
-            ->addBreadcrumbItem($pageTypeModel->label, route('admin.pages.index', $postType));
-
-        return $this->renderViewWithBreadcrumbs('backend.pages.pages.create', compact('postType', 'pageTypeModel', 'taxonomies', 'parentPosts'));
+        return $this->renderViewWithBreadcrumbs('backend.pages.pages.create');
     }
 
-    public function store(StorePageRequest $request, string $postType = 'page'): RedirectResponse
+    public function store(StorePageRequest $storePageRequest): RedirectResponse
     {
         $this->authorize('create', Page::class);
-
-        // Get post type.
-        $pageTypeModel = $this->contentService->getPostType($postType);
-
-        if (!$pageTypeModel) {
-            return redirect()->route('admin.pages.index')->with('error', 'Post type not found');
-        }
 
         $data = $this->addHooks(
-            $request->validated(),
+            $storePageRequest->validated(),
             PageActionHook::PAGE_CREATED_BEFORE,
             PageFilterHook::PAGE_CREATED_BEFORE
         );
 
-        // Create post
-        $page = new Page();
-        $page->title = $data['title'];
-        $page->slug = $data['slug'] ?? Str::slug($data['title']);
-        $page->content = $data['content'];
-        $page->excerpt = $data['excerpt'] ?? Str::limit(strip_tags($data['content']), 200);
-        $page->status = $data['status'] ?? 'created';
-        $page->post_type = $postType;
-        $page->user_id = Auth::id();
-
-        $page->save();
-
+        // Create Page using the service
+        $page = $this->pageService->createPage(array_merge($data, [
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
+        ]));
 
         $page = $this->addHooks(
             $page,
@@ -131,221 +87,142 @@ class PageController extends Controller
             PageFilterHook::PAGE_CREATED_AFTER
         );
 
-        // Handle taxonomies
-        $this->handleTaxonomies($request, $page);
-
-        session()->flash('success', __('Page has been created.'));
-        $users = User::permission('blog.edit')->get();
-        Notification::send($users, new StatusChanged($page, "Editable Page: {$page->title}"));
-
-        return redirect()->route('admin.pages.edit', [$postType, $page->id]);
+        return redirect()->route('admin.pages.index')->with('success', __('Page created successfully.'));
     }
 
-    public function show(string $postType, string $id): Renderable
+    public function edit(Page $page): Renderable
     {
-        $page = Page::where('post_type', $postType)->findOrFail($id);
+        $this->authorize('update', $page);
+
+        $this->setBreadcrumbTitle(__('Edit Page'))
+            ->addBreadcrumbItem("Pages", route('admin.pages.index'));
+
+        return $this->renderViewWithBreadcrumbs('backend.pages.pages.edit', compact('page'));
+    }
+
+    public function update(UpdatePageRequest $request, Page $page): RedirectResponse
+    {
+        $this->authorize('update', $page);
+
+        $data = $this->addHooks(
+            $request->validated(),
+            PageActionHook::PAGE_UPDATED_BEFORE,
+            PageFilterHook::PAGE_UPDATED_BEFORE
+        );
+
+        // Update page using the service
+        $this->pageService->updatePage($page, array_merge($data, [
+            'updated_by' => Auth::id(),
+        ]));
+
+        $page = $this->addHooks(
+            $page,
+            PageActionHook::PAGE_UPDATED_AFTER,
+            PageFilterHook::PAGE_UPDATED_AFTER
+        );
+
+        return redirect()->route('admin.pages.index')
+            ->with('success', __('Page updated successfully.'));
+    }
+
+    public function destroy(Page $page): RedirectResponse
+    {
+        $this->authorize('delete', $page);
+
+        Hook::doAction(PageActionHook::PAGE_DELETED_BEFORE, $page);
+
+        $this->pageService->deletePage($page);
+
+        Hook::doAction(PageActionHook::PAGE_DELETED_AFTER, $page);
+
+        return redirect()
+            ->route('admin.pages.index')
+            ->with('success', __('Page deleted successfully.'));
+    }
+
+    public function show(string $id): Renderable
+    {
+        $page = Page::with(['createdBy'])->findOrFail($id);
+
         $this->authorize('view', $page);
-        $pageTypeModel = $this->contentService->getPostType($postType);
 
-        $this->setBreadcrumbTitle(__('View :postName', ['postName' => $page->title]))
-            ->addBreadcrumbItem($pageTypeModel->label, route('admin.pages.index', $postType));
+        $breadcrumbs = [
+            ['name' => __('Pages'), 'url' => route('admin.pages.index')],
+            ['name' => __('View Page')],
+        ];
+        
+        $this->setBreadcrumbTitle(__('View :pageName', ['pageName' => $page->title]))
+            ->addBreadcrumbItem(__('Pages'), route('admin.pages.index'));
 
-        return $this->renderViewWithBreadcrumbs('backend.pages.pages.show', compact('page', 'postType', 'pageTypeModel'));
+        return $this->renderViewWithBreadcrumbs('backend.pages.pages.show', compact('page', 'breadcrumbs'));
     }
 
-    public function edit(string $postType, string $id): RedirectResponse|Renderable
+    public function bulkDelete(BulkDeleteRequest $request): RedirectResponse
     {
-        // Get post with postMeta relationship.
-        $page = Page::with(['terms'])
-            ->where('post_type', $postType)
-            ->findOrFail($id);
+        $this->authorize('bulkDelete', Page::class);
 
-        $this->authorize('update', $page);
+        $ids = $request->validated('ids');
 
-        // Get post type
-        $pageTypeModel = $this->contentService->getPostType($postType);
-
-        if (!$pageTypeModel) {
-            return redirect()->route('admin.pages.index')->with('error', 'Post type not found');
+        if (empty($ids)) {
+            session()->flash('error', __('No pages selected for deletion.'));
+            return redirect()->route('admin.pages.index');
         }
 
-        // Get taxonomies
-        $taxonomies = [];
-        if (!empty($pageTypeModel->taxonomies)) {
-            $taxonomies = $this->contentService->getTaxonomies()
-                ->whereIn('name', $pageTypeModel->taxonomies)
-                ->all();
-        }
+        $ids = $this->addHooks(
+            $ids,
+            PageActionHook::PAGE_BULK_DELETED_BEFORE
+        );
 
-        // Get parent pages for hierarchical post types
-        $parentPages = [];
-        if ($pageTypeModel->hierarchical) {
-            $parentPages = Page::where('post_type', $postType)
-                ->where('id', '!=', $id)
-                ->pluck('title', 'id')
-                ->toArray();
-        }
-
-        // Get selected terms
-        $selectedTerms = [];
-        foreach ($page->terms as $term) {
-            $taxonomyName = $term->getAttribute('taxonomy');
-            if ($taxonomyName && !isset($selectedTerms[$taxonomyName])) {
-                $selectedTerms[$taxonomyName] = [];
-            }
-            if ($taxonomyName) {
-                $selectedTerms[$taxonomyName][] = $term->id;
-            }
-        }
-
-        $this->setBreadcrumbTitle(__('Edit :postType', ['postType' => $pageTypeModel->label_singular]))
-            ->addBreadcrumbItem($pageTypeModel->label, route('admin.posts.index', $postType));
-
-        // Get categories and tags for filters.
-        $categories = Term::where('taxonomy', 'category')->select('id', 'name')->get();
-        $tags = Term::where('taxonomy', 'tag')->select('id', 'name')->get();
-
-        return $this->renderViewWithBreadcrumbs('backend.pages.posts.edit', compact('page', 'postType', 'pageTypeModel', 'taxonomies', 'parentPages', 'selectedTerms', 'categories', 'tags'));
-    }
-
-    public function update(UpdatePageRequest $request, string $postType, string $id): RedirectResponse
-    {
-        $page = Page::where('post_type', $postType)->findOrFail($id);
-        $this->authorize('update', $page);
-
-        $data = $request->validated();
-
-        $page->title = $data['title'];
-        $page->slug = $data['slug'] ?? Str::slug($data['title']);
-        $page->content = $data['content'];
-        $page->excerpt = $data['excerpt'];
-
-        // Auto-change status from 'created' to 'edited' when post is updated
-        if ($page->status === 'created') {
-            $page->status = 'edited';
-        }
-
-        // Handle publish date.
-        if (isset($data['schedule_page']) && $data['schedule_page'] && !empty($data['published_at'])) {
-            $page->status = PageStatus::SCHEDULED->value;
-            $page->published_at = Carbon::parse($data['published_at']);
-        } elseif (isset($data['status']) && $data['status'] === PageStatus::SCHEDULED->value && !empty($data['published_at'])) {
-            $page->published_at = Carbon::parse($data['published_at']);
-        } elseif (isset($data['status']) && $data['status'] === PageStatus::PUBLISHED->value && !$page->published_at) {
-            $page->published_at = now();
-        }
-
-        $page->save();
-
-        $this->handleTaxonomies($request, $page);
-
-        session()->flash('success', __('Page updated successfully.'));
-
-        return back();
-    }
-
-    public function updateStatus(Request $request, string $postType, string $id): RedirectResponse
-    {
-        $page = Page::where('post_type', $postType)->findOrFail($id);
-        $this->authorize('update', $page);
-        
-        $request->validate([
-            'status' => 'required|string|in:created,edited,approved,published,unpublished,archived'
-        ]);
-        
-        $page->update(['status' => $request->status]);
-        
-        session()->flash('success', __('Page status updated successfully.'));
-        
-        return back();
-    }
-
-    protected function handleTaxonomies(Request $request, Page $page)
-    {
-        // Get current post type.
-        $pageTypeModel = $this->contentService->getPostType($page->post_type);
-
-        if (!$pageTypeModel || empty($pageTypeModel->taxonomies)) {
-            return;
-        }
-
-        // Initialize empty arrays for each taxonomy.
-        $termIds = [];
-        foreach ($pageTypeModel->taxonomies as $taxonomy) {
-            $termKey = 'taxonomy_' . $taxonomy;
-            if ($request->has($termKey)) {
-                $taxonomyTerms = $request->input($termKey);
-                if (is_array($taxonomyTerms)) {
-                    $termIds = array_merge($termIds, $taxonomyTerms);
-                }
-            }
-        }
-
-        // Sync terms.
-        $page->terms()->sync($termIds);
+        $deletedCount = $this->pageService->bulkDeletePages($ids);
 
         $this->addHooks(
-            ['page' => $page, 'term_ids' => $termIds],
-            PageActionHook::PAGE_TAXONOMIES_UPDATED
+            ['deleted_count' => $deletedCount, 'post_type' => 'page'],
+            PageActionHook::PAGE_BULK_DELETED_AFTER
         );
-    }
 
-
-    /**
- * Change news status (workflow action)
- */
-    public function changeStatus(Request $request, $id)
-    {
-        $page = Page::findOrFail($id);
-        $action = $request->input('action');
-        $comment = $request->input('comment', '');
-
-        // Check if user can perform this action
-        if (!$page->canPerformAction($action)) {
-            return response()->json([
-                'success' => false,
-                'message' => __('You do not have permission to perform this action.')
-            ], 403);
+        if ($deletedCount > 0) {
+            session()->flash('success', __(':count pages deleted successfully', ['count' => $deletedCount]));
+        } else {
+            session()->flash('error', __('No pages were deleted.'));
         }
 
-        $availableActions = $page->getAvailableActions();
-        $targetStatus = $availableActions[$action]['target'];
+        return redirect()->route('admin.pages.index');
+    }
+
+    public function changeStatus(Request $request, $page): JsonResponse
+    {
+        $this->authorize('update', $page);
+        // Handle both route model binding and ID parameter
+        if (is_numeric($page)) {
+            $page = Page::find($page);
+        }
+        
+        if (!$page) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Page not found'
+            ], 404);
+        }
+
+        $request->validate([
+            'status' => 'required|in:published,draft,archived'
+        ]);
 
         try {
-            \DB::beginTransaction();
-
-            $oldStatus = $page->status;
+            $this->authorize('update', $page);
             
-            // Update post status
-            $updateData = [
-                'status' => $targetStatus,
-            ];
-
-            // Set published_at if publishing
-            if ($targetStatus === Page::STATUS_PUBLISHED && !$page->published_at) {
-                $updateData['published_at'] = now();
-            }
-
-            $page->update($updateData);
-
-            // Log the status change
-            //$this->postService->logStatusChange($post, $oldStatus, $targetStatus, Auth::id(), $comment);
-
-            \DB::commit();
+            $this->pageService->updatePageStatus($page, $request->status, auth()->id());
 
             return response()->json([
                 'success' => true,
-                'message' => __('News status updated successfully'),
+                'message' => 'Page status updated successfully',
+                'status' => $page->fresh()->status
             ]);
 
         } catch (\Exception $e) {
-            \DB::rollBack();
-            
-            \Log::error('News status change failed: ' . $e->getMessage());
-
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to update news status: ') . $e->getMessage()
+                'message' => 'Error updating page status: ' . $e->getMessage()
             ], 500);
         }
     }
