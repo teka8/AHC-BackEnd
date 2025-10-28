@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Backend\Api\TermController as BackendTermController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\PageController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -115,6 +117,20 @@ Route::middleware(['auth', 'web'])->prefix('admin')->name('admin.api.')->group(f
     Route::delete('/terms/{taxonomy}/{id}', [BackendTermController::class, 'destroy'])->name('terms.destroy');
 });
 
-// Events management
-Route::get('/events', [EventController::class, 'index'])->name('events.index');
-Route::get('/events/{id}', [EventController::class, 'show']);
+
+
+
+
+Route::prefix('v1')->group(function () {
+    // Public page routes 
+    Route::get('/pages', [PageController::class, 'index']);
+    Route::get('/pages/{id}', [PageController::class, 'show']);
+    Route::get('/pages/slug/{slug}', [PageController::class, 'showBySlug']);
+    Route::get('/pages/section/{section}', [PageController::class, 'bySection']);
+    Route::get('/navigation', [PageController::class, 'navigation']);
+    Route::get('/footer', [PageController::class, 'footer']);
+
+    // Events management
+    Route::get('/events', [EventController::class, 'index'])->name('events.index');
+    Route::get('/events/{id}', [EventController::class, 'show']);
+});

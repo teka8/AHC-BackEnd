@@ -4,71 +4,86 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Page;
 
-use App\Enums\Hooks\PageFilterHook;
-use App\Http\Requests\FormRequest;
-use App\Support\Facades\Hook;
-use Illuminate\Support\Str;
+use App\Models\Page;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePageRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        // Authorization is handled by the controller using policies.
-        return true;
+        return $this->user()->can('create', Page::class);
     }
 
-    /**
-     * Prepare the data for validation.
-     */
-    protected function prepareForValidation(): void
-    {
-        // Sanitize meta keys by slugifying them
-        if ($this->has('meta_keys')) {
-            $metaKeys = $this->input('meta_keys', []);
-            // Ensure $metaKeys is always an array
-            $metaKeys = is_array($metaKeys) ? $metaKeys : [];
-            $sanitizedKeys = array_map(function ($key) {
-                return ! empty($key) ? Str::slug($key, '_') : $key;
-            }, $metaKeys);
-
-            $this->merge([
-                'meta_keys' => $sanitizedKeys,
-            ]);
-        }
-    }
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
-     */
     public function rules(): array
     {
-        $pageStatuses = implode(',', array_map(fn ($status) => $status->value, \App\Enums\PageStatus::cases()));
-
-        return Hook::applyFilters(PageFilterHook::PAGE_STORE_VALIDATION_RULES, [
-            /** @example "How to Build a Laravel Application" */
+        return [
             'title' => 'required|string|max:255',
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('pages', 'slug')
+            ],
+            'content' => 'required|string',
+            'section' => 'required|string|max:100',
+            'is_custom_section' => 'nullable|boolean',
+            'custom_section' => 'nullable|string|max:100|required_if:is_custom_section,true',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+            'show_in_nav' => 'nullable|boolean',
+            'show_in_footer' => 'nullable|boolean',
+            'status' => 'nullable|string|in:published,draft,archived',
+        ];
+    }
 
-            /** @example "how-to-build-a-laravel-application" */
-            'slug' => 'nullable|string|max:255|unique:pages',
+    public function messages(): array
+    {
+        return [
+            'slug.regex' => 'The slug may only contain lowercase letters, numbers, and hyphens. It cannot start or end with a hyphen.',
+            'slug.unique' => 'This slug is already in use. Please choose a different one.',
+            'custom_section.required_if' => 'Custom section name is required when using custom section.',
+            'content.required' => 'Page content is required.',
+        ];
+    }
 
-            /** @example "<p>This is a comprehensive guide to building Laravel applications...</p>" */
-            'content' => 'nullable|string',
+    public function attributes(): array
+    {
+        return [
+            'slug' => 'URL slug',
+            'content' => 'page content',
+            'section' => 'page section',
+            'custom_section' => 'custom section name',
+            'meta_title' => 'meta title',
+            'meta_description' => 'meta description',
+            'show_in_nav' => 'show in navigation',
+            'show_in_footer' => 'show in footer',
+        ];
+    }
 
-            /** @example "Learn the fundamentals of building Laravel applications from scratch." */
-            'excerpt' => 'nullable|string',
+    public function prepareForValidation()
+    {
+        // Auto-generate slug from title if not provided and title exists
+        if ($this->has('title') && (!$this->has('slug') || empty($this->slug))) {
+            $this->merge([
+                'slug' => \Illuminate\Support\Str::slug($this->title)
+            ]);
+        }
 
-            /** @example "publish" */
-            // 'status' => 'required|in:' . $pageStatuses,
+        // Handle custom section logic
+        if ($this->has('is_custom_section') && $this->is_custom_section && $this->has('custom_section')) {
+            $this->merge([
+                'section' => $this->custom_section
+            ]);
+        }
 
-            /** @example null */
-            'published_at' => 'nullable|date',
-
-            
+        // Set default values
+        $this->merge([
+            // 'show_in_nav' => $this->show_in_nav ?? true,
+            // 'show_in_footer' => $this->show_in_footer ?? false,
+            'status' => $this->status ?? 'draft',
+            // 'is_custom_section' => $this->is_custom_section ?? false,
         ]);
     }
 }

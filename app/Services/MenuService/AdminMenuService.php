@@ -135,6 +135,33 @@ class AdminMenuService
             ],
         ]);
 
+
+        // pages
+        $this->addMenuItem([
+            'label' => __('Pages'),
+            'icon' => 'lucide:file-text',
+            'id' => 'pages-submenu',
+            'active' => Route::is('admin.pages.*'),
+            'priority' => 12,
+            'permissions' => 'page.view',
+            'children' => [
+                [
+                    'label' => __('All Pages'),
+                    'route' => route('admin.pages.index'),
+                    'active' => Route::is('admin.pages.index') || Route::is('admin.pages.*') && !Route::is('admin.pages.create'),
+                    'priority' => 20,
+                    'permissions' => 'page.view',
+                ],
+                [
+                    'label' => __('Add New'),
+                    'route' => route('admin.pages.create'),
+                    'active' => Route::is('admin.pages.create'),
+                    'priority' => 10,
+                    'permissions' => 'page.create',
+                ],
+            ],
+        ]);
+
         $this->addMenuItem([
             'label' => __('Media Library'),
             'icon' => 'lucide:image',
@@ -179,15 +206,15 @@ class AdminMenuService
             ],
         );
 
-        $this->addMenuItem([
-            'label' => __('Modules'),
-            'icon' => 'lucide:boxes',
-            'route' => route('admin.modules.index'),
-            'active' => Route::is('admin.modules.index'),
-            'id' => 'modules',
-            'priority' => 25,
-            'permissions' => 'module.view',
-        ], __('More'));
+        // $this->addMenuItem([
+        //     'label' => __('Modules'),
+        //     'icon' => 'lucide:boxes',
+        //     'route' => route('admin.modules.index'),
+        //     'active' => Route::is('admin.modules.index'),
+        //     'id' => 'modules',
+        //     'priority' => 25,
+        //     'permissions' => 'module.view',
+        // ], __('More'));
 
         $this->addMenuItem([
             'label' => __('Monitoring'),

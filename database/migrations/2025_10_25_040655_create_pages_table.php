@@ -13,15 +13,28 @@ return new class extends Migration
     {
         Schema::create('pages', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->constrained();
-            $table->string('post_type')->default('pages');
             $table->string('title');
             $table->string('slug')->unique();
-            $table->text('excerpt')->nullable();
             $table->longText('content')->nullable();
-            $table->string('status')->default('draft');
-            $table->timestamp('published_at')->nullable();
+            $table->string('section');
+            $table->boolean('is_custom_section')->default(false);
+            $table->string('meta_title')->nullable();
+            $table->text('meta_description')->nullable();
+            $table->enum('status', ['published', 'draft', 'archived'])->default('draft');
+            $table->boolean('show_in_nav')->default(true);
+            $table->boolean('show_in_footer')->default(false);
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
+            
+            // Indexes for better performance
+            $table->index('slug');
+            $table->index('section');
+            $table->index('status');
+            $table->index('show_in_nav');
+            $table->index('show_in_footer');
+            $table->index('created_by');
+            $table->index('updated_by');
         });
     }
 
