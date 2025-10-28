@@ -60,9 +60,13 @@
                         @if($multiple)
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                 @foreach($existingMedia as $media)
+                                    @php
+                                        $mediaUrl = is_array($media) ? ($media['url'] ?? '') : $media;
+                                        $mediaAlt = is_array($media) ? ($media['alt'] ?? '') : '';
+                                    @endphp
                                     <div class="relative group">
-                                        <img src="{{ $media['url'] ?? $media }}"
-                                             alt="{{ $media['alt'] ?? '' }}"
+                                        <img src="{{ $mediaUrl }}"
+                                             alt="{{ $mediaAlt }}"
                                              class="w-full h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
                                              onerror="console.error('Failed to load image:', this.src); this.style.display='none';">
                                         <button type="button"
@@ -76,8 +80,13 @@
                         @else
                             <div class="flex flex-col items-center justify-center">
                                 <div class="relative group w-full h-full">
-                                    <img src="{{ $existingMedia[0]['url'] ?? $existingMedia[0] }}"
-                                         alt="{{ $existingMedia[0]['alt'] ?? '' }}"
+                                    @php
+                                        $firstMedia = is_array($existingMedia) && count($existingMedia) > 0 ? $existingMedia[0] : null;
+                                        $mediaUrl = is_array($firstMedia) ? ($firstMedia['url'] ?? '') : ($firstMedia ?? '');
+                                        $mediaAlt = is_array($firstMedia) ? ($firstMedia['alt'] ?? '') : '';
+                                    @endphp
+                                    <img src="{{ $mediaUrl }}"
+                                         alt="{{ $mediaAlt }}"
                                          class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }}"
                                          onerror="console.error('Failed to load image:', this.src); this.style.display='none';">
                                     <button type="button"
@@ -93,7 +102,8 @@
                             <div class="relative group w-full h-full">
                                 <img src="{{ $existingMedia }}"
                                      alt="{{ $existingAltText }}"
-                                     class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }}"
+                                     class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }} cursor-pointer hover:opacity-80 transition-opacity"
+                                     @click="imageUrl = '{{ $existingMedia }}'; showModal = true"
                                      onerror="console.error('Failed to load existing image:', '{{ $existingMedia }}'); this.style.display='none'; this.nextElementSibling.style.display='block';">
                                 <div style="display: none;" class="w-full h-full bg-gray-100 dark:bg-gray-800 {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }} border-4 border-gray-200 dark:border-gray-700 flex items-center justify-center">
                                     <span class="text-gray-500 text-sm">Image not found</span>
@@ -133,7 +143,8 @@
                             <div class="relative group w-full h-full">
                                 <img :src="media.thumbnail_url || media.url"
                                      :alt="media.name"
-                                     class="'w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }}"
+                                     class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }} cursor-pointer hover:opacity-80 transition-opacity"
+                                     @click="imageUrl = media.url; showModal = true"
                                 >
                                 <button type="button"
                                         @click="removeSelectedMedia(media.id)"
@@ -180,19 +191,19 @@
         @endif
     </div>
 
-    <!-- Hidden inputs to store selected media IDs -->
-    <template x-for="(media, index) in selectedMedia" :key="media.id">
-        <input type="hidden"
-               :name="{{ $multiple ? "'{$name}[]'" : "'{$name}'" }}"
-               :value="media.id">
-    </template>
-
-    <!-- Fallback: If no new media selected but we have existing media, preserve it unless remove checkbox is checked -->
-    @if($existingMedia && !is_array($existingMedia))
-        <input type="hidden"
-               name="{{ $name }}"
-               value="{{ $existingMedia }}"
-               x-show="selectedMedia.length === 0">
+    <!-- Static hidden input for form submission -->
+    <input type="hidden" 
+           name="{{ $name }}" 
+           :value="selectedMedia.length > 0 ? selectedMedia[0].url : '{{ $existingMedia && !is_array($existingMedia) ? $existingMedia : '' }}'"
+           x-show="selectedMedia.length > 0 || (selectedMedia.length === 0 && '{{ $existingMedia && !is_array($existingMedia) ? $existingMedia : '' }}')">
+    
+    <!-- Multiple media support -->
+    @if($multiple)
+        <template x-for="(media, index) in selectedMedia" :key="media.id">
+            <input type="hidden"
+                   name="{{ $name }}[]"
+                   :value="media.url">
+        </template>
     @endif
 </div>
 
@@ -225,6 +236,10 @@
                         this.selectedMedia = files.slice(0, 1);
                     }
                     this.showExistingMedia = false;
+                    
+                    // Dispatch URL update event
+                    const selectedUrl = this.selectedMedia.length > 0 ? this.selectedMedia[0].url : '';
+                    window.dispatchEvent(new CustomEvent('media-url-updated', { detail: selectedUrl }));
                     window.dispatchEvent(new CustomEvent('avatar-selected', { detail: this.selectedMedia.length > 0 }));
                 };
 

@@ -73,6 +73,7 @@ class StorePostRequest extends FormRequest
 
             /** Featured image - accepts both file uploads and media library IDs */
             'featured_image' => 'nullable',
+            'featured_image.*' => 'nullable|numeric|exists:media,id',
 
             /** @example "seo_keywords" */
             'meta_keys.*' => 'nullable|string|max:255|regex:/^[a-z0-9_]+$/',

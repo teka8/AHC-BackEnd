@@ -7,7 +7,7 @@
 @section('admin-content')
 <x-card class="login-card mx-auto shadow-lg p-8">
     <div class="text-center mb-8">
-        <img src="{{ asset('images/logo/african healt.jpg') }}" alt="{{ config('app.name') }}" class="h-16 mx-auto mb-6">
+        <img src="{{ config('settings.site_logo_lite') ? asset(config('settings.site_logo_lite')) : asset('images/logo/african healt.jpg') }}" alt="{{ config('app.name') }}" class="h-16 mx-auto mb-6">
         <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">
             {{ __('Welcome Back') }}
         </h1>

@@ -75,6 +75,7 @@ class UpdatePostRequest extends FormRequest
 
             /** Featured image - accepts both file uploads and media library IDs */
             'featured_image' => 'nullable',
+            'featured_image.*' => 'nullable|numeric|exists:media,id',
 
             /** @example null */
             'remove_featured_image' => 'nullable',
