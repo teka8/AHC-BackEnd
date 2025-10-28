@@ -266,6 +266,14 @@ class PostController extends Controller
 
         $post->save();
 
+        // Handle featured image
+        if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
+            $post->clearMediaCollection('featured');
+        } elseif ($request->hasFile('featured_image')) {
+            $post->clearMediaCollection('featured');
+            $post->addMediaFromRequest('featured_image')->toMediaCollection('featured');
+        }
+
         $this->handlePostMeta($request, $post);
         $this->handleTaxonomies($request, $post);
 
