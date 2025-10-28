@@ -266,15 +266,14 @@ class PostController extends Controller
         // Handle featured image
         if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
             $post->clearMediaCollection('featured');
-        } elseif (isset($data['featured_image'])) {
-            // Always clear existing media when new image is selected
-            $post->clearMediaCollection('featured');
-            
+        } elseif (!empty($data['featured_image'])) {
             if ($request->hasFile('featured_image')) {
+                $post->clearMediaCollection('featured');
                 $post->addMediaFromRequest('featured_image')->toMediaCollection('featured');
-            } elseif (!empty($data['featured_image'])) {
+            } else {
                 // Handle array of media IDs from media selector
                 $mediaIds = is_array($data['featured_image']) ? $data['featured_image'] : [$data['featured_image']];
+                $post->clearMediaCollection('featured');
                 foreach ($mediaIds as $mediaId) {
                     if (!empty($mediaId)) {
                         $this->mediaService->associateExistingMedia($post, $mediaId, 'featured');
