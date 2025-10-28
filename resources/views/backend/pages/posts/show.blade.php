@@ -43,29 +43,39 @@
                     </div>
                 </div>
 
-                <!-- Featured Image -->
-                @if($post->featured_image)
-                    <div class="mb-6">
-                        <img src="{{ $post->featured_image }}" alt="{{ $post->title }}" class="max-h-64 rounded-md">
-                    </div>
-                @endif
+                <!-- Title -->
+                <div class="mb-6">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{{ $post->title }}</h1>
+                    @if($post->slug)
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Slug:') }} {{ $post->slug }}</p>
+                    @endif
+                </div>
 
-                <!-- Excerpt -->
-                @if($post->excerpt)
-                    <div class="mb-6">
-                        <h4 class="text-lg font-medium text-gray-700 dark:text-white/90 mb-2">{{ __('Excerpt') }}</h4>
-                        <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-md text-gray-700 dark:text-gray-300">
-                            {{ $post->excerpt }}
+                <!-- Content and Featured Image Flex Layout -->
+                <div class="mb-6 flex flex-col lg:flex-row gap-6">
+                    <!-- Content -->
+                    <div class="lg:w-1/2">
+                        <h4 class="text-lg font-medium text-gray-700 dark:text-white/90 mb-2">{{ __('Content') }}</h4>
+                        @if($post->excerpt)
+                            <div class="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-md text-gray-700 dark:text-gray-300">
+                                <strong>{{ __('Excerpt:') }}</strong> {{ $post->excerpt }}
+                            </div>
+                        @endif
+                        <div class="prose max-w-none dark:prose-invert prose-headings:font-medium prose-headings:text-gray-700 dark:prose-headings:text-white/90 prose-p:text-gray-700 dark:prose-p:text-gray-300">
+                            {!! $post->content !!}
                         </div>
                     </div>
-                @endif
-
-                <!-- Content -->
-                <div class="mb-6">
-                    <h4 class="text-lg font-medium text-gray-700 dark:text-white/90 mb-2">{{ __('Content') }}</h4>
-                    <div class="prose max-w-none dark:prose-invert prose-headings:font-medium prose-headings:text-gray-700 dark:prose-headings:text-white/90 prose-p:text-gray-700 dark:prose-p:text-gray-300">
-                        {!! $post->content !!}
-                    </div>
+                    
+                    <!-- Featured Image -->
+                    @if($post->hasFeaturedImage())
+                        <div class="lg:w-1/2">
+                            <h4 class="text-lg font-medium text-gray-700 dark:text-white/90 mb-3">{{ __('Featured Image') }}</h4>
+                            <img src="{{ $post->getFeaturedImageUrl() }}" 
+                                 alt="{{ $post->title }}" 
+                                 class="w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                 onclick="window.open('{{ $post->getFeaturedImageUrl() }}', '_blank')">
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Taxonomies -->
