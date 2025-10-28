@@ -61,7 +61,7 @@ class TermController extends Controller
 
         // Get post if post_id is provided.
         $postId = $request->input('post_id');
-        $post = $postId ? $this->postService->getPostById($postId) : null;
+        $post = $postId ? $this->postService->getPostById((int) $postId) : null;
 
         return response()->json([
             'message' => __(':taxLabel created successfully.', ['taxLabel' => $taxLabel]),
@@ -123,7 +123,7 @@ class TermController extends Controller
 
         // Get post if post_id is provided.
         $postId = $request->input('post_id');
-        $post = $postId ? $this->postService->getPostById($postId) : null;
+        $post = $postId ? $this->postService->getPostById((int) $postId) : null;
 
         return response()->json([
             'message' => __(':taxLabel updated successfully.', ['taxLabel' => $taxLabel]),
