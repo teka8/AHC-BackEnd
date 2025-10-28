@@ -266,12 +266,23 @@ class PostController extends Controller
 
         $post->save();
 
-        // Handle featured image
+        // Handle featured image removal first.
         if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
             $post->clearMediaCollection('featured');
-        } elseif ($request->hasFile('featured_image')) {
-            $post->clearMediaCollection('featured');
-            $post->addMediaFromRequest('featured_image')->toMediaCollection('featured');
+        } elseif (!empty($data['featured_image'])) {
+            if ($request->hasFile('featured_image')) {
+                $post->clearMediaCollection('featured');
+                $post->addMediaFromRequest('featured_image')->toMediaCollection('featured');
+            } else {
+                // Handle array of media IDs from media selector
+                $mediaIds = is_array($data['featured_image']) ? $data['featured_image'] : [$data['featured_image']];
+                $post->clearMediaCollection('featured');
+                foreach ($mediaIds as $mediaId) {
+                    if (!empty($mediaId)) {
+                        $this->mediaService->associateExistingMedia($post, $mediaId, 'featured');
+                    }
+                }
+            }
         }
 
         $this->handlePostMeta($request, $post);
@@ -279,7 +290,7 @@ class PostController extends Controller
 
         session()->flash('success', __('Post updated successfully.'));
 
-        return back();
+        return redirect()->route('admin.posts.index', $postType);
     }
 
     public function updateStatus(Request $request, string $postType, string $id): RedirectResponse
