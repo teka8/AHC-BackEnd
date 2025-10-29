@@ -21,5 +21,4 @@ enum PageActionHook: string
     case PAGE_PUBLISHED_BEFORE = 'action.page.published_before';
     case PAGE_PUBLISHED_AFTER = 'action.page.published_after';
 
-    case PAGE_TAXONOMIES_UPDATED = 'action.page.taxonomies_updated';
 }

@@ -4,485 +4,278 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Services\Content\ContentService;
-use App\Services\Content\PostType;
-use App\Concerns\QueryBuilderTrait;
-use App\Concerns\HasMedia;
-use App\Enums\PostStatus;
-use App\Observers\PostObserver;
-use Spatie\MediaLibrary\HasMedia as SpatieHasMedia;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
-use Spatie\Image\Enums\Fit;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-#[ObservedBy([PostObserver::class])]
-class Page extends Model implements SpatieHasMedia
+class Page extends Model
 {
     use HasFactory;
-    use QueryBuilderTrait;
-    use HasMedia;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<string>
+     */
     protected $fillable = [
-        'user_id',
-        'post_type',
         'title',
         'slug',
-        'excerpt',
         'content',
+        'section',
+        'is_custom_section',
+        'meta_title',
+        'meta_description',
         'status',
-        'meta',
-        'parent_id',
-        'published_at',
+        'show_in_nav',
+        'show_in_footer',
+        'created_by',
+        'updated_by',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
-        'meta' => 'array',
-        'published_at' => 'datetime',
+        'is_custom_section' => 'boolean',
+        'show_in_nav' => 'boolean',
+        'show_in_footer' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
-    /**
-     * The "booted" method of the model.
-     */
-    protected static function booted(): void
-    {
-        static::creating(function (Post $post) {
-            if (empty($post->slug)) {
-                $post->slug = Str::slug($post->title);
-            }
-
-            if (empty($post->user_id) && Auth::check()) {
-                $post->user_id = Auth::id();
-            }
-        });
-    }
-
-    public static function getPostStatuses(): array
-    {
-        return collect(PostStatus::cases())
-            ->mapWithKeys(fn ($case) => [$case->value => Str::of($case->name)->title()])
-            ->toArray();
-    }
 
     /**
-     * Get the user that owns the post.
+     * Status constants for easy reference.
      */
-    public function user(): BelongsTo
+    public const STATUS_PUBLISHED = 'published';
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_ARCHIVED = 'archived';
+
+    /**
+     * Predefined section constants.
+     */
+    public const SECTION_ABOUT = 'about';
+    public const SECTION_TERMS = 'terms';
+    public const SECTION_PRIVACY = 'privacy';
+    public const SECTION_CONTACT = 'contact';
+    public const SECTION_FAQ = 'faq';
+    public const SECTION_SHIPPING = 'shipping';
+    public const SECTION_RETURNS = 'returns';
+
+    /**
+     * Get the user who created the page.
+     */
+    public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
-     * Get the author of the post.
+     * Get the user who last updated the page.
      */
-    public function author(): BelongsTo
+    public function updatedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
-     * Get the post-type object for this post
+     * Scope a query to only include published pages.
      */
-    public function getPostTypeObject(): ?PostType
+    public function scopePublished($query)
     {
-        return app(ContentService::class)->getPostType($this->post_type);
+        return $query->where('status', self::STATUS_PUBLISHED);
     }
 
     /**
-     * Get the parent post.
+     * Scope a query to only include draft pages.
      */
-    public function parent(): BelongsTo
+    public function scopeDraft($query)
     {
-        return $this->belongsTo(Post::class, 'parent_id');
+        return $query->where('status', self::STATUS_DRAFT);
     }
 
     /**
-     * Get the child posts.
+     * Scope a query to only include archived pages.
      */
-    public function children(): HasMany
+    public function scopeArchived($query)
     {
-        return $this->hasMany(Post::class, 'parent_id');
+        return $query->where('status', self::STATUS_ARCHIVED);
     }
 
     /**
-     * The terms that belong to the post.
+     * Scope a query to only include pages visible in navigation.
      */
-    public function terms(): BelongsToMany
+    public function scopeVisibleInNav($query)
     {
-        return $this->belongsToMany(Term::class, 'term_relationships');
+        return $query->where('show_in_nav', true);
     }
 
     /**
-     * Get the post meta.
+     * Scope a query to only include pages visible in footer.
      */
-    public function postMeta(): HasMany
+    public function scopeVisibleInFooter($query)
     {
-        return $this->hasMany(PostMeta::class);
+        return $query->where('show_in_footer', true);
     }
 
     /**
-     * Get a specific meta value
-     *
-     * @param  mixed  $default
-     * @return mixed
+     * Scope a query to only include pages by section.
      */
-    public function getMeta(string $key, $default = null)
+    public function scopeBySection($query, string $section)
     {
-        $meta = $this->postMeta()->where('meta_key', $key)->first();
-
-        return $meta ? $meta->getAttribute('meta_value') : $default;
+        return $query->where('section', $section);
     }
 
     /**
-     * Set a meta-value
-     *
-     * @param  mixed  $value
+     * Scope a query to only include custom sections.
      */
-    public function setMeta(string $key, $value): PostMeta
+    public function scopeCustomSections($query)
     {
-        $meta = $this->postMeta()->updateOrCreate(
-            ['meta_key' => $key],
-            ['meta_value' => $value]
-        );
-
-        return $meta instanceof PostMeta ? $meta : new PostMeta($meta->getAttributes());
+        return $query->where('is_custom_section', true);
     }
 
     /**
-     * Delete a meta value
+     * Scope a query to only include predefined sections.
      */
-    public function deleteMeta(string $key): bool
+    public function scopePredefinedSections($query)
     {
-        return $this->postMeta()->where('meta_key', $key)->delete() > 0;
+        return $query->where('is_custom_section', false);
     }
 
     /**
-     * Get all meta as array with full info
+     * Check if the page is published.
      */
-    public function getAllMeta(): array
+    public function isPublished(): bool
     {
-        // Make sure we're loading the postMeta relationship
-        if (! $this->relationLoaded('postMeta')) {
-            $this->load('postMeta');
+        return $this->status === self::STATUS_PUBLISHED;
+    }
+
+    /**
+     * Check if the page is draft.
+     */
+    public function isDraft(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    /**
+     * Check if the page is archived.
+     */
+    public function isArchived(): bool
+    {
+        return $this->status === self::STATUS_ARCHIVED;
+    }
+
+    /**
+     * Check if the page uses a custom section.
+     */
+    public function isCustomSection(): bool
+    {
+        return $this->is_custom_section;
+    }
+
+    /**
+     * Check if the page is visible in navigation.
+     */
+    public function isVisibleInNav(): bool
+    {
+        return $this->show_in_nav && $this->isPublished();
+    }
+
+    /**
+     * Check if the page is visible in footer.
+     */
+    public function isVisibleInFooter(): bool
+    {
+        return $this->show_in_footer && $this->isPublished();
+    }
+
+    /**
+     * Get the page URL for frontend.
+     */
+    public function getUrlAttribute(): string
+    {
+        return route('admin.pages.show', $this->id);
+    }
+
+    /**
+     * Get the edit URL for backend.
+     */
+    public function getEditUrlAttribute(): string
+    {
+        return route('admin.pages.edit', $this->id);
+    }
+
+    /**
+     * Get the preview URL for frontend.
+     */
+    public function getPreviewUrlAttribute(): string
+    {
+        if ($this->isPublished()) {
+            return $this->url;
         }
 
-        return $this->postMeta
-            ->mapWithKeys(function ($meta) {
-                return [
-                    $meta->getAttribute('meta_key') => [
-                        'value' => $meta->getAttribute('meta_value') ?? '',
-                        'type' => $meta->getAttribute('type') ?? 'input',
-                        'default_value' => $meta->getAttribute('default_value') ?? '',
-                    ],
-                ];
-            })
-            ->toArray();
+        // For draft pages, you might want to add a preview token or similar
+        return route('pages.preview', ['slug' => $this->slug]);
     }
 
     /**
-     * Get all meta as simple key-value pairs
+     * Get available status options.
      */
-    public function getAllMetaValues(): array
+    public static function getStatusOptions(): array
     {
-        return $this->postMeta()
-            ->pluck('meta_value', 'meta_key')
-            ->toArray();
-    }
-
-    /**
-     * Register media collections for posts
-     */
-    public function registerMediaCollections(): void
-    {
-        $this->addMediaCollection('featured')
-            ->singleFile()
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
-
-        $this->addMediaCollection('gallery')
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
-    }
-
-    /**
-     * Register media conversions for posts
-     */
-    public function registerMediaConversions(?Media $media = null): void
-    {
-        // Preview conversion for admin interface
-        $this->addMediaConversion('preview')
-            ->fit(Fit::Contain, 300, 300);
-
-        // Thumbnail for featured images
-        $this->addMediaConversion('thumb')
-            ->width(200)
-            ->height(200)
-            ->sharpen(10);
-
-        // Medium size for content display
-        $this->addMediaConversion('medium')
-            ->width(500)
-            ->height(500);
-
-        // Large size for detailed view
-        $this->addMediaConversion('large')
-            ->width(1000)
-            ->height(1000);
-    }
-
-    /**
-     * Get the featured image URL
-     */
-    public function getFeaturedImageUrl(string $conversion = ''): ?string
-    {
-        $media = $this->getFirstMedia('featured');
-
-        if (! $media) {
-            return null;
-        }
-
-        return $conversion ? $media->getUrl($conversion) : $media->getUrl();
-    }
-
-    /**
-     * Check if post has featured image
-     */
-    public function hasFeaturedImage(): bool
-    {
-        return $this->hasMedia('featured');
-    }
-
-    /**
-     * Get gallery images
-     */
-    public function getGalleryImages(): array
-    {
-        return $this->getMedia('gallery')->map(function ($media) {
-            return [
-                'id' => $media->id,
-                'name' => $media->name,
-                'original' => $media->getUrl(),
-                'thumb' => $media->getUrl('thumb'),
-                'medium' => $media->getUrl('medium'),
-                'large' => $media->getUrl('large'),
-            ];
-        })->toArray();
-    }
-
-    /**
-     * Get categories for the post
-     */
-    public function categories()
-    {
-        return $this->terms()->where('taxonomy', 'category');
-    }
-
-    /**
-     * Get tags for the post
-     */
-    public function tags()
-    {
-        return $this->terms()->where('taxonomy', 'tag');
-    }
-
-    /**
-     * Scope a query to only include published posts.
-     */
-    public function scopePublished(Builder $query): void
-    {
-        $query->where('status', PostStatus::PUBLISHED->value)
-            ->where(function ($query) {
-                $query->whereNull('published_at')
-                    ->orWhere('published_at', '<=', now());
-            });
-    }
-
-    /**
-     * Scope a query to only include posts of a given type.
-     */
-    public function scopeType(Builder $query, string $type): void
-    {
-        $query->where('post_type', $type);
-    }
-
-    /**
-     * Apply category filter to the query
-     */
-    public function scopeFilterByCategory(Builder $query, $categoryId): void
-    {
-        $query->whereHas('terms', function ($q) use ($categoryId) {
-            $q->where('id', $categoryId)
-                ->where('taxonomy', 'category');
-        });
-    }
-
-    /**
-     * Apply tag filter to the query
-     */
-    public function scopeFilterByTag(Builder $query, $tagId): void
-    {
-        $query->whereHas('terms', function ($q) use ($tagId) {
-            $q->where('id', $tagId)
-                ->where('taxonomy', 'tag');
-        });
-    }
-
-    /**
-     * Check if this post type supports a specific feature
-     *
-     * @param  string  $feature  Feature name (e.g., 'editor', 'thumbnail', 'excerpt')
-     */
-    public function supportsFeature(string $feature): bool
-    {
-        $postType = $this->getPostTypeObject();
-
-        return $postType ? $postType->supports($feature) : false;
-    }
-
-    /**
-     * Get searchable columns for the model.
-     */
-    protected function getSearchableColumns(): array
-    {
-        return ['title', 'excerpt', 'content'];
-    }
-
-    /**
-     * Get columns that should be excluded from sorting.
-     */
-    protected function getExcludedSortColumns(): array
-    {
-        return ['content', 'excerpt', 'meta'];
-    }
-
-    /**
-     * News workflow states
-     */
-    const STATUS_DRAFT = 'draft';
-    const STATUS_UNDER_REVIEW = 'under_review';
-    const STATUS_APPROVED = 'approved';
-    const STATUS_PUBLISHED = 'published';
-    const STATUS_ARCHIVED = 'archived';
-
-    /**
-     * Available transitions for news with permission requirements
-     */
-    public static function getAvailableTransitions($currentStatus, User $user = null)
-    {
-        $transitions = [
-            self::STATUS_DRAFT => [
-                'send_for_review' => [
-                    'target' => self::STATUS_UNDER_REVIEW,
-                    'label' => __('Send for Review'),
-                    'color' => 'yellow',
-                    'icon' => 'lucide:send',
-                    'required_permission' => 'news.review'
-                ],
-                'publish' => [
-                    'target' => self::STATUS_PUBLISHED,
-                    'label' => __('Publish Now'),
-                    'color' => 'green',
-                    'icon' => 'lucide:globe',
-                    'required_permission' => 'news.publish'
-                ]
-            ],
-            
-            self::STATUS_UNDER_REVIEW => [
-                'approve' => [
-                    'target' => self::STATUS_APPROVED,
-                    'label' => __('Approve'),
-                    'color' => 'green',
-                    'icon' => 'lucide:check-circle',
-                    'required_permission' => 'news.approve'
-                ],
-                'reject' => [
-                    'target' => self::STATUS_DRAFT,
-                    'label' => __('Request Changes'),
-                    'color' => 'red',
-                    'icon' => 'lucide:arrow-left',
-                    'required_permission' => 'news.approve'
-                ]
-            ],
-            
-            self::STATUS_APPROVED => [
-                'publish' => [
-                    'target' => self::STATUS_PUBLISHED,
-                    'label' => __('Publish'),
-                    'color' => 'green',
-                    'icon' => 'lucide:globe',
-                    'required_permission' => 'news.publish'
-                ],
-                'send_back' => [
-                    'target' => self::STATUS_UNDER_REVIEW,
-                    'label' => __('Send Back for Review'),
-                    'color' => 'yellow',
-                    'icon' => 'lucide:arrow-left',
-                    'required_permission' => 'news.review'
-                ]
-            ],
-            
-            self::STATUS_PUBLISHED => [
-                'unpublish' => [
-                    'target' => self::STATUS_DRAFT,
-                    'label' => __('Unpublish'),
-                    'color' => 'gray',
-                    'icon' => 'lucide:eye-off',
-                    'required_permission' => 'news.approve'
-                ],
-                'archive' => [
-                    'target' => self::STATUS_ARCHIVED,
-                    'label' => __('Archive'),
-                    'color' => 'orange',
-                    'icon' => 'lucide:archive',
-                    'required_permission' => 'news.archive'
-                ]
-            ],
-            
-            self::STATUS_ARCHIVED => [
-                'restore' => [
-                    'target' => self::STATUS_DRAFT,
-                    'label' => __('Restore'),
-                    'color' => 'blue',
-                    'icon' => 'lucide:refresh-cw',
-                    'required_permission' => 'news.restore'
-                ]
-            ]
+        return [
+            self::STATUS_PUBLISHED => __('Published'),
+            self::STATUS_DRAFT => __('Draft'),
+            self::STATUS_ARCHIVED => __('Archived'),
         ];
-
-        return $transitions[$currentStatus] ?? [];
     }
 
     /**
-     * Get available actions for current user based on permissions
+     * Get predefined section options.
      */
-    public function getAvailableActions(User $user = null)
+    public static function getPredefinedSections(): array
     {
-        $user = $user ?: auth()->user();
-        $transitions = self::getAvailableTransitions($this->status, $user);
-        $availableActions = [];
+        return [
+            self::SECTION_ABOUT => __('About Us'),
+            self::SECTION_TERMS => __('Terms & Conditions'),
+            self::SECTION_PRIVACY => __('Privacy Policy'),
+            self::SECTION_CONTACT => __('Contact Information'),
+            self::SECTION_FAQ => __('FAQ'),
+            self::SECTION_SHIPPING => __('Shipping Policy'),
+            self::SECTION_RETURNS => __('Return Policy'),
+        ];
+    }
 
-        foreach ($transitions as $action => $config) {
-            if ($user->hasPermissionTo($config['required_permission']) || $user->hasRole('Superadmin')) {
-                $availableActions[$action] = $config;
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Generate slug automatically if not provided
+        static::creating(function ($page) {
+            if (empty($page->slug) && !empty($page->title)) {
+                $page->slug = \Illuminate\Support\Str::slug($page->title);
             }
-        }
+        });
 
-        return $availableActions;
-    }
+        // Update updated_by when saving
+        static::updating(function ($page) {
+            if (auth()->check()) {
+                $page->updated_by = auth()->id();
+            }
+        });
 
-    /**
-     * Check if user can perform specific action
-     */
-    public function canPerformAction($action, User $user = null)
-    {
-        $user = $user ?: auth()->user();
-        $availableActions = $this->getAvailableActions($user);
-        
-        return isset($availableActions[$action]);
+        // Set created_by when creating
+        static::creating(function ($page) {
+            if (auth()->check()) {
+                $page->created_by = auth()->id();
+                $page->updated_by = auth()->id();
+            }
+        });
     }
 }
