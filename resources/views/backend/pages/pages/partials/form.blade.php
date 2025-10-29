@@ -7,7 +7,7 @@
         <!-- Header -->
         <div class="mb-6">
             
-            <p class="text-gray-600 dark:text-gray-300">{{ __('Fill in the details to') }} {{ isset($page) ? 'update' : 'create' }} {{ __('your static page') }}</p>
+            <p class="text-gray-600 dark:text-gray-300">{{ __('Fill in the details to') }} {{ isset($page) ? __('update') : __('create') }} {{ __('your static page') }}</p>
         </div>
 
         <form method="POST" action="{{ isset($page) ? route('admin.pages.update', $page) : route('admin.pages.store') }}" enctype="multipart/form-data">
@@ -41,7 +41,7 @@
                                         type="text" 
                                         name="title" 
                                         value="{{ old('title', $page->title ?? '') }}" 
-                                        placeholder="e.g., About Our Company" 
+                                        placeholder="{{ __('e.g., About Our Company') }}" 
                                         class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('title') border-red-500 @enderror"
                                         required
                                     >
@@ -57,15 +57,15 @@
                                         id="section" 
                                         class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('section') border-red-500 @enderror"
                                     >
-                                        <option value="">— Select —</option>
-                                        <option value="about" {{ old('section', $page->section ?? '') === 'about' ? 'selected' : '' }}>About Us</option>
-                                        <option value="terms" {{ old('section', $page->section ?? '') === 'terms' ? 'selected' : '' }}>Terms & Conditions</option>
-                                        <option value="privacy" {{ old('section', $page->section ?? '') === 'privacy' ? 'selected' : '' }}>Privacy Policy</option>
-                                        <option value="contact" {{ old('section', $page->section ?? '') === 'contact' ? 'selected' : '' }}>Contact Information</option>
-                                        <option value="faq" {{ old('section', $page->section ?? '') === 'faq' ? 'selected' : '' }}>FAQ</option>
-                                        <option value="shipping" {{ old('section', $page->section ?? '') === 'shipping' ? 'selected' : '' }}>Shipping Policy</option>
-                                        <option value="returns" {{ old('section', $page->section ?? '') === 'returns' ? 'selected' : '' }}>Return Policy</option>
-                                        <option value="custom" {{ !in_array(old('section', $page->section ?? ''), ['about','terms','privacy','contact','faq','shipping','returns','']) ? 'selected' : '' }}>Custom</option>
+                                        <option value="">— {{ __('Select') }} —</option>
+                                        <option value="about" {{ old('section', $page->section ?? '') === 'about' ? 'selected' : '' }}>{{ __('About Us') }}</option>
+                                        <option value="terms" {{ old('section', $page->section ?? '') === 'terms' ? 'selected' : '' }}>{{ __('Terms & Conditions') }}</option>
+                                        <option value="privacy" {{ old('section', $page->section ?? '') === 'privacy' ? 'selected' : '' }}>{{ __('Privacy Policy') }}</option>
+                                        <option value="contact" {{ old('section', $page->section ?? '') === 'contact' ? 'selected' : '' }}>{{ __('Contact Information') }}</option>
+                                        <option value="faq" {{ old('section', $page->section ?? '') === 'faq' ? 'selected' : '' }}>{{ __('FAQ') }}</option>
+                                        <option value="shipping" {{ old('section', $page->section ?? '') === 'shipping' ? 'selected' : '' }}>{{ __('Shipping Policy') }}</option>
+                                        <option value="returns" {{ old('section', $page->section ?? '') === 'returns' ? 'selected' : '' }}>{{ __('Return Policy') }}</option>
+                                        <option value="custom" {{ !in_array(old('section', $page->section ?? ''), ['about','terms','privacy','contact','faq','shipping','returns','']) ? 'selected' : '' }}>{{ __('Custom') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -77,7 +77,7 @@
                                     id="custom_section"
                                     name="custom_section" 
                                     value="{{ !in_array($page->section ?? '', ['about','terms','privacy','contact','faq','shipping','returns','']) ? ($page->section ?? '') : '' }}" 
-                                    placeholder="Add your custom section" 
+                                    placeholder="{{ __('Add your custom section') }}" 
                                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                 >
                             </div>
@@ -91,7 +91,7 @@
                                     type="text" 
                                     name="slug" 
                                     value="{{ old('slug', $page->slug ?? '') }}" 
-                                    placeholder="e.g., about-our-company" 
+                                    placeholder="{{ __('e.g., about-our-company') }}" 
                                     class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('slug') border-red-500 @enderror"
                                     required
                                 >
@@ -138,7 +138,7 @@
                                     type="text" 
                                     name="meta_title" 
                                     value="{{ old('meta_title', $page->meta_title ?? '') }}" 
-                                    placeholder="e.g., About Our Company - Comprehensive Overview" 
+                                    placeholder="{{ __('e.g., About Our Company - Comprehensive Overview') }}" 
                                     class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                 >
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -281,7 +281,7 @@
                                 <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-2">
                                     <iconify-icon icon="lucide:calendar" class="w-4 h-4 mr-2 text-green-500"></iconify-icon>
                                     <span>
-                                        {{ __('Last updated: ') . $page->updated_at->format('M d, Y g:i A') }}
+                                        {{ __('Last updated:') . $page->updated_at->format('M d, Y g:i A') }}
                                     </span>
                                 </div>
                                 @endif
@@ -326,7 +326,7 @@
                                 </div>
                             </div>
 
-ion Visibility -->
+                            <!-- Show in Navigation -->
                             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg dark:bg-gray-800">
                                 <div class="space-y-0.5">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">{{ __('Show in Navigation') }}</label>

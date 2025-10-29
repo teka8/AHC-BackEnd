@@ -191,7 +191,6 @@ class PageController extends Controller
 
     public function changeStatus(Request $request, $page): JsonResponse
     {
-        $this->authorize('update', $page);
         // Handle both route model binding and ID parameter
         if (is_numeric($page)) {
             $page = Page::find($page);
