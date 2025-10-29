@@ -29,7 +29,7 @@
                     {{-- Section --}}
                     <div class="flex items-center gap-2">
                         <iconify-icon icon="lucide:folder" class="text-gray-500"></iconify-icon>
-                        <span class="font-medium">{{ __('Section:') }}</span>
+                        <span class="font-medium">{{ __('Section') }}:</span>
                         <span class="ml-auto text-gray-700 dark:text-white/90">
                             {{ $page->section ?? '—' }}
                             @if($page->is_custom_section ?? false)
@@ -41,7 +41,7 @@
                     {{-- Slug --}}
                     <div class="flex items-center gap-2">
                         <iconify-icon icon="lucide:link" class="text-gray-500"></iconify-icon>
-                        <span class="font-medium">{{ __('Slug:') }}</span>
+                        <span class="font-medium">{{ __('Slug') }}:</span>
                         <span class="ml-auto text-gray-700 dark:text-white/90">
                             /{{ $page->slug ?? '—' }}
                         </span>
@@ -50,17 +50,25 @@
                     {{-- Status --}}
                     <div class="flex items-center gap-2">
                         <iconify-icon icon="lucide:tag" class="text-gray-500"></iconify-icon>
-                        <span class="font-medium">{{ __('Status:') }}</span>
+                        <span class="font-medium">{{ __('Status') }}:</span>
                         <span
                             class="ml-auto px-2 py-1 text-xs rounded {{ function_exists('get_page_status_class') ? get_page_status_class($page->status) : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white' }}">
-                            {{ ucfirst($page->status ?? '—') }}
+                            @if($page->status == 'published')
+                                {{ __('Published') }}
+                            @elseif($page->status == 'draft')
+                                {{ __('Draft') }}
+                            @elseif($page->status == 'archived')
+                                {{ __('Archived') }}
+                            @else
+                                {{ __('Unknown') }}
+                            @endif
                         </span>
                     </div>
 
                     {{-- Navigation Visibility --}}
                     <div class="flex items-center gap-2">
                         <iconify-icon icon="lucide:navigation" class="text-gray-500"></iconify-icon>
-                        <span class="font-medium">{{ __('In Navigation:') }}</span>
+                        <span class="font-medium">{{ __('Show in Navigation') }}:</span>
                         <span class="ml-auto text-gray-700 dark:text-white/90">
                             @if($page->show_in_nav ?? false)
                                 <span class="text-green-600 dark:text-green-400">{{ __('Yes') }}</span>
@@ -73,7 +81,7 @@
                     {{-- Footer Visibility --}}
                     <div class="flex items-center gap-2">
                         <iconify-icon icon="lucide:footprints" class="text-gray-500"></iconify-icon>
-                        <span class="font-medium">{{ __('In Footer:') }}</span>
+                        <span class="font-medium">{{ __('Show in Footer') }}:</span>
                         <span class="ml-auto text-gray-700 dark:text-white/90">
                             @if($page->show_in_footer ?? false)
                                 <span class="text-green-600 dark:text-green-400">{{ __('Yes') }}</span>
@@ -141,7 +149,7 @@
 
                 {{-- Page URL Preview --}}
                 <div class="mt-6">
-                    <h4 class="text-lg font-semibold text-gray-700 dark:text-white/90 mb-2">{{ __('Page URL') }}</h4>
+                    <h4 class="text-lg font-semibold text-gray-700 dark:text-white/90 mb-2">{{ __('Page') }} URL:</h4>
                     <div class="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
                         <iconify-icon icon="lucide:external-link" class="text-gray-500"></iconify-icon>
                         <a href="{{ url('/pages/' . $page->slug) }}" target="_blank" 
@@ -153,9 +161,9 @@
 
                 {{-- Created / Updated --}}
                 <div class="mt-6 text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                    <div>{{ __('Created:') }} {{ $page->created_at->format('M d, Y h:i A') }}</div>
+                    <div>{{ __('Created At') }}: {{ $page->created_at->format('M d, Y h:i A') }}</div>
                     @if ($page->created_at != $page->updated_at)
-                        <div>{{ __('Updated:') }} {{ $page->updated_at->format('M d, Y h:i A') }}</div>
+                        <div>{{ __('Updated At') }} : {{ $page->updated_at->format('M d, Y h:i A') }}</div>
                     @endif
                 </div>
             </div>
