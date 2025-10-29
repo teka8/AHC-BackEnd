@@ -713,15 +713,12 @@
     "Are you sure you want to delete this document? This action cannot be undone.": "ይህን ሰነድ ለማጥፋት እርግጠኛ ነዎት? ይህ እርምጃ አይመለስም።",
     "Upload Other Documents to Repository": "ሌሎች ሰነዶች ወደ ሰነድ ማከማቻ ጫን",
     "Presentation": "የተዘጋጀ ማቅረብ",
-<<<<<<< HEAD
     "Edit Other Resource": "ሌሎች መርጃዎች አርም",
     "View all": "ሁሉንም ይመልከቱ",
     "Event Timeline": "የዝግጅቶች ጊዜ መስመር",
     "Live": "ታተመ",
     "Done": "ተከናውኗል",
-    "Access Control": "የመዳረሻ መቆጣጠሪያ"
-=======
+    "Access Control": "የመዳረሻ መቆጣጠሪያ",
     "Edit Other Resource": "ሌሎች መርጃዎች አርም"
 
->>>>>>> 22d0ddef23cda7eb98e4c253224f1a73ec233eb8
 }
