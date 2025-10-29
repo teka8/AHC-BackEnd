@@ -196,6 +196,27 @@ class PageDatatable extends Datatable
         if ($page->is_custom_section) {
             $section .= ' <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(' . __('Custom') . ')</span>';
         }
+        elseif($page->section === 'about') {
+            $section .= ' <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(' . __('About Us') . ')</span>';
+        }
+        elseif($page->section == 'terms') {
+            $section .= ' <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(' . __('Terms & Conditions') . ')</span>';
+        }
+        elseif($page->section == 'privacy') {
+            $section .= ' <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(' . __('Privacy Policy') . ')</span>';
+        }
+        elseif($page->section == 'contact') {
+            $section .= ' <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(' . __('Contact Information') . ')</span>';
+        }
+        elseif($page->section == 'faq') {
+            $section .= ' <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(' . __('FAQ') . ')</span>';
+        }
+        elseif($page->section == 'shipping') {
+            $section .= ' <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(' . __('Shipping Policy') . ')</span>';
+        }
+        elseif($page->section == 'returns') {
+            $section .= ' <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(' . __('Return Policy') . ')</span>';
+        }
         return $section;
     }
 
@@ -209,11 +230,19 @@ class PageDatatable extends Datatable
         $class = match ($page->status) {
             'published' => 'badge badge-success',
             'draft' => 'badge badge-info',
-            'archived' => 'badge badge-secondary',
+            'archived' => 'badge badge-warning',
             default => 'badge badge-light',
         };
 
-        return "<span class='{$class}'>" . ucfirst($page->status) . "</span>";
+        if ($page->status === 'published') {
+            return "<span class='{$class}'>" . __('Published') . "</span>";
+        } elseif ($page->status === 'draft') {
+            return "<span class='{$class}'>" . __('Draft') . "</span>";
+        } elseif ($page->status === 'archived') {
+            return "<span class='{$class}'>" . __('Archived') . "</span>";
+        } else {
+            return "<span class='{$class}'>" . __('Unknown') . "</span>";
+        }
     }
 
     public function renderNavigationColumn(Page $page): string|Renderable
