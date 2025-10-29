@@ -23,6 +23,12 @@
         // New property for bulk delete loading
         bulkDeleteLoading: false,
 
+        // Pagination properties
+        currentPage: 1,
+        itemsPerPage: 5,
+        allDocuments: [],
+        paginatedDocuments: [],
+
         // Existing methods
         showSingleDeleteModal(id) {
             this.selectedDocuments = [id.toString()];
@@ -160,6 +166,56 @@ async performBulkDelete() {
             } finally {
                 this.changeStatusLoading = false;
             }
+        },
+
+        // Pagination methods
+        initPagination() {
+            this.allDocuments = Array.from(document.querySelectorAll('tbody tr'));
+            this.updatePagination();
+        },
+
+        updatePagination() {
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            const end = start + this.itemsPerPage;
+            
+            this.allDocuments.forEach((row, index) => {
+                if (index >= start && index < end) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        },
+
+        nextPage() {
+            if (this.currentPage < this.totalPages) {
+                this.currentPage++;
+                this.updatePagination();
+            }
+        },
+
+        prevPage() {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+                this.updatePagination();
+            }
+        },
+
+        goToPage(page) {
+            this.currentPage = page;
+            this.updatePagination();
+        },
+
+        get totalPages() {
+            return Math.ceil(this.allDocuments.length / this.itemsPerPage);
+        },
+
+        get startItem() {
+            return (this.currentPage - 1) * this.itemsPerPage + 1;
+        },
+
+        get endItem() {
+            return Math.min(this.currentPage * this.itemsPerPage, this.allDocuments.length);
         }
     }" id="documentManager">
         @if ($errors->any())
@@ -585,9 +641,28 @@ async performBulkDelete() {
                         @endif
                     </div>
 
-                    <!-- Pagination -->
-                    <div class="px-5 py-4">
-                        {{ $documents->links() }}
+                    <!-- JavaScript Pagination -->
+                    <div class="px-5 py-4 border-t border-gray-100 dark:border-gray-800">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-700 dark:text-gray-300">
+                                Showing <span x-text="startItem"></span> to <span x-text="endItem"></span> of <span x-text="allDocuments.length"></span> results
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button @click="prevPage()" :disabled="currentPage === 1" 
+                                        class="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                                    Previous
+                                </button>
+                                <template x-for="page in Array.from({length: totalPages}, (_, i) => i + 1)" :key="page">
+                                    <button @click="goToPage(page)" 
+                                            :class="currentPage === page ? 'bg-brand-500 text-white border-brand-500' : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600'"
+                                            class="px-3 py-1 text-sm border rounded-md" x-text="page"></button>
+                                </template>
+                                <button @click="nextPage()" :disabled="currentPage === totalPages" 
+                                        class="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                                    Next
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -609,6 +684,13 @@ async performBulkDelete() {
 
     @push('scripts')
         <script>
+            // Initialize pagination when page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                const documentManager = Alpine.$data(document.getElementById('documentManager'));
+                if (documentManager) {
+                    documentManager.initPagination();
+                }
+            });
             function incrementDownloadCount(documentId) {
                 // You can make an AJAX call here to increment the download count
                 fetch(`/admin/document/${documentId}/increment-download`, {
@@ -645,7 +727,6 @@ async performBulkDelete() {
             }
 
             // Track download function - Call this when download link is clicked
-            
         </script>
 
         
