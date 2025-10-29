@@ -708,5 +708,7 @@
     "View all": "ሁሉንም ይመልከቱ",
     "Event Timeline": "የዝግጅቶች ጊዜ መስመር",
     "Live": "ታተመ",
-    "Done": "ተከናውኗል"
+    "Done": "ተከናውኗል",
+    "Delete Selected Media": "የተመረጠውን ሚዲያ ሰርዝ",
+    "Are you sure you want to delete the selected media files? This action cannot be undone.": "የተመረጠውን የሚዲያ ፋይሎች ለማስወገድ እርግጠኛ ነዎት? ይህ እርምጃ መልሰው አይቻልም።",
 }
