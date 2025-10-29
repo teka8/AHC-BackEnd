@@ -159,6 +159,9 @@ abstract class Datatable extends Component
         if ($this->getModelNameSingular() === 'Post'){
             return __('Add News');
         }
+        elseif ($this->getModelNameSingular() === 'Page'){
+            return __('New Page');
+        }
         else{
             $name = __('New :model', ['model' => $this->getModelNameSingular()]);
             return __($name);
