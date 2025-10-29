@@ -28,23 +28,23 @@
                     {{-- Author --}}
                     <div class="flex items-center gap-2">
                         <iconify-icon icon="lucide:user" class="text-gray-500"></iconify-icon>
-                        <span class="font-medium">{{ __('Author:') }}</span>
+                        <span class="font-medium">{{ __('Author') }}:</span>
                         <span class="ml-auto text-gray-700 dark:text-white/90">{{ $post->user->full_name ?? '—' }}</span>
                     </div>
 
                     {{-- Status --}}
                     <div class="flex items-center gap-2">
                         <iconify-icon icon="lucide:tag" class="text-gray-500"></iconify-icon>
-                        <span class="font-medium">{{ __('Status:') }}</span>
+                        <span class="font-medium">{{ __('Status') }}:</span>
                         <span class="ml-auto px-2 py-1 text-xs rounded {{ get_post_status_class($post->status) }}">
-                            {{ ucfirst($post->status) }}
+                            {{ ucfirst(__($post->status)) }}
                         </span>
                     </div>
 
                     {{-- Created --}}
                     <div class="flex items-center gap-2">
                         <iconify-icon icon="lucide:calendar" class="text-gray-500"></iconify-icon>
-                        <span class="font-medium">{{ __('Created:') }}</span>
+                        <span class="font-medium">{{ __('Created') }}:</span>
                         <span class="ml-auto text-gray-700 dark:text-white/90">
                             {{ $post->created_at->format('M d, Y h:i A') }}
                         </span>
@@ -54,7 +54,7 @@
                     @if($post->created_at != $post->updated_at)
                         <div class="flex items-center gap-2">
                             <iconify-icon icon="lucide:clock" class="text-gray-500"></iconify-icon>
-                            <span class="font-medium">{{ __('Updated:') }}</span>
+                            <span class="font-medium">{{ __('Updated') }}:</span>
                             <span class="ml-auto text-gray-700 dark:text-white/90">
                                 {{ $post->updated_at->format('M d, Y h:i A') }}
                             </span>
@@ -70,7 +70,7 @@
                             @php $groupedTerms = $post->terms->groupBy('taxonomy'); @endphp
                             @foreach($groupedTerms as $taxonomy => $terms)
                                 <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
-                                    <div class="text-sm text-gray-500">{{ ucfirst($taxonomy) }}</div>
+                                    <div class="text-sm text-gray-500">{{ ucfirst(__($taxonomy)) }}</div>
                                     <div class="mt-1 flex flex-wrap gap-2">
                                         @foreach($terms as $term)
                                             <span class="badge">{{ $term->name }}</span>

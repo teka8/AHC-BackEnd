@@ -179,7 +179,7 @@
                 @endphp
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $colorClass }}">
                     
-                    {{ ucfirst($post->status) }}
+                    {{ ucfirst(__($post->status)) }}
                 </span>
             </div>
         </div>
@@ -195,9 +195,13 @@
                 @php
                     // Define available transitions based on current status
                     $availableActions = $post->getAvailableActions();
+                    $translatedActions = collect($availableActions)->map(function ($action) {
+                        $action['label'] = __($action['label']); // Translate the label
+                        return $action;
+                    })->toArray();
                 @endphp
 
-                @foreach($availableActions as $action => $config)
+                @foreach($translatedActions as $action => $config)
                     <button type="button"
                             onclick="changeNewsStatus({{ $post->id }}, '{{ $action }}')"
                             class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
@@ -261,10 +265,10 @@
                     </div>
                 </div>
                 <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    <span>Draft</span>
-                    <span>Review</span>
-                    <span>Approved</span>
-                    <span>Published</span>
+                    <span>{{__("Draft")}}</span>
+                    <span>{{__("Review")}}</span>
+                    <span>{{__("Approved")}}</span>
+                    <span>{{__("Published")}}</span>
                 </div>
             </div>
             @endif
