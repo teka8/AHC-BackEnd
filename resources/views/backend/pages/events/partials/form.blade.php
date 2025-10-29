@@ -35,7 +35,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        {{   __('Event Title') }} <span class="text-red-500">*</span>
+                                        {{   __('Event Name') }} <span class="text-red-500">*</span>
                                     </label>
                                     <input 
                                         type="text" 
@@ -57,13 +57,13 @@
                                         id="category" 
                                         class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('category') border-red-500 @enderror"
                                     >
-                                        <option value="">— Select —</option>
-                                        <option value="lectures" {{ old('category', $event->category ?? '') === 'lectures' ? 'selected' : '' }}>Lectures</option>
-                                        <option value="festivals" {{ old('category', $event->category ?? '') === 'festivals' ? 'selected' : '' }}>Festivals</option>
-                                        <option value="seminars" {{ old('category', $event->category ?? '') === 'seminars' ? 'selected' : '' }}>Seminars</option>
-                                        <option value="anniversary" {{ old('category', $event->category ?? '') === 'anniversary' ? 'selected' : '' }}>Anniversary</option>
-                                        <option value="hackathon" {{ old('category', $event->category ?? '') === 'hackathon' ? 'selected' : '' }}>Hackathon</option>
-                                        <option value="custom" {{ !in_array(old('category', $event->category ?? ''), ['lectures','festivals','seminars','anniversary','hackathon','']) ? 'selected' : '' }}>Custom</option>
+                                        <option value="">— {{__("Select")}} —</option>
+                                        <option value="lectures" {{ old('category', $event->category ?? '') === 'lectures' ? 'selected' : '' }}>{{__("Lectures")}}</option>
+                                        <option value="festivals" {{ old('category', $event->category ?? '') === 'festivals' ? 'selected' : '' }}>{{__("Festivals")}}</option>
+                                        <option value="seminars" {{ old('category', $event->category ?? '') === 'seminars' ? 'selected' : '' }}>{{__("Seminars")}}</option>
+                                        <option value="anniversary" {{ old('category', $event->category ?? '') === 'anniversary' ? 'selected' : '' }}>{{__("Anniversary")}}</option>
+                                        <option value="hackathon" {{ old('category', $event->category ?? '') === 'hackathon' ? 'selected' : '' }}>{{__("Hackathon")}}</option>
+                                        <option value="custom" {{ !in_array(old('category', $event->category ?? ''), ['lectures','festivals','seminars','anniversary','hackathon','']) ? 'selected' : '' }}>{{__("Custom")}}</option>
                                     </select>
                                 </div>
                             </div>
@@ -279,7 +279,7 @@
                                         name="event_type" 
                                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white dark:border-gray-700 dark:bg-gray-900"
                                     >
-                                        <option value="">— Select —</option>
+                                        <option value="event_type_Select">— {{ __('Select')}} —</option>
                                         <option value="virtual" {{ old('event_type', $event->event_type ?? '') === 'virtual' ? 'selected' : '' }}>{{ __('Virtual (Online)') }}</option>
                                         <option value="in-person" {{ old('event_type', $event->event_type ?? '') === 'in-person' ? 'selected' : '' }}>{{ __('In-Person') }}</option>
                                     </select>
@@ -1009,7 +1009,7 @@
         const locationFields = document.getElementById('location-fields');
         
         function toggleLocationFields() {
-            if (eventTypeSelect.value === 'virtual') {
+            if (eventTypeSelect.value === 'virtual' || eventTypeSelect.value === 'event_type_Select') {
                 locationFields.style.display = 'none';
             } else {
                 locationFields.style.display = 'block';

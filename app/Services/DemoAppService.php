@@ -20,7 +20,7 @@ class DemoAppService
 
     public function getDemoAppUrl(): string
     {
-        return env('DEMO_APP_URL', 'https://demo.laradashboard.com');
+        return env('DEMO_APP_URL', 'https://demo.ahcdashboard.com');
     }
 
     public function maybeSetDemoLocaleToEnByDefault(): void

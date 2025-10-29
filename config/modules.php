@@ -255,10 +255,10 @@ return [
     |
     */
     'composer' => [
-        'vendor' => env('MODULE_VENDOR', 'laradashboard'),
+        'vendor' => env('MODULE_VENDOR', 'ahcdashboard'),
         'author' => [
-            'name' => env('MODULE_AUTHOR_NAME', 'LaraDashboard'),
-            'email' => env('MODULE_AUTHOR_EMAIL', 'admin@laradashboard.com'),
+            'name' => env('MODULE_AUTHOR_NAME', 'AHCDashboard'),
+            'email' => env('MODULE_AUTHOR_EMAIL', 'admin@ahcdashboard.com'),
         ],
         'composer-output' => false,
     ],

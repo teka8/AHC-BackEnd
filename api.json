@@ -1,13 +1,13 @@
 {
     "openapi": "3.1.0",
     "info": {
-        "title": "Lara Dashboard API Documentation",
+        "title": "AHC Dashboard API Documentation",
         "version": "1.0.0",
-        "description": "Lara Dashboard API - A comprehensive Laravel CMS API with User Management, Content Management, Role & Permission system, and more."
+        "description": "AHC Dashboard API - A comprehensive Laravel CMS API with User Management, Content Management, Role & Permission system, and more."
     },
     "servers": [
         {
-            "url": "https://demo.laradashboard.com/api"
+            "url": "https://demo.ahcdashboard.com/api"
         }
     ],
     "paths": {

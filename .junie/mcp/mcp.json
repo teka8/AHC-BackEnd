@@ -3,7 +3,7 @@
         "laravel-boost": {
             "command": "php",
             "args": [
-                "/Users/maniruzzamanakash/workspace/laradashboard/artisan",
+                "/Users/maniruzzamanakash/workspace/ahcdashboard/artisan",
                 "boost:mcp"
             ]
         }
