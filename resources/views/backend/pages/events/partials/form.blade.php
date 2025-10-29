@@ -427,7 +427,7 @@
                                     @endphp
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $colorClass }}">
                                     
-                                        {{ ucfirst(str_replace('_', ' ', $event->status)) }}
+                                        {{ ucfirst(str_replace('_', ' ', __($event->status))) }}
                                     </span>
                                 </div>
                             </div>
@@ -443,9 +443,13 @@
                                     @php
                                         // Define available transitions based on current status
                                         $availableActions = $event->getAvailableActions();
+                                        $translatedActions = collect($availableActions)->map(function ($action) {
+                                            $action['label'] = __($action['label']); // Translate the label
+                                            return $action;
+                                        })->toArray();
                                     @endphp
 
-                                    @foreach($availableActions as $action => $config)
+                                    @foreach($translatedActions as $action => $config)
                                         <button type="button"
                                                 onclick="changeEventStatus({{ $event->id }}, '{{ $action }}')"
                                                 class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
@@ -504,14 +508,13 @@
                                     <!-- Event Date Information -->
                                     @if($event->event_date)
                                     <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                        <iconify-icon icon="lucide:calendar" class="w-4 h-4 mr-2 text-green-500"></iconify-icon>
                                         <span>
                                             @if($event->status === 'published')
+                                                <iconify-icon icon="lucide:calendar" class="w-4 h-4 mr-2 text-green-500"></iconify-icon>
                                                 {{ __('Event scheduled for: ') . $event->event_date->format('M d, Y g:i A') }}
                                             @elseif($event->status === 'completed')
-                                                {{ __('Event was held on: ') . $event->event_date->format('M d, Y g:i A') }}
-                                            @else
-                                                {{ __('Scheduled for: ') . $event->event_date->format('M d, Y g:i A') }}
+                                                <iconify-icon icon="lucide:calendar" class="w-4 h-4 mr-2 text-green-500"></iconify-icon>
+                                                {{ __('Event was held on: ') . $event->event_date->format('M d, Y g:i A') }} 
                                             @endif
                                         </span>
                                     </div>
