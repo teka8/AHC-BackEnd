@@ -163,7 +163,8 @@ abstract class Datatable extends Component
             return __('New Page');
         }
         else{
-            return __('New :model', ['model' => $this->getModelNameSingular()]);
+            $name = __('New :model', ['model' => $this->getModelNameSingular()]);
+            return __($name);
         }
     }
 

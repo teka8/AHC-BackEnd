@@ -6,7 +6,7 @@
             this.updateBg();
             const observer = new MutationObserver(() => this.updateBg());
             observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    
+
             // Check if sidebarToggle value is present in localStorage and use it
             if (localStorage.getItem('sidebarToggle')) {
                 sidebarToggle = JSON.parse(localStorage.getItem('sidebarToggle'));
@@ -27,10 +27,10 @@
         <a href="{{ route('admin.dashboard') }}">
             <span class="logo transition-opacity duration-300"
                 :class="sidebarToggle && !isHovered ? 'hidden opacity-0' : 'opacity-100'">
-                <img class="dark:hidden max-h-[80px]"
+                <img class="dark:hidden h-[56px] w-auto object-contain"
                     src="{{ config('settings.site_logo_lite') ?? asset('images/logo/logo_light.png') }}"
                     alt="{{ config('app.name') }}" />
-                <img class="hidden dark:block max-h-[80px]"
+                <img class="hidden dark:block h-[56px] w-auto object-contain"
                     src="{{ config('settings.site_logo_dark') ?? '/images/logo/logo_dark.png' }}"
                     alt="{{ config('app.name') }}" />
             </span>

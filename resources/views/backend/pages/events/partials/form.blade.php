@@ -35,7 +35,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        {{   __('Event Title') }} <span class="text-red-500">*</span>
+                                        {{   __('Event Name') }} <span class="text-red-500">*</span>
                                     </label>
                                     <input 
                                         type="text" 
@@ -57,13 +57,13 @@
                                         id="category" 
                                         class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('category') border-red-500 @enderror"
                                     >
-                                        <option value="">— Select —</option>
-                                        <option value="lectures" {{ old('category', $event->category ?? '') === 'lectures' ? 'selected' : '' }}>Lectures</option>
-                                        <option value="festivals" {{ old('category', $event->category ?? '') === 'festivals' ? 'selected' : '' }}>Festivals</option>
-                                        <option value="seminars" {{ old('category', $event->category ?? '') === 'seminars' ? 'selected' : '' }}>Seminars</option>
-                                        <option value="anniversary" {{ old('category', $event->category ?? '') === 'anniversary' ? 'selected' : '' }}>Anniversary</option>
-                                        <option value="hackathon" {{ old('category', $event->category ?? '') === 'hackathon' ? 'selected' : '' }}>Hackathon</option>
-                                        <option value="custom" {{ !in_array(old('category', $event->category ?? ''), ['lectures','festivals','seminars','anniversary','hackathon','']) ? 'selected' : '' }}>Custom</option>
+                                        <option value="">— {{__("Select")}} —</option>
+                                        <option value="lectures" {{ old('category', $event->category ?? '') === 'lectures' ? 'selected' : '' }}>{{__("Lectures")}}</option>
+                                        <option value="festivals" {{ old('category', $event->category ?? '') === 'festivals' ? 'selected' : '' }}>{{__("Festivals")}}</option>
+                                        <option value="seminars" {{ old('category', $event->category ?? '') === 'seminars' ? 'selected' : '' }}>{{__("Seminars")}}</option>
+                                        <option value="anniversary" {{ old('category', $event->category ?? '') === 'anniversary' ? 'selected' : '' }}>{{__("Anniversary")}}</option>
+                                        <option value="hackathon" {{ old('category', $event->category ?? '') === 'hackathon' ? 'selected' : '' }}>{{__("Hackathon")}}</option>
+                                        <option value="custom" {{ !in_array(old('category', $event->category ?? ''), ['lectures','festivals','seminars','anniversary','hackathon','']) ? 'selected' : '' }}>{{__("Custom")}}</option>
                                     </select>
                                 </div>
                             </div>
@@ -279,12 +279,12 @@
                                         name="event_type" 
                                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white dark:border-gray-700 dark:bg-gray-900"
                                     >
-                                        <option value="">— Select —</option>
+                                        <option value="event_type_Select">— {{ __('Select')}} —</option>
                                         <option value="virtual" {{ old('event_type', $event->event_type ?? '') === 'virtual' ? 'selected' : '' }}>{{ __('Virtual (Online)') }}</option>
                                         <option value="in-person" {{ old('event_type', $event->event_type ?? '') === 'in-person' ? 'selected' : '' }}>{{ __('In-Person') }}</option>
                                     </select>
                                     @error('event_type')
-                                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                                        <p class="text-sm text-red-600 mt-1">{{ __($message) }}</p>
                                     @enderror
                                 </div>
 
@@ -294,7 +294,7 @@
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
                                             </svg>
-                                            Location
+                                            {{__("Location")}}
                                         </label>
                                         <input 
                                             type="text" 
@@ -338,11 +338,10 @@
                                         id="target_audience" 
                                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white dark:border-gray-700 dark:bg-gray-900"
                                     >
-                                        <option value="">— Select —</option>
+                                        <option value="">— {{__("Select")}} —</option>
                                         <option value="public" {{ old('target_audience', $event->target_audience ?? '') === 'public' ? 'selected' : '' }}>{{ __('Public') }}</option>
                                         <option value="for_students" {{ old('target_audience', $event->target_audience ?? '') === 'for_students' ? 'selected' : '' }}>{{ __('Students') }}</option>
                                         <option value="for_staff" {{ old('target_audience', $event->target_audience ?? '') === 'for_staff' ? 'selected' : '' }}>{{ __('Staff') }}</option>
-                                        <option value="for_employees" {{ old('target_audience', $event->target_audience ?? '') === 'for_employees' ? 'selected' : '' }}>{{ __('Employees') }}</option>
                                         <option value="for_alumni" {{ old('target_audience', $event->target_audience ?? '') === 'for_alumni' ? 'selected' : '' }}>{{ __('Alumni') }}</option>
                                         <option value="custom" {{ !in_array(old('target_audience', $event->target_audience ?? ''), ['public', 'for_students', 'for_staff', 'for_employees', 'for_alumni', '']) ? 'selected' : '' }}>{{ __('Custom') }}</option>
                                     </select>
@@ -428,7 +427,7 @@
                                     @endphp
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $colorClass }}">
                                     
-                                        {{ ucfirst(str_replace('_', ' ', $event->status)) }}
+                                        {{ ucfirst(str_replace('_', ' ', __($event->status))) }}
                                     </span>
                                 </div>
                             </div>
@@ -444,9 +443,13 @@
                                     @php
                                         // Define available transitions based on current status
                                         $availableActions = $event->getAvailableActions();
+                                        $translatedActions = collect($availableActions)->map(function ($action) {
+                                            $action['label'] = __($action['label']); // Translate the label
+                                            return $action;
+                                        })->toArray();
                                     @endphp
 
-                                    @foreach($availableActions as $action => $config)
+                                    @foreach($translatedActions as $action => $config)
                                         <button type="button"
                                                 onclick="changeEventStatus({{ $event->id }}, '{{ $action }}')"
                                                 class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
@@ -505,14 +508,13 @@
                                     <!-- Event Date Information -->
                                     @if($event->event_date)
                                     <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                        <iconify-icon icon="lucide:calendar" class="w-4 h-4 mr-2 text-green-500"></iconify-icon>
                                         <span>
                                             @if($event->status === 'published')
+                                                <iconify-icon icon="lucide:calendar" class="w-4 h-4 mr-2 text-green-500"></iconify-icon>
                                                 {{ __('Event scheduled for: ') . $event->event_date->format('M d, Y g:i A') }}
                                             @elseif($event->status === 'completed')
-                                                {{ __('Event was held on: ') . $event->event_date->format('M d, Y g:i A') }}
-                                            @else
-                                                {{ __('Scheduled for: ') . $event->event_date->format('M d, Y g:i A') }}
+                                                <iconify-icon icon="lucide:calendar" class="w-4 h-4 mr-2 text-green-500"></iconify-icon>
+                                                {{ __('Event was held on: ') . $event->event_date->format('M d, Y g:i A') }} 
                                             @endif
                                         </span>
                                     </div>
@@ -765,7 +767,7 @@
                             </div>
 
                             <div id="cost-amount-field" class="space-y-2 mt-4 hidden">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">{{ __('Cost Amount (ETB)') }}</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">{{ __('Cost Amount') }} (ETB)</label>
                                 <input 
                                     type="number" 
                                     name="cost_amount" 
@@ -1009,7 +1011,7 @@
         const locationFields = document.getElementById('location-fields');
         
         function toggleLocationFields() {
-            if (eventTypeSelect.value === 'virtual') {
+            if (eventTypeSelect.value === 'virtual' || eventTypeSelect.value === 'event_type_Select') {
                 locationFields.style.display = 'none';
             } else {
                 locationFields.style.display = 'block';

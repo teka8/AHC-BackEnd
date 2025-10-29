@@ -80,7 +80,7 @@ class EventDatatable extends Datatable
                 'icon' => 'lucide:filter',
                 'allLabel' => __('All Types'),
                 'options' => [
-                    'in-person' => __('In person'),
+                    'in-person' => __('In-Person'),
                     'virtual' => __('Virtual'),
                 ],
                 'selected' => $this->event_type,
@@ -207,7 +207,8 @@ class EventDatatable extends Datatable
 
     public function renderEventTypeColumn(Event $event): string|Renderable
     {
-        return e(ucfirst($event->event_type ?? __('N/A')));
+        $event_type = __($event->event_type);
+        return e(ucfirst(__($event_type) ?? __('N/A')));
     }
 
     public function renderEventDateColumn(Event $event): string|Renderable
@@ -218,15 +219,19 @@ class EventDatatable extends Datatable
     public function renderStatusColumn(Event $event): string|Renderable
     {
         $class = match ($event->status) {
-            'upcoming' => 'badge badge-info',
-            'ongoing' => 'badge badge-success',
+            'draft' => 'badge badge-info',
+            'published' => 'badge badge-success',
             'completed' => 'badge badge-secondary',
             'cancelled' => 'badge badge-danger',
             default => 'badge badge-light',
         };
 
-        return "<span class='{$class}'>" . ucfirst($event->status) . "</span>";
+        // JSON translation — just pass the raw string
+        $status = __($event->status);
+
+        return "<span class='{$class}'>" . e(ucfirst($status)) . "</span>";
     }
+
 
     public function renderLocationColumn(Event $event): string|Renderable
     {

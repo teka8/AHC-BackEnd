@@ -76,6 +76,12 @@ class PostDatatable extends Datatable
     {
         $postTypeModel = $this->getPostTypeModelProperty();
         $filters = [];
+        
+        $statuses = Post::getPostStatuses();
+
+        $translatedStatuses = collect($statuses)->mapWithKeys(function ($value, $key) {
+            return [$key => __(strval($value))];
+        })->toArray();
 
         $filters[] = [
             'id' => 'status',
@@ -83,7 +89,7 @@ class PostDatatable extends Datatable
             'filterLabel' => __('Status'),
             'icon' => 'lucide:filter',
             'allLabel' => __('All Statuses'),
-            'options' => Post::getPostStatuses(),
+            'options' => $translatedStatuses,
             'selected' => $this->status,
         ];
 
@@ -248,7 +254,8 @@ class PostDatatable extends Datatable
 
     public function renderStatusColumn(Post $post): string|Renderable
     {
-        $html = "<span class='" . get_post_status_class($post->status) . "'>" . ucfirst($post->status) . "</span>";
+        $status = $post->status;
+        $html = "<span class='" . get_post_status_class($post->status) . "'>" . ucfirst(__($status)) . "</span>";
 
         if ($post->status === PostStatus::SCHEDULED->value && ! empty($post->published_at)) {
             $html .= "<br><small class='text-xs text-gray-500 mt-1'>" . __('(Scheduled for :date)', ['date' => $post->published_at->format('M d, Y h:i A')]) . "</small>";

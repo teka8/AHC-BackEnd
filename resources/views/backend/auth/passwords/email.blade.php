@@ -52,7 +52,11 @@
                 <x-recaptcha page="forgot_password" />
 
                 <div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center">
+                    <button type="submit"
+                                                    class="w-full btn-primary"
+
+                        
+                        >
                         {{ __('Send Reset Link') }}
                         <iconify-icon icon="lucide:mail" class="ml-2"></iconify-icon>
                     </button>
