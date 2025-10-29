@@ -99,8 +99,8 @@
     "Missing": "",
     "Modules": "",
     "More": "ተጨማሪ",
-    "Monitoring": "",
-    "Action Logs": "",
+    "Monitoring": "ተቆጣጠር",
+    "Action Logs": "የድርጊት ምዝግብ ማስታወሻዎች",
     "Home": "ቤት",
     "Laravel Pulse": "",
     "Last 12 months": "",
@@ -129,7 +129,7 @@
     "New Users (last 30 days)": "",
     "Password": "የይለፍ ቃል",
     "Paste your Google Analytics script here": "",
-    "Permissions": "",
+    "Permissions": "ፈቃዶች",
     "Profile": "መገለጫ",
     "Remember Me": "አስታውሰኝ",
     "remember": "አስታውሰኝ",
@@ -183,7 +183,7 @@
     "Translated": "",
     "Translation Management": "",
     "Translation Group": "",
-    "Translations": "",
+    "Translations": "ትርጉሞች",
     "Theme Primary Color": "",
     "Theme Secondary Color": "",
     "Update": "አዘምን",
@@ -617,5 +617,6 @@
     "View all": "ሁሉንም ይመልከቱ",
     "Event Timeline": "የዝግጅቶች ጊዜ መስመር",
     "Live": "ታተመ",
-    "Done": "ተከናውኗል"
+    "Done": "ተከናውኗል",
+    "Access Control": "የመዳረሻ መቆጣጠሪያ"
 }
