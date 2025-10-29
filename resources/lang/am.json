@@ -713,5 +713,11 @@
     "Are you sure you want to delete the selected media files?": "የተመረጠውን የሚዲያ ፋይሎች ለማስወገድ እርግጠኛ ነዎት?",
     "This action cannot be undone.": "ይህን እርምጃ መመለስ አይቻልም።",
     "Upload Media": "ሚዲያ ጫን",
-    "Are you sure you want to delete the selected files? This action cannot be undone.": "የተመረጡትን ፋይሎች ለማስወገድ እርግጠኛ ነዎት? ይህን እርምጃ መመለስ አይቻልም።"
+    "Are you sure you want to delete the selected files? This action cannot be undone.": "የተመረጡትን ፋይሎች ለማስወገድ እርግጠኛ ነዎት? ይህን እርምጃ መመለስ አይቻልም።",
+    "Total Files": "ጠቅላላ ፋይሎች",
+    "Images": "ምስሎች",
+    "Videos": "ቪዲዮዎች",
+    "Audio": "ድምጾች",
+    "Documents": "ሰነዶች",
+    "Storage Used": "የተጠቀሰ ማከማቻ"
 }
