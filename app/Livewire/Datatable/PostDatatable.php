@@ -76,6 +76,12 @@ class PostDatatable extends Datatable
     {
         $postTypeModel = $this->getPostTypeModelProperty();
         $filters = [];
+        
+        $statuses = Post::getPostStatuses();
+
+        $translatedStatuses = collect($statuses)->mapWithKeys(function ($value, $key) {
+            return [$key => __(strval($value))];
+        })->toArray();
 
         $filters[] = [
             'id' => 'status',
@@ -83,7 +89,7 @@ class PostDatatable extends Datatable
             'filterLabel' => __('Status'),
             'icon' => 'lucide:filter',
             'allLabel' => __('All Statuses'),
-            'options' => Post::getPostStatuses(),
+            'options' => $translatedStatuses,
             'selected' => $this->status,
         ];
 

@@ -29,7 +29,7 @@
                     {{-- Event Date --}}
                     <div class="flex items-center gap-2">
                         <iconify-icon icon="lucide:calendar" class="text-gray-500"></iconify-icon>
-                        <span class="font-medium">{{ __('Event Date:') }}</span>
+                        <span class="font-medium">{{ __('Event Date') }}:</span>
                         <span class="ml-auto text-gray-700 dark:text-white/90">
                             {{ $event->event_date ? $event->event_date->format('M d, Y') : '—' }}
                         </span>
@@ -38,7 +38,7 @@
                     {{-- Event Time --}}
                     <div class="flex items-center gap-2">
                         <iconify-icon icon="lucide:clock" class="text-gray-500"></iconify-icon>
-                        <span class="font-medium">{{ __('Time:') }}</span>
+                        <span class="font-medium">{{ __('Time') }}:</span>
                         <span class="ml-auto text-gray-700 dark:text-white/90">
                             @if ($event->start_time)
                                 {{ \Carbon\Carbon::createFromFormat('H:i:s', $event->start_time)->format('h:i A') }}
@@ -54,10 +54,10 @@
                     {{-- Status --}}
                     <div class="flex items-center gap-2">
                         <iconify-icon icon="lucide:tag" class="text-gray-500"></iconify-icon>
-                        <span class="font-medium">{{ __('Status:') }}</span>
+                        <span class="font-medium">{{ __('Status') }}:</span>
                         <span
                             class="ml-auto px-2 py-1 text-xs rounded {{ function_exists('get_post_status_class') ? get_post_status_class($event->status) : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white' }}">
-                            {{ ucfirst($event->status ?? '—') }}
+                            {{ ucfirst(__($event->status) ?? '—') }}
                         </span>
                     </div>
 
@@ -65,7 +65,7 @@
                     @if($event->register_on_site == 0)
                         <div class="flex items-center gap-2">
                             <iconify-icon icon="lucide:link" class="text-gray-500"></iconify-icon>
-                            <span class="font-medium">{{ __('Registration Link:') }}</span>
+                            <span class="font-medium">{{ __('Registration Link') }}:</span>
                             @if ($event->registration_link)
                                 <a href="{{ $event->registration_link }}" target="_blank"
                                     class="ml-auto text-primary hover:underline">
@@ -82,23 +82,23 @@
                 <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
                         <div class="text-sm text-gray-500">{{ __('Category') }}</div>
-                        <div class="font-medium text-gray-800 dark:text-white mt-1">{{ $event->category ?? '—' }}</div>
+                        <div class="font-medium text-gray-800 dark:text-white mt-1">{{ __($event->category) ?? '—' }}</div>
                     </div>
                     <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
-                        <div class="text-sm text-gray-500">{{ __('Type') }}</div>
+                        <div class="text-sm text-gray-500">{{ __('Event Type') }}</div>
                         <div class="font-medium text-gray-800 dark:text-white mt-1">
-                            {{ ucfirst($event->event_type ?? '—') }}</div>
+                            {{ ucfirst(__($event->event_type) ?? '—') }}</div>
                     </div>
                     <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
-                        <div class="text-sm text-gray-500">{{ __('Cost') }}</div>
+                        <div class="text-sm text-gray-500">{{ __('Cost Amount') }}</div>
                         <div class="font-medium text-gray-800 dark:text-white mt-1">
-                            {{ (float) $event->cost_amount !== 0.0 ? number_format($event->cost_amount, 2) . ' ETB' : __('Free') }}
+                            {{ (float) $event->cost_amount !== 0.0 ? number_format($event->cost_amount, 2) . ' ETB' : __('Free Event') }}
                         </div>
                     </div>
                     <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded shadow-sm">
                         <div class="text-sm text-gray-500">{{ __('Target Audience') }}</div>
                         <div class="font-medium text-gray-800 dark:text-white mt-1">
-                            {{ $event->target_audience ?? '—' }}
+                            {{ __($event->target_audience) ?? '—' }}
                         </div>
                     </div>
                 </div>
@@ -108,7 +108,7 @@
                     <div class="mt-6 text-sm text-gray-700 dark:text-white/90">
                         <div class="flex items-center gap-2">
                             <iconify-icon icon="lucide:map-pin" class="text-gray-500"></iconify-icon>
-                            <span class="font-medium">{{ __('Location:') }}</span>
+                            <span class="font-medium">{{ __('Location') }}:</span>
                             <span class="ml-1">{{ $event->location ?? '—' }}</span>
                         </div>
 
