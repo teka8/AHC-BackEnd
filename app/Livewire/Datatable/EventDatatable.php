@@ -80,7 +80,7 @@ class EventDatatable extends Datatable
                 'icon' => 'lucide:filter',
                 'allLabel' => __('All Types'),
                 'options' => [
-                    'in-person' => __('In person'),
+                    'in-person' => __('In-Person'),
                     'virtual' => __('Virtual'),
                 ],
                 'selected' => $this->event_type,
@@ -208,7 +208,7 @@ class EventDatatable extends Datatable
     public function renderEventTypeColumn(Event $event): string|Renderable
     {
         $event_type = __($event->event_type);
-        return e(ucfirst($event_type ?? __('N/A')));
+        return e(ucfirst(__($event_type) ?? __('N/A')));
     }
 
     public function renderEventDateColumn(Event $event): string|Renderable
