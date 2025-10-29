@@ -710,6 +710,8 @@
     "Live": "ታተመ",
     "Done": "ተከናውኗል",
     "Delete Selected Media": "የተመረጠውን ሚዲያ ሰርዝ",
-    "Are you sure you want to delete the selected media files? This action cannot be undone.": "የተመረጠውን የሚዲያ ፋይሎች ለማስወገድ እርግጠኛ ነዎት? ይህ እርምጃ መልሰው አይቻልም።",
-    "Upload Media": "ሚዲያ ጫን"
+    "Are you sure you want to delete the selected media files?": "የተመረጠውን የሚዲያ ፋይሎች ለማስወገድ እርግጠኛ ነዎት?",
+    "This action cannot be undone.": "ይህን እርምጃ መመለስ አይቻልም።",
+    "Upload Media": "ሚዲያ ጫን",
+    "Are you sure you want to delete the selected files? This action cannot be undone.": "የተመረጡትን ፋይሎች ለማስወገድ እርግጠኛ ነዎት? ይህን እርምጃ መመለስ አይቻልም።"
 }
