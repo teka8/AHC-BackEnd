@@ -25,7 +25,7 @@
             const getChartOptions = () => {
                 return {
                     series: [oldUsers, newUsers], // Old Users, New Users
-                    colors: ["#f3f4f6", "#6366f1"], // Slight gray and Indigo
+                    colors: ["#9ca3af", "#6366f1"], // Gray and Indigo
                     chart: {
                         height: 320,
                         width: "100%",

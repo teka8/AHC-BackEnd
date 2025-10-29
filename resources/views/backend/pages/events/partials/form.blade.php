@@ -541,11 +541,11 @@
                                         </div>
                                     </div>
                                     <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        <span class="text-center">Draft</span>
-                                        <span class="text-center">Review</span>
-                                        <span class="text-center">Approved</span>
-                                        <span class="text-center">Live</span>
-                                        <span class="text-center">Done</span>
+                                        <span class="text-center">{{__("Draft")}}</span>
+                                        <span class="text-center">{{__("Review")}}</span>
+                                        <span class="text-center">{{__("Approved")}}</span>
+                                        <span class="text-center">{{__("Live")}}</span>
+                                        <span class="text-center">{{__("Done")}}</span>
                                     </div>
                                 </div>
                                 @endif

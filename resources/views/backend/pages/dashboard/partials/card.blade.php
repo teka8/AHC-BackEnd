@@ -26,7 +26,7 @@
 
         <div class="absolute inset-x-0 bottom-0 bg-gray-50 dark:bg-gray-700 px-4 py-4 sm:px-6">
             <div class="text-sm">
-                <a href="{{ $url ?? '#' }}" class="font-medium flex items-center text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">View all
+                <a href="{{ $url ?? '#' }}" class="font-medium flex items-center text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">{{__("View all")}}
                     <iconify-icon icon="heroicons:arrow-right" class="inline-block ml-1" width="16" height="16"></iconify-icon>
                     <span class="sr-only"> {{ $label }} stats</span></a>
             </div>
