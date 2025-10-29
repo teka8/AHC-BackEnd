@@ -96,7 +96,7 @@
                                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white">
                                 <option value="">{{ __('Select Category') }}</option>
                                 @foreach ($categories as $category)
-                                    <option value="{{ $category->name }}">{{ $category->name }}</option>
+                                    <option value="{{ $category->name }}">{{ __($category->name) }}</option>
                                 @endforeach
                             </select>
                         </div>
