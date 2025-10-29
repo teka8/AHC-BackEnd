@@ -1,418 +1,581 @@
-{!! Hook::applyFilters(PostFilterHook::INSIDE_POST_FORM_START, '') !!}
+{!! Hook::applyFilters('filter.page.form_start', '') !!}
 
-<input type="hidden" name="post_id" value="{{ $post->id ?? '' }}" data-post-id="{{ $post->id ?? '' }}">
-<input type="hidden" name="post_type" value="{{ $postType }}" data-post-type="{{ $postType }}">
+<input type="hidden" name="page_id" value="{{ $page->id ?? '' }}">
 
-<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-    <!-- Main Content Area -->
-    <div class="lg:col-span-3 space-y-6">
-        <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Content Details') }}</h2>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('Enter the main content information') }}
-                </p>
-            </div>
-            <div class="p-6 space-y-6">
-                <!-- Title and Slug with Alpine.js -->
-                <div x-data="slugGenerator('{{ old('title', $post->title ?? '') }}', '{{ old('slug', $post->slug ?? '') }}')">
-                    <!-- Title -->
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                            <label for="title"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Title') }}</label>
-                            @can('ai_content.generate')
-                                <div x-data="{ aiModalOpen: false }">
-                                    @include('backend.pages.posts.partials.ai-content-generator')
-                                </div>
-                            @endcan
-                        </div>
-                        <input type="text" name="title" id="title" required x-model="title" maxlength="255"
-                            class="form-control">
-                    </div>
-                    {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_TITLE, '') !!}
-
-                    <!-- Compact Slug UI -->
-                    <div class="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-300">
-                        <span class="mr-1">{{ __('Permalink') }}:</span>
-                        <span class="flex-1 truncate" x-show="!showSlugEdit">
-                            <span class="text-gray-400">{{ url('/') }}/</span><span
-                                class="font-medium text-primary" x-text="slug || '{{ __('auto-generated') }}'"></span>
-                        </span>
-                        <div class="flex-1" x-show="showSlugEdit">
-                            <input type="text" name="slug" id="slug" x-model="slug" maxlength="200"
-                                class="h-7 w-full rounded border border-gray-300 bg-transparent px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-                                placeholder="{{ __('Leave empty to auto-generate') }}">
-                        </div>
-                        <div class="ml-2 flex space-x-1">
-                            <!-- Edit/Save Button -->
-                            <button type="button" @click="toggleSlugEdit()"
-                                class="text-xs text-primary hover:underline">
-                                <span x-show="!showSlugEdit">{{ __('Edit') }}</span>
-                                <span x-show="showSlugEdit">{{ __('OK') }}</span>
-                            </button>
-                            <!-- Generate Button -->
-                            <button type="button" @click="generateSlug()"
-                                class="text-xs text-primary hover:underline ml-2">
-                                {{ __('Generate') }}
-                            </button>
-                        </div>
-                    </div>
-                    {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_SLUG, '') !!}
-                </div>
-
-                @if ($postTypeModel->supports_editor)
-                    <div class="space-y-1">
-                        <label for="content"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Content') }}</label>
-                        <textarea name="content" id="content" rows="10">{!! old('content', $post->content ?? '') !!}</textarea>
-                    </div>
-                @endif
-                @if ($postTypeModel->supports_editor)
-                    @role('News Admin')
-                        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
-                            <h4 class="text-sm font-medium text-gray-900 dark:text-white">{{ __('Admin Controls') }}</h4>
-                            <div class="flex items-center gap-3">
-                                <input name="status" type="checkbox" id="status"
-                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    @if (!empty($post) && $post->status === 'approved') checked disabled @endif />
-                                <label for="status"
-                                    class="text-sm text-gray-700 dark:text-gray-300">{{ __('Approved') }}</label>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <input name="status" type="checkbox"
-                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    @if (!empty($post) && $post->status === 'approved') disabled @endif value="created" />
-                                <label for="status"
-                                    class="text-sm text-gray-700 dark:text-gray-300">{{ __('Change Status to Editable') }}</label>
-                            </div>
-                        </div>
-                    @endrole
-                @endif
-                {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_CONTENT, '') !!}
-
-                @if ($postTypeModel->supports_excerpt)
-                    <div class="space-y-1">
-                        <label for="excerpt"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Excerpt') }}</label>
-                        <textarea name="excerpt" id="excerpt" rows="3" class="form-control-textarea">{{ old('excerpt', $post->excerpt ?? '') }}</textarea>
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-300">
-                            {{ __('A short summary of the content') }}.
-                            {{ __('Leave empty to auto-generate from content') }}</p>
-                    </div>
-                @endif
-                {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_EXCERPT, '') !!}
-            </div>
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900/50 py-8 px-4">    
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="mb-6">
+            
+            <p class="text-gray-600 dark:text-gray-300">{{ __('Fill in the details to') }} {{ isset($page) ? 'update' : 'create' }} {{ __('your static page') }}</p>
         </div>
 
-        @if ($postTypeModel->supports_thumbnail)
-            <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Media Gallery') }}</h2>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('Upload images for your content') }}
-                    </p>
-                </div>
-                <div class="p-6">
-                    <div x-data="{ files: [], dragOver: false }">
-                        <div @dragover.prevent="dragOver = true" @dragleave.prevent="dragOver = false"
-                            @drop.prevent="dragOver = false; files = [...files, ...$event.dataTransfer.files]"
-                            :class="dragOver ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' :
-                                'border-gray-300 dark:border-gray-600'"
-                            class="border-2 border-dashed rounded-lg p-8 text-center transition-colors">
-                            <div class="space-y-4">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
-                                    viewBox="0 0 48 48">
-                                    <path
-                                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                <div>
-
-
-                                    <x-media-selector name="featured_image" :multiple="false" allowedTypes="images"
-                                        :existingMedia="isset($post) && $post->hasFeaturedImage()
-                                            ? $post->getFeaturedImageUrl()
-                                            : null" :existingAltText="isset($post) ? $post->title : ''" removeCheckboxName="remove_featured_image"
-                                        removeCheckboxLabel="{{ 'Remove featured image' }}" :showPreview="true"
-                                        class="mt-1" />
-
-                                </div>
-                                <p class="text-xs text-gray-500">{{ __('PNG, JPG, GIF up to 10MB each') }}</p>
-                            </div>
-                        </div>
-                        <div x-show="files.length > 0" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <template x-for="(file, index) in files" :key="index">
-                                <div class="relative group">
-                                    <img :src="URL.createObjectURL(file)" :alt="file.name"
-                                        class="w-full h-24 object-cover rounded-lg">
-                                    <button type="button" @click="files.splice(index, 1)"
-                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
-                                        ×
-                                    </button>
-                                    <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg truncate"
-                                        x-text="file.name"></div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
-        {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_FEATURED_IMAGE, '') !!}
-    </div>
-
-    <!-- Sidebar Area -->
-    <div class="lg:col-span-1 space-y-6">
-        <!-- Current Status -->
-        @if (!empty($post))
-    <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <!-- Header with Current Status -->
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Status') }}</h3>
-                @php
-                    $statusColors = [
-                        'published' => 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
-                        'draft' => 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700',
-                        'created' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800',
-                        'edited' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
-                        'approved' => 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
-                        'archived' => 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
-                    ];
-                    $colorClass = $statusColors[$post->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700';
-                @endphp
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $colorClass }}">
-                    
-                    {{ ucfirst($post->status) }}
-                </span>
-            </div>
-        </div>
-
-        <!-- Workflow Actions -->
-        <div class="p-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Quick Actions') }}</span>
-                <iconify-icon icon="lucide:zap" class="text-yellow-500"></iconify-icon>
-            </div>
-
-            <div class="grid grid-cols-1 gap-2">
-                @php
-                    // Define available transitions based on current status
-                    $availableActions = $post->getAvailableActions();
-                @endphp
-
-                @foreach($availableActions as $action => $config)
-                    <button type="button"
-                            onclick="changeNewsStatus({{ $post->id }}, '{{ $action }}')"
-                            class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
-                                   bg-{{ $config['color'] }}-100 text-{{ $config['color'] }}-800 
-                                   hover:bg-{{ $config['color'] }}-200 hover:scale-105
-                                   dark:bg-{{ $config['color'] }}-900/20 dark:text-{{ $config['color'] }}-300 
-                                   dark:hover:bg-{{ $config['color'] }}-900/30
-                                   focus:outline-none focus:ring-2 focus:ring-{{ $config['color'] }}-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-                            title="{{ $config['label'] }}">
-                        <iconify-icon icon="{{ $config['icon'] }}" class="w-4 h-4 mr-2"></iconify-icon>
-                        {{ $config['label'] }}
-                    </button>
-                @endforeach
-
-                @if(empty($availableActions))
-                    <div class="text-center py-3 text-gray-500 dark:text-gray-400">
-                        <iconify-icon icon="lucide:lock" class="w-5 h-5 mx-auto mb-2"></iconify-icon>
-                        <p class="text-sm">{{ __('No actions available for current status') }}</p>
-                    </div>
-                @endif
-            </div>
-
-            <!-- Status Information -->
-            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                    <iconify-icon icon="lucide:info" class="w-4 h-4 mr-2 text-blue-500"></iconify-icon>
-                    <span>
-                        @switch($post->status)
-                            @case('draft')
-                                {{ __('This news is in draft mode and not visible to the public.') }}
-                                @break
-                            @case('under_review')
-                                {{ __('This news is under review by the editorial team.') }}
-                                @break
-                            @case('approved')
-                                {{ __('This news has been approved and is ready for publishing.') }}
-                                @break
-                            @case('published')
-                                {{ __('This news is live and visible to the public.') }}
-                                @break
-                            @case('archived')
-                                {{ __('This news has been archived and is no longer visible.') }}
-                                @break
-                            @default
-                                {{ __('Current status: ') . ucfirst($post->status) }}
-                        @endswitch
-                    </span>
-                </div>
-            </div>
-
-            <!-- Workflow Progress (Optional) -->
-            @if(in_array($post->status, ['draft', 'under_review', 'approved', 'published']))
-            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
-                    <span>{{ __('Publication Progress') }}</span>
-                    <span>{{ round((array_search($post->status, ['draft', 'under_review', 'approved', 'published']) / 3) * 100) }}%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                    <div class="bg-green-600 h-2 rounded-full transition-all duration-500" 
-                         style="width: {{ (array_search($post->status, ['draft', 'under_review', 'approved', 'published']) / 3) * 100 }}%">
-                    </div>
-                </div>
-                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    <span>Draft</span>
-                    <span>Review</span>
-                    <span>Approved</span>
-                    <span>Published</span>
-                </div>
-            </div>
+        <form method="POST" action="{{ isset($page) ? route('admin.pages.update', $page) : route('admin.pages.store') }}" enctype="multipart/form-data">
+            @csrf
+            @if(isset($page))
+                @method('PUT')
             @endif
-        </div>
-    </div>
-@endif
 
-        <!-- Status and Visibility -->
-        <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Publish') }}</h3>
-            </div>
-            <div class="p-6 space-y-4">
-                <!-- Author Info -->
-                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
-                    <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                        {{ __('Author Details') }}
-                    </h4>
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span
-                                class="text-sm font-medium text-gray-900 dark:text-white">{{ auth()->user()->name }}</span>
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <!-- Left Column - Main Form Content -->
+                <div class="xl:col-span-2 space-y-6">
+                    <!-- Basic Information -->
+                    <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">                            
+                            <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                                </svg>
+                                {{ __('Basic Information') }}
+                            </h3>
+                            <p class="text-gray-500 text-sm mt-1 dark:text-gray-400">{{ __('Essential details about your page') }}</p>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-gray-500 dark:text-gray-400">{{ __('Email') }}</span>
-                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ auth()->user()->email }}</span>
-                        </div>
-                        @if (auth()->user()->roles->isNotEmpty())
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ __('Role') }}</span>
-                                <span
-                                    class="text-xs px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 rounded-full">
-                                    {{ auth()->user()->roles->first()->name }}
-                                </span>
+                        <div class="p-6 space-y-4">
+                            <!-- Title and Section in same row -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {{ __('Page Title') }} <span class="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        name="title" 
+                                        value="{{ old('title', $page->title ?? '') }}" 
+                                        placeholder="e.g., About Our Company" 
+                                        class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('title') border-red-500 @enderror"
+                                        required
+                                    >
+                                    @error('title')
+                                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Section') }} <span class="text-red-500">*</span></label>
+                                    <select 
+                                        name="section" 
+                                        id="section" 
+                                        class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('section') border-red-500 @enderror"
+                                    >
+                                        <option value="">— Select —</option>
+                                        <option value="about" {{ old('section', $page->section ?? '') === 'about' ? 'selected' : '' }}>About Us</option>
+                                        <option value="terms" {{ old('section', $page->section ?? '') === 'terms' ? 'selected' : '' }}>Terms & Conditions</option>
+                                        <option value="privacy" {{ old('section', $page->section ?? '') === 'privacy' ? 'selected' : '' }}>Privacy Policy</option>
+                                        <option value="contact" {{ old('section', $page->section ?? '') === 'contact' ? 'selected' : '' }}>Contact Information</option>
+                                        <option value="faq" {{ old('section', $page->section ?? '') === 'faq' ? 'selected' : '' }}>FAQ</option>
+                                        <option value="shipping" {{ old('section', $page->section ?? '') === 'shipping' ? 'selected' : '' }}>Shipping Policy</option>
+                                        <option value="returns" {{ old('section', $page->section ?? '') === 'returns' ? 'selected' : '' }}>Return Policy</option>
+                                        <option value="custom" {{ !in_array(old('section', $page->section ?? ''), ['about','terms','privacy','contact','faq','shipping','returns','']) ? 'selected' : '' }}>Custom</option>
+                                    </select>
+                                </div>
                             </div>
-                        @endif
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-gray-500 dark:text-gray-400">{{ __('Date') }}</span>
-                            <span
-                                class="text-sm text-gray-700 dark:text-gray-300">{{ now()->format('M d, Y') }}</span>
+
+                            <div id="custom-section-field" class="space-y-2 hidden">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Custom Section') }}</label>
+                                <input 
+                                    type="text" 
+                                    id="custom_section"
+                                    name="custom_section" 
+                                    value="{{ !in_array($page->section ?? '', ['about','terms','privacy','contact','faq','shipping','returns','']) ? ($page->section ?? '') : '' }}" 
+                                    placeholder="Add your custom section" 
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                >
+                            </div>
+
+                            <!-- Slug Field -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {{ __('Slug') }} <span class="text-red-500">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    name="slug" 
+                                    value="{{ old('slug', $page->slug ?? '') }}" 
+                                    placeholder="e.g., about-our-company" 
+                                    class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('slug') border-red-500 @enderror"
+                                    required
+                                >
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ __('URL-friendly version of the title. Use lowercase letters, numbers, and hyphens.') }}
+                                </p>
+                                @error('slug')
+                                    <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Content') }}</label>
+                                <p class="text-xs text-gray-500 mb-2 dark:text-gray-400">
+                                    {{ __('Write your page content. Use the toolbar to format text, add images, and create links.') }}
+                                </p>
+                                <textarea 
+                                    name="content" 
+                                    id="content" 
+                                    rows="12" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                >{!! old('content', $page->content ?? '') !!}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    {!! Hook::applyFilters('filter.page.form_after_title', '') !!}
+
+                    <!-- SEO Information -->
+                    <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">                            
+                            <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                                </svg>
+                                {{ __('SEO Optimization') }}
+                            </h3>
+                            <p class="text-gray-500 text-sm mt-1 dark:text-gray-400">{{ __('Improve search engine visibility') }}</p>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Meta Title') }}</label>
+                                <input 
+                                    type="text" 
+                                    name="meta_title" 
+                                    value="{{ old('meta_title', $page->meta_title ?? '') }}" 
+                                    placeholder="e.g., About Our Company - Comprehensive Overview" 
+                                    class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                >
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ __('Recommended: 50-60 characters') }}
+                                </p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Meta Description') }}</label>
+                                <textarea 
+                                    name="meta_description" 
+                                    rows="3" 
+                                    placeholder="Brief description of the page content for search engines..."
+                                    class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                >{{ old('meta_description', $page->meta_description ?? '') }}</textarea>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ __('Recommended: 150-160 characters') }}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- <!-- Status with Combobox -->
-                @php
-                    $statusOptions = Hook::applyFilters(PostFilterHook::POST_STATUS_OPTIONS, [
-                        ['value' => 'draft', 'label' => __('Draft')],
-                        ['value' => 'published', 'label' => __('Published')],
-                        ['value' => 'pending', 'label' => __('Pending Review')],
-                        ['value' => 'scheduled', 'label' => __('Scheduled')],
-                        ['value' => 'private', 'label' => __('Private')],
-                    ]);
-                    $currentStatus = old('status', $post->status ?? App\Enums\PostStatus::DRAFT->value);
-                @endphp
+                <!-- Right Column - Settings and Actions -->
+                <div class="xl:col-span-1 space-y-6">
+                    <!-- Page Status -->
+                    @if (!empty($page))
+                        <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                            <!-- Header with Current Status -->
+                            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Status') }}</h3>
+                                    @php
+                                        $statusColors = [
+                                            'published' => 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
+                                            'draft' => 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700',
+                                            'archived' => 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800',
+                                        ];
+                                        $colorClass = $statusColors[$page->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700';
+                                    @endphp
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $colorClass }}">
+                                        {{ ucfirst($page->status) }}
+                                    </span>
+                                </div>
+                            </div>
 
-                <x-inputs.combobox
-                    name="status"
-                    label="{{ __('Status') }}"
-                    :options="$statusOptions"
-                    :selected="$currentStatus"
-                    :multiple="false"
-                    :searchable="false"
-                    x-model="status"
-                />
+                            <!-- Status Actions -->
+                            <div class="p-6 space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Page Actions') }}</span>
+                                    <iconify-icon icon="lucide:file-text" class="text-blue-500"></iconify-icon>
+                                </div>
 
-                {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_STATUS, '') !!}
+                                <div class="grid grid-cols-1 gap-2">
+                                    @if($page->status === 'draft')
+                                        <button type="button"
+                                                onclick="changePageStatus({{ $page->id }}, 'published', this)"
+                                                class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
+                                                    bg-green-100 text-green-800 
+                                                    hover:bg-green-200 hover:scale-105
+                                                    dark:bg-green-900/20 dark:text-green-300 
+                                                    dark:hover:bg-green-900/30
+                                                    focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                                                title="{{ __('Publish Page') }}">
+                                            <iconify-icon icon="lucide:eye" class="w-4 h-4 mr-2"></iconify-icon>
+                                            {{ __('Publish') }}
+                                        </button>
+                                    @endif
 
-                <!-- Publish Date (for scheduled posts) -->
-                <div x-data="{
-                    showSchedule: {{ isset($post) && (old('status', $post->status) === 'scheduled' || $post->published_at) ? 'true' : 'false' }},
-                    status: '{{ old('status', $post->status ?? App\Enums\PostStatus::DRAFT->value) }}',
-                    init() {
-                        this.$watch('status', value => {
-                            if (value === 'scheduled') {
-                                this.showSchedule = true;
-                            }
-                        });
-                    }
-                }">
-                    <div class="mb-2">
-                        <input type="checkbox" id="schedule_post" name="schedule_post" x-model="showSchedule"
-                            x-on:change="if(showSchedule && status !== 'scheduled') status = 'scheduled'; $dispatch('input', status)"
-                            class="form-checkbox mr-2">
-                        <label for="schedule_post"
-                            class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Schedule this post') }}</label>
+                                    @if($page->status === 'published')
+                                        <button type="button"
+                                                onclick="changePageStatus({{ $page->id }}, 'draft', this)"
+                                                class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
+                                                    bg-gray-100 text-gray-800 
+                                                    hover:bg-gray-200 hover:scale-105
+                                                    dark:bg-gray-900/20 dark:text-gray-300 
+                                                    dark:hover:bg-gray-900/30
+                                                    focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                                                title="{{ __('Unpublish Page') }}">
+                                            <iconify-icon icon="lucide:eye-off" class="w-4 h-4 mr-2"></iconify-icon>
+                                            {{ __('Unpublish') }}
+                                        </button>
+                                    @endif
+
+                                    @if($page->status === 'draft' || $page->status === 'published')
+                                    <button type="button"
+                                            onclick="changePageStatus({{ $page->id }}, 'archived', this)"
+                                            class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
+                                                bg-orange-100 text-orange-800 
+                                                hover:bg-orange-200 hover:scale-105
+                                                dark:bg-orange-900/20 dark:text-orange-300 
+                                                dark:hover:bg-orange-900/30
+                                                focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                                            title="{{ __('Archive Page') }}">
+                                        <iconify-icon icon="lucide:archive" class="w-4 h-4 mr-2"></iconify-icon>
+                                        {{ __('Archive') }}
+                                    </button>
+                                    @endif
+
+                                    @if($page->status === 'archived')
+                                        <button type="button"
+                                                onclick="changePageStatus({{ $page->id }}, 'draft', this)"
+                                                class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border border-transparent transition-all duration-200
+                                                    bg-gray-100 text-gray-800 
+                                                    hover:bg-gray-200 hover:scale-105
+                                                    dark:bg-gray-900/20 dark:text-gray-300 
+                                                    dark:hover:bg-gray-900/30
+                                                    focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                                                title="{{ __('Unpublish Page') }}">
+                                            <iconify-icon icon="lucide:archive-restore" class="w-4 h-4 mr-2"></iconify-icon>
+                                            {{ __('Unarchive') }}
+                                        </button>
+                                    @endif
+                                </div>
+
+                                <!-- Page Status Information -->
+                                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                        <iconify-icon icon="lucide:info" class="w-4 h-4 mr-2 text-blue-500"></iconify-icon>
+                                        <span>
+                                            @switch($page->status)
+                                                @case('draft')
+                                                    {{ __('This page is in draft mode and not visible to the public.') }}
+                                                    @break
+                                                @case('published')
+                                                    {{ __('This page is live and visible to the public.') }}
+                                                    @break
+                                                @case('archived')
+                                                    {{ __('This page has been archived and is no longer visible.') }}
+                                                    @break
+                                                @default
+                                                    {{ __('Current status: ') . ucfirst($page->status) }}
+                                            @endswitch
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Last Updated Information -->
+                                @if($page->updated_at)
+                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-2">
+                                    <iconify-icon icon="lucide:calendar" class="w-4 h-4 mr-2 text-green-500"></iconify-icon>
+                                    <span>
+                                        {{ __('Last updated: ') . $page->updated_at->format('M d, Y g:i A') }}
+                                    </span>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Page Settings -->
+                    <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                            <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                                </svg>
+                                {{ __('Page Settings') }}
+                            </h3>
+                            <p class="text-gray-500 text-sm mt-1">{{ __('Configure page behavior') }}</p>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <!-- Custom Section Toggle -->
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg dark:bg-gray-800">
+                                <div class="space-y-0.5">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">{{ __('Custom Section') }}</label>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Use custom section name') }}</p>
+                                </div>
+                                <div class="relative inline-block w-12 h-6">
+                                    {{-- Hidden input for unchecked state --}}
+                                    <input type="hidden" name="is_custom_section" value="0">
+                                    <input 
+                                        type="checkbox" 
+                                        name="is_custom_section" 
+                                        id="is_custom_section" 
+                                        value="1" 
+                                        class="sr-only" 
+                                        {{ old('is_custom_section', $page->is_custom_section ?? false) ? 'checked' : '' }}
+                                    >
+                                    <label 
+                                        for="is_custom_section" 
+                                        class="block w-12 h-6 rounded-full cursor-pointer transition-colors duration-200 ease-in-out bg-gray-300 dark:bg-gray-700"
+                                    ></label>
+                                    <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out"></span>
+                                </div>
+                            </div>
+
+ion Visibility -->
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg dark:bg-gray-800">
+                                <div class="space-y-0.5">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">{{ __('Show in Navigation') }}</label>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Display in site navigation menus') }}</p>
+                                </div>
+                                <div class="relative inline-block w-12 h-6">
+                                    {{-- Hidden input for unchecked state --}}
+                                    <input type="hidden" name="show_in_nav" value="0">
+                                    <input 
+                                        type="checkbox" 
+                                        name="show_in_nav" 
+                                        id="show_in_nav" 
+                                        value="1" 
+                                        class="sr-only" 
+                                        {{ old('show_in_nav', $page->show_in_nav ?? true) ? 'checked' : '' }}
+                                    >
+                                    <label 
+                                        for="show_in_nav" 
+                                        class="block w-12 h-6 rounded-full cursor-pointer transition-colors duration-200 ease-in-out bg-gray-300 dark:bg-gray-700"
+                                    ></label>
+                                    <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out"></span>
+                                </div>
+                            </div>
+
+                            <!-- Footer Visibility -->
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg dark:bg-gray-800">
+                                <div class="space-y-0.5">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">{{ __('Show in Footer') }}</label>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Display in footer links') }}</p>
+                                </div>
+                                <div class="relative inline-block w-12 h-6">
+                                    {{-- Hidden input for unchecked state --}}
+                                    <input type="hidden" name="show_in_footer" value="0">
+                                    <input 
+                                        type="checkbox" 
+                                        name="show_in_footer" 
+                                        id="show_in_footer" 
+                                        value="1" 
+                                        class="sr-only" 
+                                        {{ old('show_in_footer', $page->show_in_footer ?? false) ? 'checked' : '' }}
+                                    >
+                                    <label 
+                                        for="show_in_footer" 
+                                        class="block w-12 h-6 rounded-full cursor-pointer transition-colors duration-200 ease-in-out bg-gray-300 dark:bg-gray-700"
+                                    ></label>
+                                    <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out"></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div x-show="showSchedule" class="mt-2">
-                        <x-inputs.datetime-picker id="published_at" name="published_at" :label="__('Publish Date')"
-                            :value="old(
-                                'published_at',
-                                isset($post) && $post->published_at
-                                    ? $post->published_at->format('Y-m-d H:i')
-                                    : now()->addDay()->format('Y-m-d H:i'),
-                            )"
-                            :min-date="now()->format('Y-m-d')"
-                            :help-text="__('Schedule when this post should be published')"
-                        />
+
+                    <!-- Create Page Card -->
+                    <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                            <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                                {{ __('Finalize Page') }}
+                            </h3>
+                            <p class="text-gray-500 text-sm mt-1">{{ __('Complete your page setup') }}</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-4">
+                                <div class="text-center">
+                                    <p class="text-gray-600 mb-4 dark:text-gray-400">{{ __('Review all information and submit when ready') }}</p>
+                                    
+                                    <div class="flex justify-center gap-3">
+                                        <a 
+                                            href="{{ route('admin.pages.index') }}" 
+                                            class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors dark:text-gray-400"
+                                        >
+                                           {{ __('Cancel') }}
+                                        </a>
+                                        <button 
+                                            type="submit" 
+                                            class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:opacity-90 transition-opacity shadow-md"
+                                        >
+                                            {{ isset($page) ? __('Update Page') : __('Create Page') }}
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200 dark:bg-gray-800 dark:border-gray-700">
+                                    <div class="flex items-start gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                        </svg>
+                                        <p class="text-xs text-blue-700 dark:text-blue-400">
+                                            {{ __('Make sure all required fields are filled and information is accurate before submitting.') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div> --}}
-                {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_PUBLISH_DATE, '') !!}
-                <div class="mt-4">
-                    <x-buttons.submit-buttons :submitLabel="isset($post) && $post->exists ? __('Update Post') : __('Create Post')"
-                        cancelUrl="{{ route('admin.posts.index', $postType) }}" />
-                </div>
-                {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_SUBMIT_BUTTONS, '') !!}
-            </div>
-        </div>
-
-        @if ($postTypeModel->hierarchical)
-            <!-- Parent -->
-            <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-                <div class="px-4 py-3 sm:px-6 sm:py-3 border-b border-gray-100 dark:border-gray-800">
-                    <h3 class="text-base font-medium text-gray-700 dark:text-white">{{ __('Parent') }}</h3>
-                </div>
-                <div class="p-3 space-y-2 sm:p-4">
-                    @php
-                        $parentOptions = [['value' => '', 'label' => __('None')]];
-                        foreach ($parentPosts as $id => $title) {
-                            $parentOptions[] = [
-                                'value' => $id,
-                                'label' => $title,
-                            ];
-                        }
-                    @endphp
-
-                    <x-inputs.combobox name="parent_id" :label="__('Parent ' . $postTypeModel->label_singular)" :placeholder="__('Select Parent')" :options="$parentOptions"
-                        :selected="old('parent_id', $post->parent_id ?? '')" :searchable="true" />
                 </div>
             </div>
-        @endif
-        {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_CONTENT_PARENT, '') !!}
-
-        <!-- Taxonomies -->
-        @if (!empty($taxonomies))
-            @foreach ($taxonomies as $taxonomy)
-                @include('backend.pages.posts.partials.post-taxonomy-chooser', [
-                    'taxonomy' => $taxonomy,
-                    'post_type' => $postType,
-                ])
-            @endforeach
-        @endif
+        </form>
     </div>
 </div>
+
+{!! Hook::applyFilters('filter.page.form_end', '') !!}
+
+<script>
+    // Toggle custom section field
+    document.addEventListener('DOMContentLoaded', function() {
+        const sectionSelect = document.getElementById('section');
+        const customSectionField = document.getElementById('custom-section-field');
+        const customSectionInput = document.getElementById('custom_section');
+        const isCustomSectionCheckbox = document.getElementById('is_custom_section');
+        
+        function toggleCustomSection() {
+            if (!sectionSelect || !customSectionField) return;
+            
+            const isCustom = sectionSelect.value === 'custom' || (isCustomSectionCheckbox && isCustomSectionCheckbox.checked);
+            
+            if (isCustom) {
+                customSectionField.classList.remove('hidden');
+                // Only force select value if checkbox is checked
+                if (isCustomSectionCheckbox && isCustomSectionCheckbox.checked && sectionSelect.value !== 'custom') {
+                    sectionSelect.value = 'custom';
+                }
+            } else {
+                customSectionField.classList.add('hidden');
+                // Don't clear custom section input when switching away
+            }
+        }
+        
+        function handleCustomSectionToggle() {
+            if (isCustomSectionCheckbox.checked) {
+                sectionSelect.value = 'custom';
+            } else {
+                // When unchecking custom section, set to a default value if current is custom
+                if (sectionSelect.value === 'custom') {
+                    sectionSelect.value = 'about'; // or whatever default you prefer
+                }
+            }
+            toggleCustomSection();
+        }
+        
+        function handleSectionChange() {
+            // When section select changes, update checkbox state
+            if (isCustomSectionCheckbox) {
+                isCustomSectionCheckbox.checked = sectionSelect.value === 'custom';
+            }
+            toggleCustomSection();
+        }
+        
+        if (sectionSelect) {
+            sectionSelect.addEventListener('change', handleSectionChange);
+        }
+        
+        if (isCustomSectionCheckbox) {
+            isCustomSectionCheckbox.addEventListener('change', handleCustomSectionToggle);
+        }
+        
+        // Initial call
+        toggleCustomSection();
+
+        // Remove the form submission handling - let the backend handle it
+    });
+
+    // Page status change function
+    async function changePageStatus(pageId, status, buttonElement) {
+        try {
+            let confirmMessage = '';
+            
+            switch (status) {
+                case 'published':
+                    confirmMessage = '{{ __("Are you sure you want to publish this page? It will become visible to the public.") }}';
+                    break;
+                case 'draft':
+                    confirmMessage = '{{ __("Are you sure you want to change this page to draft? It will no longer be visible to the public.") }}';
+                    break;
+                case 'archived':
+                    confirmMessage = '{{ __("Are you sure you want to archive this page? It will be removed from navigation and public access.") }}';
+                    break;
+                default:
+                    confirmMessage = '{{ __("Are you sure you want to change the page status?") }}';
+            }
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            // Show loading state
+            const button = buttonElement;
+            const originalText = button.innerHTML;
+            button.innerHTML = `
+                <iconify-icon icon="lucide:loader-2" class="animate-spin w-4 h-4 mr-2"></iconify-icon>
+                {{ __('Processing...') }}
+            `;
+            button.disabled = true;
+
+            // Use the correct route - match your web.php
+            const response = await fetch(`/admin/pages/${pageId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: status
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                if (window.showToast) {
+                    window.showToast('success', '{{ __('Success') }}', data.message);
+                } else {
+                    alert(data.message);
+                }
+                // Refresh the page to show updated status
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                throw new Error(data.message);
+            }
+
+        } catch (error) {
+            console.error('Page status change failed:', error);
+            if (window.showToast) {
+                window.showToast('error', '{{ __('Error') }}', error.message);
+            } else {
+                alert('Error: ' + error.message);
+            }
+            // Reset button state
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+</script>
+
+<style>
+    /* Custom checkbox styling */
+    input[type="checkbox"]:checked + label {
+        background-color: #3b82f6;
+    }
+    
+    input[type="checkbox"]:checked + label span {
+        transform: translateX(1.5rem);
+    }
+    
+    /* Focus styles for better accessibility */
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    }
+</style>

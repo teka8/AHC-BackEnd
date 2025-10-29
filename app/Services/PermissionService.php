@@ -132,6 +132,18 @@ class PermissionService
                     'news.restore'
                 ],
             ],
+
+            [
+                'group_name' => 'page',
+                'permissions' => [
+                    'page.create',
+                    'page.view',
+                    'page.update',
+                    'page.delete',
+                    'page.bulk-delete',
+                ],
+            ],
+
             [
                 'group_name' => 'media',
                 'permissions' => [
@@ -271,8 +283,10 @@ class PermissionService
                 'permissions' => [
                     'event.create',
                     'event.view',
-                    'event.edit',
+                    'event.update',
                     'event.delete',
+                    'event.bulk-delete',
+
 
                     'event.review',       // Send for review, send back for review
                     'event.approve',      // Approve events

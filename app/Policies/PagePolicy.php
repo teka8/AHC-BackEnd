@@ -14,7 +14,7 @@ class PagePolicy extends BasePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $this->checkPermission($user, 'news.view');
+        return $this->checkPermission($user, 'page.view');
     }
 
     /**
@@ -23,12 +23,12 @@ class PagePolicy extends BasePolicy
     public function view(User $user, Page $page): bool
     {
         // Check if user has general view permission
-        if ($this->checkPermission($user, 'news.view')) {
+        if ($this->checkPermission($user, 'page.view')) {
             return true;
         }
 
         // Check if user can view their own posts
-        if ($this->checkPermission($user, 'news.view_own') && $this->userOwnsResource($user, $page)) {
+        if ($this->checkPermission($user, 'page.view_own') && $this->userOwnsResource($user, $page)) {
             return true;
         }
 
@@ -40,7 +40,7 @@ class PagePolicy extends BasePolicy
      */
     public function create(User $user): bool
     {
-        return $this->checkPermission($user, 'news.create');
+        return $this->checkPermission($user, 'page.create');
     }
 
     /**
@@ -49,12 +49,12 @@ class PagePolicy extends BasePolicy
     public function update(User $user, Page $page): bool
     {
         // Check if user has general edit permission
-        if ($this->checkPermission($user, 'news.edit')) {
+        if ($this->checkPermission($user, 'page.update')) {
             return true;
         }
 
         // Check if user can edit their own posts
-        if ($this->checkPermission($user, 'news.edit_own') && $this->userOwnsResource($user, $page)) {
+        if ($this->checkPermission($user, 'page.update_own') && $this->userOwnsResource($user, $page)) {
             return true;
         }
 
@@ -67,49 +67,27 @@ class PagePolicy extends BasePolicy
     public function delete(User $user, Page $page): bool
     {
         // Check if user has general delete permission
-        if ($this->checkPermission($user, 'news.delete')) {
+        if ($this->checkPermission($user, 'page.delete')) {
             return true;
         }
 
         // Check if user can delete their own posts
-        if ($this->checkPermission($user, 'news.delete_own') && $this->userOwnsResource($user, $page)) {
+        if ($this->checkPermission($user, 'page.delete_own') && $this->userOwnsResource($user, $page)) {
             return true;
         }
 
         return false;
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Page $page): bool
-    {
-        return $this->checkPermission($user, 'news.restore');
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Page $page): bool
-    {
-        return $this->checkPermission($user, 'news.force_delete');
-    }
 
     /**
      * Determine whether the user can bulk delete models.
      */
     public function bulkDelete(User $user): bool
     {
-        return $this->checkPermission($user, 'news.delete');
+        return $this->checkPermission($user, 'page.bulk-delete');
     }
 
-    /**
-     * Determine whether the user can publish the post.
-     */
-    public function publish(User $user, Page $page): bool
-    {
-        return $this->checkPermission($user, 'news.publish');
-    }
 
     /**
      * Determine whether the user can manage AI content.

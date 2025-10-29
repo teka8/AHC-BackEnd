@@ -4,53 +4,90 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Page;
 
-use App\Enums\Hooks\PageFilterHook;
-use App\Enums\PageStatus;
-use App\Http\Requests\FormRequest;
-use App\Support\Facades\Hook;
-use Illuminate\Support\Str;
+use App\Models\Page;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdatePageRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        // Authorization is handled by the controller using policies.
-        return true;
+        return $this->user()->can('update', $this->route('page'));
     }
 
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
-     */
     public function rules(): array
     {
-        $pageId = $this->page;
-        $pageStatuses = implode(',', array_map(fn($status) => $status->value, PageStatus::cases()));
+        $pageId = $this->route('page')->id ?? null;
 
-        return Hook::applyFilters(PageFilterHook::PAGE_UPDATE_VALIDATION_RULES, [
-            /** @example "Updated: Laravel Development Best Practices" */
+        return [
             'title' => 'required|string|max:255',
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('pages', 'slug')->ignore($pageId)
+            ],
+            'content' => 'required|string',
+            'section' => 'required|string|max:100',
+            'is_custom_section' => 'nullable|boolean',
+            'custom_section' => 'nullable|string|max:100|required_if:is_custom_section,true',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+            'show_in_nav' => 'nullable|boolean',
+            'show_in_footer' => 'nullable|boolean',
+            'status' => 'nullable|string|in:published,draft,archived',
+        ];
+    }
 
-            /** @example "laravel-development-best-practices" */
-            'slug' => 'nullable|string|max:255|unique:pages,slug,' . $pageId,
+    public function messages(): array
+    {
+        return [
+            'slug.regex' => 'The slug may only contain lowercase letters, numbers, and hyphens. It cannot start or end with a hyphen.',
+            'slug.unique' => 'This slug is already in use. Please choose a different one.',
+            'custom_section.required_if' => 'Custom section name is required when using custom section.',
+            'content.required' => 'Page content is required.',
+        ];
+    }
 
-            /** @example "<p>In this updated guide, we explore the best practices for Laravel development...</p>" */
-            'content' => 'nullable|string',
+    public function attributes(): array
+    {
+        return [
+            'slug' => 'URL slug',
+            'content' => 'page content',
+            'section' => 'page section',
+            'custom_section' => 'custom section name',
+            'meta_title' => 'meta title',
+            'meta_description' => 'meta description',
+            'show_in_nav' => 'show in navigation',
+            'show_in_footer' => 'show in footer',
+        ];
+    }
 
-            /** @example "Discover the latest best practices for Laravel application development." */
-            'excerpt' => 'nullable|string',
+    public function prepareForValidation()
+    {
+        $page = $this->route('page');
+        
+        // Auto-generate slug from title if not provided and title exists
+        if ($this->has('title') && (!$this->has('slug') || empty($this->slug))) {
+            $this->merge([
+                'slug' => \Illuminate\Support\Str::slug($this->title)
+            ]);
+        }
 
-            /** @example "published" */
-            'status' => 'string',
+        // Handle custom section logic
+        if ($this->has('is_custom_section') && $this->is_custom_section && $this->has('custom_section')) {
+            $this->merge([
+                'section' => $this->custom_section
+            ]);
+        }
 
-            /** @example null */
-            'published_at' => 'nullable|date',
-
-        ], $pageId);
+        // Set default values if not provided
+        $this->merge([
+            'show_in_nav' => $this->show_in_nav ?? ($page->show_in_nav ?? true),
+            'show_in_footer' => $this->show_in_footer ?? ($page->show_in_footer ?? false),
+            'status' => $this->status ?? ($page->status ?? 'draft'),
+            'is_custom_section' => $this->is_custom_section ?? ($page->is_custom_section ?? false),
+        ]);
     }
 }
