@@ -248,7 +248,8 @@ class PostDatatable extends Datatable
 
     public function renderStatusColumn(Post $post): string|Renderable
     {
-        $html = "<span class='" . get_post_status_class($post->status) . "'>" . ucfirst($post->status) . "</span>";
+        $status = $post->status;
+        $html = "<span class='" . get_post_status_class($post->status) . "'>" . ucfirst(__($status)) . "</span>";
 
         if ($post->status === PostStatus::SCHEDULED->value && ! empty($post->published_at)) {
             $html .= "<br><small class='text-xs text-gray-500 mt-1'>" . __('(Scheduled for :date)', ['date' => $post->published_at->format('M d, Y h:i A')]) . "</small>";
