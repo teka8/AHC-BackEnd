@@ -12,6 +12,8 @@ use App\Services\TranslationService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class TranslationController extends Controller
 {
@@ -39,8 +41,11 @@ class TranslationController extends Controller
 
         $languages = $this->languages;
         $groups = $this->translationService->getGroups();
-        $selectedLang = request()->get('lang', 'bn');
+        $selectedLang = request()->get('lang', 'am');
         $selectedGroup = request()->get('group', 'json');
+        $perPage = 20; // Number of translation keys per page
+        $page = request()->get('page', 1);
+        $search = request()->get('search', '');
 
         // Get base English translations for the selected group
         $enTranslations = $this->translationService->getTranslations('en', $selectedGroup);
@@ -48,31 +53,49 @@ class TranslationController extends Controller
         // Get translations for selected language and group
         $translations = $this->translationService->getTranslations($selectedLang, $selectedGroup);
 
+        // Convert English translations to collection for pagination
+        $enCollection = collect($enTranslations);
+
+        // Apply search filter
+        if (!empty($search)) {
+            $enCollection = $enCollection->filter(function ($value, $key) use ($search) {
+                return stripos($key, $search) !== false || stripos((string) $value, $search) !== false;
+            });
+        }
+
+        // Paginate manually
+        $paginatedEnTranslations = new LengthAwarePaginator(
+            $enCollection->forPage($page, $perPage),
+            $enCollection->count(),
+            $perPage,
+            $page,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+
         // Get available translation files for both languages
         $availableGroups = $this->translationService->getAvailableTranslationGroups($selectedLang);
-
-        // Get all available languages from the service
         $allLanguages = $this->languageService->getLanguageNames();
-
-        // Calculate translation statistics
         $translationStats = $this->translationService->calculateTranslationStats($translations, $enTranslations, $selectedGroup);
 
         return view('backend.pages.translations.index', compact(
             'languages',
             'groups',
-            'enTranslations',
             'translations',
             'selectedLang',
             'selectedGroup',
             'availableGroups',
             'allLanguages',
             'translationStats',
-        ))
-            ->with([
-                'breadcrumbs' => [
-                    'title' => __('Translations'),
-                ],
-            ]);
+            'search'
+        ))->with([
+            'breadcrumbs' => [
+                'title' => __('Translations'),
+            ],
+            'enTranslations' => $paginatedEnTranslations,
+        ]);
     }
 
     /**
