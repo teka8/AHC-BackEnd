@@ -43,36 +43,8 @@
             </div>
         </div>
 
-        <!-- Search Form -->
         <div class="mb-4">
-            <form method="GET" action="{{ route('admin.translations.index') }}" class="flex items-center gap-2">
-                <input type="hidden" name="lang" value="{{ $selectedLang }}">
-                <input type="hidden" name="group" value="{{ $selectedGroup }}">
-
-                <div class="relative w-[300px] sm:w-[300px]">
-                    <input type="text" name="search" value="{{ $search ?? '' }}"
-                        placeholder="{{ __('Search translations...') }}"
-                        class="w-full h-10 pr-10 pl-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 shadow-sm
-                       focus:ring-2 focus:ring-brand-500 focus:border-brand-500
-                       dark:bg-gray-900 dark:border-gray-700 dark:text-white/90 dark:focus:ring-brand-500/50" />
-
-                    <!-- Search icon on the right -->
-                    <button type="submit"
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-brand-600 focus:outline-none m-2">
-                        <iconify-icon icon="feather:search" class="text-lg"></iconify-icon>
-                    </button>
-                </div>
-
-                @if (!empty($search))
-                    <a href="{{ route('admin.translations.index', ['lang' => $selectedLang, 'group' => $selectedGroup]) }}"
-                        class="inline-flex items-center justify-center h-10 px-3 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50
-                       dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition"
-                        title="{{ __('Clear search') }}">
-                        <iconify-icon icon="feather:x" class="text-base"></iconify-icon>
-                        <span class="sr-only sm:not-sr-only ml-1">{{ __('Clear') }}</span>
-                    </a>
-                @endif
-            </form>
+            @include("components.datatable.searchbar")
         </div>
 
         <div class="mb-4">
