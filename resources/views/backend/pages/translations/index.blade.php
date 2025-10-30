@@ -43,10 +43,12 @@
             </div>
         </div>
 
-        
-            <div class="mb-4">
-                @include("components.datatable.searchbar")
-            </div>
+        {{-- push comment --}}
+
+
+        <div class="mb-4">
+            @include('components.datatable.searchbar')
+        </div>
 
         <div class="mb-4">
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
