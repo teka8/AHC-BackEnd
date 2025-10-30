@@ -180,7 +180,7 @@
                                         $colorClass = $statusColors[$page->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700';
                                     @endphp
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $colorClass }}">
-                                        {{ ucfirst($page->status) }}
+                                        {{ __(ucfirst($page->status)) }}
                                     </span>
                                 </div>
                             </div>
