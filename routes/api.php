@@ -14,6 +14,7 @@ use App\Http\Controllers\Backend\Api\TermController as BackendTermController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\PageController;
+use App\Http\Controllers\Api\PublicResourceController;
 
 
 /*
@@ -117,10 +118,6 @@ Route::middleware(['auth', 'web'])->prefix('admin')->name('admin.api.')->group(f
     Route::delete('/terms/{taxonomy}/{id}', [BackendTermController::class, 'destroy'])->name('terms.destroy');
 });
 
-
-
-
-
 Route::prefix('v1')->group(function () {
     // Public page routes 
     Route::get('/pages', [PageController::class, 'index']);
@@ -133,4 +130,26 @@ Route::prefix('v1')->group(function () {
     // Events management
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
     Route::get('/events/{id}', [EventController::class, 'show']);
+
+    // Public posts (news)
+    Route::prefix('public')->group(function () {
+        Route::get('/posts', [\App\Http\Controllers\Api\PublicPostController::class, 'index']);
+        Route::get('/posts/{id}', [\App\Http\Controllers\Api\PublicPostController::class, 'show']);
+
+        // Public media
+        Route::get('/media', [\App\Http\Controllers\Api\PublicMediaController::class, 'index']);
+
+        // Public resources
+        Route::prefix('resources')->group(function () {
+            Route::get('/documents', [PublicResourceController::class, 'documents']);
+            Route::get('/documents/{id}', [PublicResourceController::class, 'documentsShow']);
+            Route::get('/educational', [PublicResourceController::class, 'educational']);
+            Route::get('/educational/{id}', [PublicResourceController::class, 'educationalShow']);
+            Route::get('/documents/categories', [PublicResourceController::class, 'documentCategories']);
+            Route::get('/educational/categories', [PublicResourceController::class, 'educationalCategories']);
+            Route::get('/others', [PublicResourceController::class, 'others']);
+            Route::get('/others/{id}', [PublicResourceController::class, 'othersShow']);
+            Route::get('/others/categories', [PublicResourceController::class, 'othersCategories']);
+        });
+    });
 });
