@@ -99,6 +99,20 @@ Alpine.data("advancedFields", (initialMeta = {}) => {
 // Alpine plugins.
 Alpine.plugin(focus);
 window.Alpine = Alpine;
+Alpine.start();
+
+// Prevent registering the persist plugin multiple times
+if (!window.__alpinePersistRegistered) {
+    try {
+        Alpine.plugin(persist);
+        window.__alpinePersistRegistered = true;
+    } catch (e) {
+        // If something goes wrong registering the plugin, log and continue
+        // so the page doesn't crash with "Cannot redefine property: $persist".
+        // (You can remove the console.warn in production.)
+        console.warn("Alpine persist plugin registration failed:", e);
+    }
+}
 
 // Global drawers.
 window.openDrawer = function (drawerId) {

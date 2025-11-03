@@ -191,18 +191,18 @@
         @endif
     </div>
 
-    <!-- Static hidden input for form submission -->
+    <!-- Static hidden input for form submission (send media ID when selected) -->
     <input type="hidden" 
            name="{{ $name }}" 
-           :value="selectedMedia.length > 0 ? selectedMedia[0].url : '{{ $existingMedia && !is_array($existingMedia) ? $existingMedia : '' }}'"
-           x-show="selectedMedia.length > 0 || (selectedMedia.length === 0 && '{{ $existingMedia && !is_array($existingMedia) ? $existingMedia : '' }}')">
+           :value="selectedMedia.length > 0 ? selectedMedia[0].id : ''"
+           x-show="selectedMedia.length > 0">
     
     <!-- Multiple media support -->
     @if($multiple)
         <template x-for="(media, index) in selectedMedia" :key="media.id">
             <input type="hidden"
                    name="{{ $name }}[]"
-                   :value="media.url">
+                   :value="media.id">
         </template>
     @endif
 </div>
