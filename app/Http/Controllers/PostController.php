@@ -71,4 +71,15 @@ class PostController extends Controller
 
         return back()->with('success', 'Post updated.');
     }
+
+    public function index(Request $request)
+    {
+        // Ensure media is eager loaded
+        $posts = Post::with('media')
+            ->where('type', 'news')   // adjust to your filter if needed
+            ->latest()
+            ->paginate(12);
+
+        return view('news.index', compact('posts'));
+    }
 }
