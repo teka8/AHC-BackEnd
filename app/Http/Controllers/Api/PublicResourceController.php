@@ -247,4 +247,58 @@ class PublicResourceController extends Controller
             ->map(fn($row) => ['id' => null, 'name' => $row->subject_area, 'slug' => \Str::slug($row->subject_area)]);
         return response()->json(['data' => $cats]);
     }
+
+    /**
+     * POST /api/v1/public/resources/documents/{id}/download
+     * Increment download count for a document
+     */
+    public function documentDownload(int $id)
+    {
+        $doc = Document::whereIn('access_level', ['public', 'Public'])
+            ->whereIn('status', ['published', 'Published'])
+            ->findOrFail($id);
+        
+        $doc->increment('download_count');
+        
+        return response()->json([
+            'success' => true,
+            'download_count' => $doc->download_count
+        ]);
+    }
+
+    /**
+     * POST /api/v1/public/resources/educational/{id}/download
+     * Increment download count for an educational resource
+     */
+    public function educationalDownload(int $id)
+    {
+        $resource = EducationalResource::whereIn('access_level', ['public', 'Public'])
+            ->whereIn('status', ['published', 'Published'])
+            ->findOrFail($id);
+        
+        $resource->increment('download_count');
+        
+        return response()->json([
+            'success' => true,
+            'download_count' => $resource->download_count
+        ]);
+    }
+
+    /**
+     * POST /api/v1/public/resources/others/{id}/download
+     * Increment download count for an others resource
+     */
+    public function othersDownload(int $id)
+    {
+        $resource = Others::whereIn('access_level', ['public', 'Public'])
+            ->whereIn('status', ['published', 'Published'])
+            ->findOrFail($id);
+        
+        $resource->increment('download_count');
+        
+        return response()->json([
+            'success' => true,
+            'download_count' => $resource->download_count
+        ]);
+    }
 }
