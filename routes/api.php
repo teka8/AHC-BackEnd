@@ -146,18 +146,20 @@ Route::prefix('v1')->group(function () {
             Route::get('/educational/categories', [PublicResourceController::class, 'educationalCategories']);
             Route::get('/others/categories', [PublicResourceController::class, 'othersCategories']);
             
-            // Download tracking endpoints
-            Route::post('/documents/{id}/download', [PublicResourceController::class, 'documentDownload']);
-            Route::post('/educational/{id}/download', [PublicResourceController::class, 'educationalDownload']);
-            Route::post('/others/{id}/download', [PublicResourceController::class, 'othersDownload']);
+            // Download tracking endpoints (with numeric constraint)
+            Route::post('/documents/{id}/download', [PublicResourceController::class, 'documentDownload'])->where('id', '[0-9]+');
+            Route::post('/educational/{id}/download', [PublicResourceController::class, 'educationalDownload'])->where('id', '[0-9]+');
+            Route::post('/others/{id}/download', [PublicResourceController::class, 'othersDownload'])->where('id', '[0-9]+');
             
-            // List and show endpoints
+            // List endpoints (must come before show endpoints)
             Route::get('/documents', [PublicResourceController::class, 'documents']);
-            Route::get('/documents/{id}', [PublicResourceController::class, 'documentsShow']);
             Route::get('/educational', [PublicResourceController::class, 'educational']);
-            Route::get('/educational/{id}', [PublicResourceController::class, 'educationalShow']);
             Route::get('/others', [PublicResourceController::class, 'others']);
-            Route::get('/others/{id}', [PublicResourceController::class, 'othersShow']);
+            
+            // Show endpoints with numeric constraint (must come last)
+            Route::get('/documents/{id}', [PublicResourceController::class, 'documentsShow'])->where('id', '[0-9]+');
+            Route::get('/educational/{id}', [PublicResourceController::class, 'educationalShow'])->where('id', '[0-9]+');
+            Route::get('/others/{id}', [PublicResourceController::class, 'othersShow'])->where('id', '[0-9]+');
         });
     });
 });
