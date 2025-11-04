@@ -101,11 +101,13 @@ class Others extends Model
 
     /**
      * Get all tags associated with the document
+     * Note: Tags are now stored as JSON array in the 'tags' column
+     * This relationship method is kept for backward compatibility but not actively used
      */
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(OthersTag::class, 'others_tag');
-    }
+    // public function tags(): BelongsToMany
+    // {
+    //     return $this->belongsToMany(OthersTag::class, 'others_tag');
+    // }
 
     /**
      * Get all access logs for this document

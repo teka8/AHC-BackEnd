@@ -118,7 +118,7 @@ class OthersController extends Controller
         ];
 
         // Get documents with search, filter, and pagination
-        $query = Others::with(['creator', 'tags'])
+        $query = Others::with(['creator'])
             ->when($request->get('search'), function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
@@ -221,7 +221,7 @@ class OthersController extends Controller
      */
     public function edit($id)
     {
-        $document = Others::with('tags')->findOrFail($id);
+        $document = Others::findOrFail($id);
 
         $this->authorize('update', $document);
 
@@ -351,7 +351,8 @@ class OthersController extends Controller
             if (!empty($validated['tags'])) {
                 $this->processTags($document, $validated['tags']);
             } else {
-                $document->tags()->detach();
+                $document->tags = [];
+                $document->save();
             }
 
             // Handle status changes
@@ -552,27 +553,12 @@ class OthersController extends Controller
      */
     private function processTags(Others $document, string $tagsInput): void
     {
-        $tags = array_map('trim', explode(',', $tagsInput));
-        $tagIds = [];
-
-        foreach ($tags as $tagName) {
-            if (empty($tagName))
-                continue;
-
-            // Find or create tag
-            $tag = OthersTag::firstOrCreate(
-                ['name' => $tagName],
-                [
-                    'slug' => Str::slug($tagName),
-                    'color' => $this->generateTagColor($tagName)
-                ]
-            );
-
-            $tagIds[] = $tag->id;
-        }
-
-        // Sync tags with the document
-        $document->tags()->sync($tagIds);
+        // Parse comma-separated tags and filter empty values
+        $tags = array_filter(array_map('trim', explode(',', $tagsInput)));
+        
+        // Save tags as JSON array directly in the tags field
+        $document->tags = array_values($tags);
+        $document->save();
     }
 
     /**

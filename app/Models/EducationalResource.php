@@ -122,11 +122,13 @@ class EducationalResource extends Model
 
     /**
      * Get all tags associated with the resource
+     * Note: Tags are now stored as JSON array in the 'tags' column
+     * This relationship method is kept for backward compatibility but not actively used
      */
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(EducationalResourceTag::class, 'educational_resource_tag');
-    }
+    // public function tags(): BelongsToMany
+    // {
+    //     return $this->belongsToMany(EducationalResourceTag::class, 'educational_resource_tag');
+    // }
 
     /**
      * Get all access logs for this resource

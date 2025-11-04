@@ -265,7 +265,7 @@ class EducationRepositoryController extends Controller
             EducationalResource::TYPE_OTHER,
         ];
 
-        $query = EducationalResource::with(['creator', 'tags'])
+        $query = EducationalResource::with(['creator'])
             ->when($request->get('search'), function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
@@ -376,7 +376,7 @@ class EducationRepositoryController extends Controller
      */
     public function edit($id)
     {
-        $document = EducationalResource::with('tags')->findOrFail($id);
+        $document = EducationalResource::findOrFail($id);
 
         $this->authorize('update', $document);
 
@@ -523,7 +523,8 @@ class EducationRepositoryController extends Controller
             if (!empty($validated['tags'])) {
                 $this->processTags($document, $validated['tags']);
             } else {
-                $document->tags()->detach();
+                $document->tags = [];
+                $document->save();
             }
 
             // Handle status changes
@@ -736,27 +737,12 @@ class EducationRepositoryController extends Controller
      */
     private function processTags(EducationalResource $document, string $tagsInput): void
     {
-        $tags = array_map('trim', explode(',', $tagsInput));
-        $tagIds = [];
-
-        foreach ($tags as $tagName) {
-            if (empty($tagName))
-                continue;
-
-            // Find or create tag
-            $tag = EducationalResourceTag::firstOrCreate(
-                ['name' => $tagName],
-                [
-                    'slug' => Str::slug($tagName),
-                    'color' => $this->generateTagColor($tagName)
-                ]
-            );
-
-            $tagIds[] = $tag->id;
-        }
-
-        // Sync tags with the document
-        $document->tags()->sync($tagIds);
+        // Parse comma-separated tags and filter empty values
+        $tags = array_filter(array_map('trim', explode(',', $tagsInput)));
+        
+        // Save tags as JSON array directly in the tags field
+        $document->tags = array_values($tags);
+        $document->save();
     }
 
     /**

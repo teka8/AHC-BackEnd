@@ -95,15 +95,9 @@
                                     required
                                     class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white">
                                 <option value="">{{ __('Select Document Type') }}</option>
-                                <option value="Policy Brief">{{ __('Policy Brief') }}</option>
-                                <option value="Research Paper">{{ __('Research Paper') }}</option>
-                                <option value="Annual Report">{{ __('Annual Report') }}</option>
-                                <option value="Quarterly Report">{{ __('Quarterly Report') }}</option>
-                                <option value="Assessment Report">{{ __('Assessment Report') }}</option>
-                                <option value="AHC Guideline">{{ __('AHC Guideline') }}</option>
-                                <option value="Educational Material">{{ __('Educational Material') }}</option>
-                                <option value="Newsletter">{{ __('Newsletter') }}</option>
-                                <option value="Other">{{ __('Other') }}</option>
+                                @foreach ($documentTypes as $type)
+                                    <option value="{{ $type }}">{{ __($type) }}</option>
+                                @endforeach
                             </select>
                         </div>
                         
