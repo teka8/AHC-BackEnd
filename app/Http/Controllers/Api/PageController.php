@@ -156,22 +156,27 @@ class PageController extends Controller
      */
     public function navigation()
     {
-        $pages = Page::where('status', 'published')
-                    ->where('show_in_nav', true)
-                    ->orderBy('title')
-                    ->get();
+        try {
+            $pages = Page::where('status', 'published')
+                        ->where('show_in_nav', true)
+                        ->orderBy('title')
+                        ->get();
 
-        return response()->json([
-            'pages' => $pages->map(function ($page) {
-                return [
-                    'id' => $page->id,
-                    'title' => $page->title,
-                    'slug' => $page->slug,
-                    'section' => $page->section,
-                    'url' => $page->url,
-                ];
-            })
-        ]);
+            return response()->json([
+                'pages' => $pages->map(function ($page) {
+                    return [
+                        'id' => $page->id,
+                        'title' => $page->title,
+                        'slug' => $page->slug,
+                        'section' => $page->section,
+                        'url' => $page->url,
+                    ];
+                })
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Navigation fetch error: ' . $e->getMessage());
+            return response()->json(['pages' => []]);
+        }
     }
 
     /**
@@ -179,22 +184,27 @@ class PageController extends Controller
      */
     public function footer()
     {
-        $pages = Page::where('status', 'published')
-                    ->where('show_in_footer', true)
-                    ->orderBy('title')
-                    ->get();
+        try {
+            $pages = Page::where('status', 'published')
+                        ->where('show_in_footer', true)
+                        ->orderBy('title')
+                        ->get();
 
-        return response()->json([
-            'pages' => $pages->map(function ($page) {
-                return [
-                    'id' => $page->id,
-                    'title' => $page->title,
-                    'slug' => $page->slug,
-                    'section' => $page->section,
-                    'url' => $page->url,
-                ];
-            })
-        ]);
+            return response()->json([
+                'pages' => $pages->map(function ($page) {
+                    return [
+                        'id' => $page->id,
+                        'title' => $page->title,
+                        'slug' => $page->slug,
+                        'section' => $page->section,
+                        'url' => $page->url,
+                    ];
+                })
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Footer fetch error: ' . $e->getMessage());
+            return response()->json(['pages' => []]);
+        }
     }
 
     /**
