@@ -33,6 +33,7 @@ class OthersPublicResource extends JsonResource
             'description' => $this->description,
             'resource_type' => $this->resource_type,
             'subject_area' => $this->subject_area,
+            'tags' => $this->tags ?? [],
             'mime_type' => $this->mime_type,
             'file_url' => $fileUrl,
             'is_featured' => (bool) $this->is_featured,
