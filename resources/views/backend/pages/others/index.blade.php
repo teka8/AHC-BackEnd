@@ -513,7 +513,7 @@
         </div>
 
         <!-- Upload Modal -->
-        @include('backend.pages.Others.partials.upload-modal')
+        @include('backend.pages.others.partials.upload-modal')
 
         <!-- Bulk Delete Modal -->
         @include('backend.pages.others.partials.bulk-delete-modal')
