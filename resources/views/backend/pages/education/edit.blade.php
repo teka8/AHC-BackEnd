@@ -142,7 +142,7 @@
                                     {{ __('Tags') }}
                                 </label>
                                 <input type="text" id="tags" name="tags"
-                                    value="{{ old('tags', $document->tags()->pluck('name')->implode(', ')) }}"
+                                    value="{{ old('tags', $document->tags_list) }}"
                                     class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                     placeholder="{{ __('Add relevant tags separated by commas (e.g., research, health, education)') }}">
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">

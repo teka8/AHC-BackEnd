@@ -809,9 +809,6 @@ class EducationRepositoryController extends Controller
             $documentTitle = $document->title;
             $filePath = $document->file_path;
 
-            // Delete associated tags
-            $document->tags()->detach();
-
             // Delete access logs
             $document->accessLogs()->delete();
 
@@ -903,7 +900,6 @@ class EducationRepositoryController extends Controller
                 $filePath = $document->file_path;
 
                 // Delete associated data
-                $document->tags()->detach();
                 $document->accessLogs()->delete();
 
                 // Delete the document
@@ -986,7 +982,6 @@ class EducationRepositoryController extends Controller
             $filePath = $document->file_path;
 
             // Permanently delete associated data
-            $document->tags()->detach();
             $document->accessLogs()->forceDelete();
 
             // Force delete the document

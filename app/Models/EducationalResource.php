@@ -288,6 +288,25 @@ class EducationalResource extends Model
         $this->increment('view_count');
     }
 
+    public function getTagsListAttribute(): string
+    {
+        if (!$this->tags) {
+            return '';
+        }
+        
+        // If tags is already an array (JSON field)
+        if (is_array($this->tags)) {
+            return implode(', ', $this->tags);
+        }
+        
+        // If tags is a relationship collection
+        if (is_object($this->tags) && method_exists($this->tags, 'pluck')) {
+            return $this->tags->pluck('name')->implode(', ');
+        }
+        
+        return '';
+    }
+
     /**
      * Increment completion count
      */
