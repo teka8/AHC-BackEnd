@@ -57,15 +57,25 @@ class Document extends Model
     ];
 
     // Document type constants
-    const TYPE_POLICY_BRIEF = 'Policy Brief';
     const TYPE_RESEARCH_PAPER = 'Research Paper';
-    const TYPE_ANNUAL_REPORT = 'Annual Report';
-    const TYPE_QUARTERLY_REPORT = 'Quarterly Report';
-    const TYPE_ASSESSMENT_REPORT = 'Assessment Report';
-    const TYPE_AHC_GUIDELINE = 'AHC Guideline';
-    const TYPE_EDUCATIONAL_MATERIAL = 'Educational Material';
-    const TYPE_NEWSLETTER = 'Newsletter';
+    const TYPE_POLICY_BRIEF = 'Policy Brief';
+    const TYPE_REPORT = 'Report';
+    const TYPE_GUIDELINE = 'Guideline';
+    const TYPE_EDUCATIONAL_CONTENT = 'Educational Content';
     const TYPE_OTHER = 'Other';
+    
+    // Available document types for forms/validation
+    public static function getDocumentTypes(): array
+    {
+        return [
+            self::TYPE_RESEARCH_PAPER,
+            self::TYPE_POLICY_BRIEF,
+            self::TYPE_REPORT,
+            self::TYPE_GUIDELINE,
+            self::TYPE_EDUCATIONAL_CONTENT,
+            self::TYPE_OTHER,
+        ];
+    }
 
     // Status constants
     const STATUS_DRAFT = 'draft';
@@ -118,11 +128,13 @@ class Document extends Model
 
     /**
      * Get all tags associated with the document
+     * Note: Tags are now stored as JSON array in the 'tags' column
+     * This relationship method is kept for backward compatibility but not actively used
      */
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(DocumentTag::class, 'document_tag');
-    }
+    // public function tags(): BelongsToMany
+    // {
+    //     return $this->belongsToMany(DocumentTag::class, 'document_tag');
+    // }
 
     /**
      * Get all access logs for this document
@@ -255,7 +267,21 @@ class Document extends Model
 
     public function getTagsListAttribute(): string
     {
-        return $this->tags ? $this->tags->pluck('name')->implode(', ') : '';
+        if (!$this->tags) {
+            return '';
+        }
+        
+        // If tags is already an array (JSON field)
+        if (is_array($this->tags)) {
+            return implode(', ', $this->tags);
+        }
+        
+        // If tags is a relationship collection
+        if (is_object($this->tags) && method_exists($this->tags, 'pluck')) {
+            return $this->tags->pluck('name')->implode(', ');
+        }
+        
+        return '';
     }
 
 

@@ -101,11 +101,13 @@ class Others extends Model
 
     /**
      * Get all tags associated with the document
+     * Note: Tags are now stored as JSON array in the 'tags' column
+     * This relationship method is kept for backward compatibility but not actively used
      */
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(OthersTag::class, 'others_tag');
-    }
+    // public function tags(): BelongsToMany
+    // {
+    //     return $this->belongsToMany(OthersTag::class, 'others_tag');
+    // }
 
     /**
      * Get all access logs for this document
@@ -239,7 +241,21 @@ class Others extends Model
 
     public function getTagsListAttribute(): string
     {
-        return $this->tags ? $this->tags->pluck('name')->implode(', ') : '';
+        if (!$this->tags) {
+            return '';
+        }
+        
+        // If tags is already an array (JSON field)
+        if (is_array($this->tags)) {
+            return implode(', ', $this->tags);
+        }
+        
+        // If tags is a relationship collection
+        if (is_object($this->tags) && method_exists($this->tags, 'pluck')) {
+            return $this->tags->pluck('name')->implode(', ');
+        }
+        
+        return '';
     }
 
     /**

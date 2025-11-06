@@ -46,7 +46,7 @@ class DocumentRepositoryController extends Controller
         ];
 
         // Get documents with search, filter, and pagination
-        $query = Document::with(['creator', 'tags'])
+        $query = Document::with(['creator'])
             ->when($request->get('search'), function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
@@ -106,17 +106,7 @@ class DocumentRepositoryController extends Controller
             'breadcrumbs' => $breadcrumbs,
             'stats' => $stats,
             'uploadLimits' => $uploadLimits,
-            'documentTypes' => [
-                'Policy Brief',
-                'Research Paper',
-                'Annual Report',
-                'Quarterly Report',
-                'Assessment Report',
-                'AHC Guideline',
-                'Educational Material',
-                'Newsletter',
-                'Other'
-            ],
+            'documentTypes' => Document::getDocumentTypes(),
             'categories' => \App\Models\DocumentCategory::active()->ordered()->get(),
             'statuses' => [
                 Document::STATUS_DRAFT,
@@ -156,7 +146,7 @@ class DocumentRepositoryController extends Controller
      */
     public function edit($id)
     {
-        $document = Document::with('tags')->findOrFail($id);
+        $document = Document::findOrFail($id);
 
         $this->authorize('update', $document);
 
@@ -181,17 +171,7 @@ class DocumentRepositoryController extends Controller
         return view('backend.pages.document.edit', [
             'document' => $document,
             'breadcrumbs' => $breadcrumbs,
-            'documentTypes' => [
-                'Policy Brief',
-                'Research Paper',
-                'Annual Report',
-                'Quarterly Report',
-                'Assessment Report',
-                'AHC Guideline',
-                'Educational Material',
-                'Newsletter',
-                'Other'
-            ],
+            'documentTypes' => Document::getDocumentTypes(),
             'categories' => \App\Models\DocumentCategory::active()->ordered()->get(),
             'statuses' => [
                 Document::STATUS_DRAFT => __('Draft'),
@@ -223,7 +203,7 @@ class DocumentRepositoryController extends Controller
             'author' => 'required|string|max:255',
             'publication_date' => 'required|date',
             'abstract' => 'required|string',
-            'document_type' => 'required|string|in:Policy Brief,Research Paper,Annual Report,Quarterly Report,Assessment Report,AHC Guideline,Educational Material,Newsletter,Other',
+            'document_type' => 'required|string|in:' . implode(',', Document::getDocumentTypes()),
             'category' => 'required|string|max:255',
             'version' => 'nullable|string|max:50',
             'is_featured' => 'nullable|boolean',
@@ -282,7 +262,8 @@ class DocumentRepositoryController extends Controller
             if (!empty($validated['tags'])) {
                 $this->processTags($document, $validated['tags']);
             } else {
-                $document->tags()->detach();
+                $document->tags = [];
+                $document->save();
             }
 
             // Handle status changes
@@ -397,7 +378,7 @@ class DocumentRepositoryController extends Controller
             'author' => 'required|string|max:255',
             'publication_date' => 'required|date',
             'abstract' => 'required|string',
-            'document_type' => 'required|string|in:Policy Brief,Research Paper,Annual Report,Quarterly Report,Assessment Report,AHC Guideline,Educational Material,Newsletter,Other',
+            'document_type' => 'required|string|in:' . implode(',', Document::getDocumentTypes()),
             'category' => 'required|string|max:255',
             'version' => 'nullable|string|max:50',
             'is_featured' => 'nullable|boolean',
@@ -476,27 +457,12 @@ class DocumentRepositoryController extends Controller
      */
     private function processTags(Document $document, string $tagsInput): void
     {
-        $tags = array_map('trim', explode(',', $tagsInput));
-        $tagIds = [];
-
-        foreach ($tags as $tagName) {
-            if (empty($tagName))
-                continue;
-
-            // Find or create tag
-            $tag = DocumentTag::firstOrCreate(
-                ['name' => $tagName],
-                [
-                    'slug' => Str::slug($tagName),
-                    'color' => $this->generateTagColor($tagName)
-                ]
-            );
-
-            $tagIds[] = $tag->id;
-        }
-
-        // Sync tags with the document
-        $document->tags()->sync($tagIds);
+        // Parse comma-separated tags and filter empty values
+        $tags = array_filter(array_map('trim', explode(',', $tagsInput)));
+        
+        // Save tags as JSON array directly in the tags field
+        $document->tags = array_values($tags);
+        $document->save();
     }
 
     /**
@@ -592,9 +558,6 @@ class DocumentRepositoryController extends Controller
             $documentTitle = $document->title;
             $filePath = $document->file_path;
 
-            // Delete associated tags
-            $document->tags()->detach();
-
             // Delete access logs
             $document->accessLogs()->delete();
 
@@ -686,7 +649,6 @@ class DocumentRepositoryController extends Controller
                 $filePath = $document->file_path;
 
                 // Delete associated data
-                $document->tags()->detach();
                 $document->accessLogs()->delete();
 
                 // Delete the document
@@ -769,7 +731,6 @@ class DocumentRepositoryController extends Controller
             $filePath = $document->file_path;
 
             // Permanently delete associated data
-            $document->tags()->detach();
             $document->accessLogs()->forceDelete();
 
             // Force delete the document

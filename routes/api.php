@@ -14,6 +14,7 @@ use App\Http\Controllers\Backend\Api\TermController as BackendTermController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\PageController;
+use App\Http\Controllers\Api\PublicResourceController;
 
 
 /*
@@ -117,10 +118,6 @@ Route::middleware(['auth', 'web'])->prefix('admin')->name('admin.api.')->group(f
     Route::delete('/terms/{taxonomy}/{id}', [BackendTermController::class, 'destroy'])->name('terms.destroy');
 });
 
-
-
-
-
 Route::prefix('v1')->group(function () {
     // Public page routes 
     Route::get('/pages', [PageController::class, 'index']);
@@ -133,6 +130,7 @@ Route::prefix('v1')->group(function () {
     // Events management
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
     Route::get('/events/{id}', [EventController::class, 'show']);
+
 
     // Health Innovation & Entrepreneurship
     Route::prefix('health-innovation')->group(function () {
@@ -173,5 +171,37 @@ Route::prefix('v1')->group(function () {
             Route::get('/admin/applications', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'adminIndex']);
             Route::patch('/applications/{id}/status', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'updateStatus']);
         // });
+
+    // Public posts (news)
+    Route::prefix('public')->group(function () {
+        Route::get('/posts', [\App\Http\Controllers\Api\PublicPostController::class, 'index']);
+        Route::get('/posts/{id}', [\App\Http\Controllers\Api\PublicPostController::class, 'show']);
+
+        // Public media
+        Route::get('/media', [\App\Http\Controllers\Api\PublicMediaController::class, 'index']);
+
+        // Public resources
+        Route::prefix('resources')->group(function () {
+            // Categories routes first (no parameters)
+            Route::get('/documents/categories', [PublicResourceController::class, 'documentCategories']);
+            Route::get('/educational/categories', [PublicResourceController::class, 'educationalCategories']);
+            Route::get('/others/categories', [PublicResourceController::class, 'othersCategories']);
+            
+            // Download tracking endpoints (with numeric constraint)
+            Route::post('/documents/{id}/download', [PublicResourceController::class, 'documentDownload'])->where('id', '[0-9]+');
+            Route::post('/educational/{id}/download', [PublicResourceController::class, 'educationalDownload'])->where('id', '[0-9]+');
+            Route::post('/others/{id}/download', [PublicResourceController::class, 'othersDownload'])->where('id', '[0-9]+');
+            
+            // List endpoints (must come before show endpoints)
+            Route::get('/documents', [PublicResourceController::class, 'documents']);
+            Route::get('/educational', [PublicResourceController::class, 'educational']);
+            Route::get('/others', [PublicResourceController::class, 'others']);
+            
+            // Show endpoints with numeric constraint (must come last)
+            Route::get('/documents/{id}', [PublicResourceController::class, 'documentsShow'])->where('id', '[0-9]+');
+            Route::get('/educational/{id}', [PublicResourceController::class, 'educationalShow'])->where('id', '[0-9]+');
+            Route::get('/others/{id}', [PublicResourceController::class, 'othersShow'])->where('id', '[0-9]+');
+        });
+
     });
 });

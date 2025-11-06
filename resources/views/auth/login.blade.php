@@ -89,8 +89,24 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8 login-container">
+                <div class="flex justify-end pt-4 pr-4">
+                    <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM10 16a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM3.05 4.95a1 1 0 010-1.414l.707-.707a1 1 0 111.414 1.414l-.707.707a1 1 0 01-1.414 0zm12.373 12.373a1 1 0 01-1.414 0l-.707-.707a1 1 0 111.414-1.414l.707.707a1 1 0 010 1.414zM4.95 15.05a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414-1.414l-.707-.707z"></path></svg>
+                    </button>
+                </div>
                 <div class="card">
                     <div class="card-header">{{ __('Login') }}</div>
+
+                    <div class="flex justify-center items-center mt-4">
+                        <img class="dark:hidden h-[56px] w-auto object-contain"
+                            src="{{ config('settings.site_logo_lite') ?? asset('images/logo/logo_light.png') }}"
+                            alt="{{ config('app.name') }}" />
+                        <img class="hidden dark:block h-[56px] w-auto object-contain"
+                            src="{{ config('settings.site_logo_dark') ?? '/images/logo/logo_dark.png' }}"
+                            alt="{{ config('app.name') }}" />
+                    </div>
+
 
                     <div class="card-body">
                         <form method="POST" action="{{ route('login') }}">
@@ -165,3 +181,38 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+    var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+    // Initial setup: hide one icon and show the other based on current theme
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        themeToggleLightIcon.classList.remove('hidden'); // Show light icon (moon)
+        themeToggleDarkIcon.classList.add('hidden');    // Hide dark icon (sun)
+        document.documentElement.classList.add('dark');
+    } else {
+        themeToggleDarkIcon.classList.remove('hidden');  // Show dark icon (sun)
+        themeToggleLightIcon.classList.add('hidden');   // Hide light icon (moon)
+        document.documentElement.classList.remove('dark');
+    }
+
+    var themeToggleBtn = document.getElementById('theme-toggle');
+
+    themeToggleBtn.addEventListener('click', function() {
+        // Toggle icons inside button
+        themeToggleDarkIcon.classList.toggle('hidden');
+        themeToggleLightIcon.classList.toggle('hidden');
+
+        // Toggle 'dark' class on html element and update localStorage
+        if (document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('color-theme', 'light');
+        } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('color-theme', 'dark');
+        }
+    });
+</script>
+@endpush

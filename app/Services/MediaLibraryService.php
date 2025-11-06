@@ -260,6 +260,59 @@ class MediaLibraryService
         // Try to find media by ID first (most reliable)
         if (is_numeric($mediaUrlOrId)) {
             $media = SpatieMedia::find($mediaUrlOrId);
+            if ($media) {
+                try {
+                    // Prefer resolving via the configured storage disk
+                    $mediaPath = null;
+                    try {
+                        $relative = method_exists($media, 'getPathRelativeToRoot') ? $media->getPathRelativeToRoot() : null;
+                        if ($relative && !empty($media->disk)) {
+                            $mediaPath = \Illuminate\Support\Facades\Storage::disk($media->disk)->path($relative);
+                        }
+                    } catch (\Throwable $t) {
+                        // noop; fallback below
+                    }
+
+                    // Fallback to Spatie helper or common locations
+                    if (! $mediaPath || ! file_exists($mediaPath)) {
+                        $maybe = $media->getPath();
+                        if ($maybe && file_exists($maybe)) {
+                            $mediaPath = $maybe;
+                        } else {
+                            $candidatePaths = [
+                                storage_path('app/public/media/' . $media->file_name),
+                                storage_path('app/public/' . $media->id . '/' . $media->file_name),
+                                public_path('storage/media/' . $media->file_name),
+                                public_path('storage/' . $media->id . '/' . $media->file_name),
+                            ];
+                            foreach ($candidatePaths as $p) {
+                                if (file_exists($p)) { $mediaPath = $p; break; }
+                            }
+                        }
+                    }
+
+                    if ($mediaPath && file_exists($mediaPath)) {
+                        return $model
+                            ->addMedia($mediaPath)
+                            ->preservingOriginal()
+                            ->usingName($media->name)
+                            ->usingFileName($media->file_name)
+                            ->toMediaCollection($collection);
+                    } else {
+                        \Illuminate\Support\Facades\Log::warning('Could not resolve media path for attach', [
+                            'media_id' => $media->id,
+                            'disk' => $media->disk,
+                            'file' => $media->file_name,
+                        ]);
+                        return null;
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Failed to attach media by ID: ' . $e->getMessage(), [
+                        'media_id' => $media->id,
+                        'exception' => $e,
+                    ]);
+                }
+            }
         } else {
             // Extract file name from URL path
             $urlPath = parse_url($mediaUrlOrId, PHP_URL_PATH);
