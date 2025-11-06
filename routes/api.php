@@ -171,6 +171,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/admin/applications', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'adminIndex']);
             Route::patch('/applications/{id}/status', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'updateStatus']);
         // });
+    });
 
     // Public posts (news)
     Route::prefix('public')->group(function () {
