@@ -20,8 +20,8 @@ class PublicPostController extends Controller
         $search = (string)($request->input('search') ?? '');
 
         $query = Post::query()
-            ->whereIn('post_type', ['post', 'news'])
-            ->whereIn('status', ['published', 'Published']);
+            ->where('post_type', 'news')
+            ->where('status', 'Published');
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -58,8 +58,8 @@ class PublicPostController extends Controller
      */
     public function show(int $id)
     {
-        $post = Post::whereIn('post_type', ['post', 'news'])
-            ->whereIn('status', ['published', 'Published'])
+        $post = Post::where('post_type', 'news')
+            ->where('status', 'Published')
             ->findOrFail($id);
 
         return new PostResource($post);
