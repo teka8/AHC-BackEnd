@@ -304,7 +304,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
             ->values()
             ->toArray();
         
-        $excludeSeeders = ['UserSeeder']; // ← Customize exclusions
+        $excludeSeeders = ['UserSeeder', 'ContentSeeder', 'TestUserProfileFieldsSeeder', 'SettingsSeeder']; // ← Customize exclusions
         
         $seedersToRun = array_diff($allSeeders, $excludeSeeders);
         
