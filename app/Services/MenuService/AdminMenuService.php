@@ -135,6 +135,79 @@ class AdminMenuService
             ],
         ]);
 
+        // Health Innovation & Entrepreneurship
+        $this->addMenuItem([
+            'label' => __('Health Innovation'),
+            'icon' => 'lucide:lightbulb',
+            'id' => 'ventures-submenu',
+            'active' => Route::is('admin.ventures.*') || Route::is('admin.venture-applications.*'),
+            'priority' => 13,
+            'permissions' => ['venture.view', 'venture_application.view'],
+            'children' => [
+                [
+                    'label' => __('All Ventures'),
+                    'route' => route('admin.ventures.index'),
+                    'active' => Route::is('admin.ventures.index') || Route::is('admin.ventures.show') || Route::is('admin.ventures.edit'),
+                    'priority' => 20,
+                    'permissions' => 'venture.view',
+                ],
+                [
+                    'label' => __('Add New Venture'),
+                    'route' => route('admin.ventures.create'),
+                    'active' => Route::is('admin.ventures.create'),
+                    'priority' => 10,
+                    'permissions' => 'venture.create',
+                ],
+                [
+                    'label' => __('Applications'),
+                    'route' => route('admin.venture-applications.index'),
+                    'active' => Route::is('admin.venture-applications.*'),
+                    'priority' => 30,
+                    'permissions' => 'venture_application.view',
+                ],
+            ],
+        ]);
+
+        // Scholarship Portal
+        $this->addMenuItem([
+            'label' => __('Scholarships'),
+            'icon' => 'lucide:graduation-cap',
+            'id' => 'scholarships-submenu',
+            'active' => Route::is('admin.scholarships.*') || Route::is('admin.scholarship-applications.*') || Route::is('admin.scholarship-evaluation.*'),
+            'priority' => 14,
+            'permissions' => ['scholarship.view', 'scholarship_application.view'],
+            'children' => [
+                [
+                    'label' => __('All Scholarships'),
+                    'route' => route('admin.scholarships.index'),
+                    'active' => Route::is('admin.scholarships.index') || Route::is('admin.scholarships.show') || Route::is('admin.scholarships.edit'),
+                    'priority' => 20,
+                    'permissions' => 'scholarship.view',
+                ],
+                [
+                    'label' => __('Add New Scholarship'),
+                    'route' => route('admin.scholarships.create'),
+                    'active' => Route::is('admin.scholarships.create'),
+                    'priority' => 10,
+                    'permissions' => 'scholarship.create',
+                ],
+                [
+                    'label' => __('Applications'),
+                    'route' => route('admin.scholarship-applications.index'),
+                    'active' => Route::is('admin.scholarship-applications.*'),
+                    'priority' => 30,
+                    'permissions' => 'scholarship_application.view',
+                ],
+                [
+                    'label' => __('Evaluations'),
+                    'route' => route('admin.scholarship-evaluation.index'),
+                    'active' => Route::is('admin.scholarship-evaluation.*'),
+                    'priority' => 40,
+                    'permissions' => 'scholarship_application.view',
+                ],
+            ],
+        ]);
+
 
         // pages
         $this->addMenuItem([
