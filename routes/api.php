@@ -133,4 +133,45 @@ Route::prefix('v1')->group(function () {
     // Events management
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
     Route::get('/events/{id}', [EventController::class, 'show']);
+
+    // Health Innovation & Entrepreneurship
+    Route::prefix('health-innovation')->group(function () {
+        // Ventures (public)
+        Route::get('/ventures', [\App\Http\Controllers\Api\HealthInnovation\VentureController::class, 'index']);
+        Route::get('/ventures/{id}', [\App\Http\Controllers\Api\HealthInnovation\VentureController::class, 'show']);
+        Route::post('/ventures/{id}/vote', [\App\Http\Controllers\Api\HealthInnovation\VentureController::class, 'vote']);
+        
+        // Venture Updates (public)
+        Route::get('/updates', [\App\Http\Controllers\Api\HealthInnovation\VentureUpdateController::class, 'index']);
+        
+        // Applications (requires auth)
+        // Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/applications', [\App\Http\Controllers\Api\HealthInnovation\VentureApplicationController::class, 'store']);
+            Route::post('/applications/draft', [\App\Http\Controllers\Api\HealthInnovation\VentureApplicationController::class, 'saveDraft']);
+            Route::patch('/applications/{id}/draft', [\App\Http\Controllers\Api\HealthInnovation\VentureApplicationController::class, 'saveDraft']);
+            Route::get('/applications/my', [\App\Http\Controllers\Api\HealthInnovation\VentureApplicationController::class, 'myApplications']);
+            Route::get('/applications/{id}', [\App\Http\Controllers\Api\HealthInnovation\VentureApplicationController::class, 'show']);
+        // });
+    });
+
+    // Scholarship Portal
+    Route::prefix('scholarships')->group(function () {
+        // Scholarships (public)
+        Route::get('/', [\App\Http\Controllers\Api\Scholarship\ScholarshipController::class, 'index']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\Scholarship\ScholarshipController::class, 'show']);
+        
+        // Applications (requires auth)
+        // Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/applications', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'store']);
+            Route::post('/applications/draft', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'saveDraft']);
+            Route::patch('/applications/{id}/draft', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'saveDraft']);
+            Route::get('/applications/my', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'myApplications']);
+            Route::get('/applications/{id}', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'show']);
+            Route::get('/applications/{id}/status', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'statusHistory']);
+            
+            // Admin routes (add role check middleware as needed)
+            Route::get('/admin/applications', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'adminIndex']);
+            Route::patch('/applications/{id}/status', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'updateStatus']);
+        // });
+    });
 });
