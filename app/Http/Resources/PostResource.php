@@ -58,7 +58,7 @@ class PostResource extends JsonResource
             'slug' => $this->slug,
             'content' => $this->content,
             'excerpt' => $this->excerpt,
-            'featured_image' => $this->featured_image,
+            'featured_image' => $this->getFirstMediaUrl('featured'),
             'post_type' => $this->post_type,
             'status' => $this->status,
             'published_at' => $this->published_at,
