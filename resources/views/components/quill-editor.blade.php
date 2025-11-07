@@ -128,6 +128,21 @@
             openMediaModal(modalId, false, 'all', `handleQuillMediaSelect_${editorId}`);
         };
 
+
+
+        var BaseImageBlot = Quill.import('formats/image');
+
+        class CustomImageBlot extends BaseImageBlot {
+            static create(value) {
+                let node = super.create(value);
+                // Ensure the src is set by the parent class, then add our style
+                node.setAttribute('style', 'display: inline-block;');
+                return node;
+            }
+        }
+        CustomImageBlot.blotName = 'image'; // Register as 'image' to override default
+        Quill.register(CustomImageBlot, true); // 'true' to overwrite if already registered
+
         // Initialize Quill on the container div
         const quill = new Quill(`#quill-${editorId}`, {
             theme: "snow",
