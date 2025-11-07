@@ -48,21 +48,27 @@ class VentureApplicationController extends Controller
             'business_plan' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
+        // Handle file uploads
+        $pitchDeckPath = null;
+        $businessPlanPath = null;
+
+        if ($request->hasFile('pitch_deck')) {
+            $pitchDeckPath = $request->file('pitch_deck')->store('applications/pitch-decks', 'public');
+        }
+
+        if ($request->hasFile('business_plan')) {
+            $businessPlanPath = $request->file('business_plan')->store('applications/business-plans', 'public');
+        }
+
         $application = VentureApplication::create([
             ...$validated,
             'user_id' => $request->user()?->id,
             'status' => 'submitted',
+            'pitch_deck' => $pitchDeckPath,
+            'business_plan' => $businessPlanPath,
             'submitted_at' => now(),
         ]);
 
-        // Handle file uploads
-        if ($request->hasFile('pitch_deck')) {
-            $application->addMediaFromRequest('pitch_deck')->toMediaCollection('pitch_deck');
-        }
-
-        if ($request->hasFile('business_plan')) {
-            $application->addMediaFromRequest('business_plan')->toMediaCollection('business_plan');
-        }
 
         return response()->json([
             'message' => 'Application submitted successfully',
