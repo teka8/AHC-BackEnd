@@ -49,25 +49,34 @@ class ScholarshipApplicationController extends Controller
             'motivation_letter_file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
         ]);
 
+        // Handle file uploads
+        $cvPath = null;
+        $transcriptPath = null;
+        $motivationLetterFilePath = null;
+
+        if ($request->hasFile('cv')) {
+            $cvPath = $request->file('cv')->store('applications/cvs', 'public');
+        }
+
+        if ($request->hasFile('transcript')) {
+            $transcriptPath = $request->file('transcript')->store('applications/transcripts', 'public');
+        }
+
+        if ($request->hasFile('motivation_letter_file')) {
+            $motivationLetterFilePath = $request->file('motivation_letter_file')->store('applications/motivation-letter-files', 'public');
+        }
+
         $application = ScholarshipApplication::create([
             ...$validated,
             'user_id' => $request->user()?->id,
             'status' => 'submitted',
+            'cv' => $cvPath,
+            'transcript' => $transcriptPath,
+            'motivation_letter_file' => $motivationLetterFilePath,
             'submitted_at' => now(),
         ]);
 
-        // Handle file uploads
-        if ($request->hasFile('cv')) {
-            $application->addMediaFromRequest('cv')->toMediaCollection('cv');
-        }
-
-        if ($request->hasFile('transcript')) {
-            $application->addMediaFromRequest('transcript')->toMediaCollection('transcript');
-        }
-
-        if ($request->hasFile('motivation_letter_file')) {
-            $application->addMediaFromRequest('motivation_letter_file')->toMediaCollection('motivation_letter_file');
-        }
+        
 
         // Add status history
         ScholarshipApplicationStatusHistory::create([
