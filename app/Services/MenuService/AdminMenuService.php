@@ -245,6 +245,31 @@ class AdminMenuService
             'permissions' => 'media.view',
         ]);
 
+        $this->addMenuItem([
+            'label' => __('Programs'),
+            'icon' => 'lucide:award',
+            'id' => 'programs-submenu',
+            'active' => Route::is('admin.programs.*'),
+            'priority' => 36,
+            'permissions' => 'program.view',
+            'children' => [
+                [
+                    'label' => __('All Programs'),
+                    'route' => route('admin.programs.index'),
+                    'active' => Route::is('admin.programs.index') || Route::is('admin.programs.show') || Route::is('admin.programs.edit'),
+                    'priority' => 10,
+                    'permissions' => 'program.view',
+                ],
+                [
+                    'label' => __('Add New Program'),
+                    'route' => route('admin.programs.create'),
+                    'active' => Route::is('admin.programs.create'),
+                    'priority' => 20,
+                    'permissions' => 'program.create',
+                ],
+            ],
+        ]);
+
         $this->addMenuItem(
             [
                 'label' => __('Resources'),

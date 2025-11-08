@@ -79,7 +79,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::post('/notifications/mark-all-read', [App\Http\Controllers\Backend\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/read/{id}', [App\Http\Controllers\Backend\NotificationController::class, 'markAsRead'])->name('notifications.read');
 
-    Route::post('/news/{id}/change-status', [PostController::class, 'changeStatus'])->name('change-status');
+    Route::post('/news/{id}/change-status', [PostController::class, 'changeStatus'])->name('news.change-status');
     // Posts/Pages Routes - Dynamic post types.
     Route::get('/posts/{postType?}', [PostController::class, 'index'])->name('posts.index');
     Route::get('/posts/{postType}/create', [PostController::class, 'create'])->name('posts.create');
@@ -114,7 +114,12 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
     Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
     Route::delete('/events/delete/bulk-delete', [EventController::class, 'bulkDelete'])->name('events.bulk-delete');
-    Route::post('events/{id}/change-status', [EventController::class, 'changeStatus'])->name('change-status');
+    Route::post('events/{id}/change-status', [EventController::class, 'changeStatus'])->name('events.change-status');
+
+    // Program Routes.
+    Route::resource('programs', \App\Http\Controllers\Backend\ProgramController::class);
+    Route::post('programs/{program}/change-status', [\App\Http\Controllers\Backend\ProgramController::class, 'changeStatus'])->name('programs.change-status');
+
 
     // Health Innovation Routes
     Route::prefix('ventures')->name('ventures.')->group(function () {
@@ -197,11 +202,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::post('/', [DocumentRepositoryController::class, 'store'])->name('store')->middleware('check.upload.limits');
         Route::get('/upload-limits', [DocumentRepositoryController::class, 'getUploadLimits'])->name('upload-limits');
 
-        // Additional routes you might want to add:
-        Route::get('/{id}/edit', [DocumentRepositoryController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [DocumentRepositoryController::class, 'update'])->name('update');
-        Route::post('/{id}/publish', [DocumentRepositoryController::class, 'publish'])->name('publish');
-        Route::post('/{id}/approve', [DocumentRepositoryController::class, 'approve'])->name('approve');
+
 
         Route::get('/{id}/edit', [DocumentRepositoryController::class, 'edit'])->name('edit');
         Route::put('/{id}', [DocumentRepositoryController::class, 'update'])->name('update');
@@ -221,7 +222,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     
     
         // Workflow routes
-        Route::post('/{id}/change-status', [DocumentRepositoryController::class, 'changeStatus'])->name('change-status');
+        Route::post('/{id}/change-status', [DocumentRepositoryController::class, 'changeStatus'])->name('document.change-status');
         Route::get('/{id}/workflow-history', [DocumentRepositoryController::class, 'workflowHistory'])->name('workflow-history');
     });
 
@@ -242,7 +243,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::post('/{id}/increment-download', [EducationRepositoryController::class, 'incrementDownload'])->name('increment-download');
 
         // Workflow routes
-        Route::post('/{id}/change-status', [EducationRepositoryController::class, 'changeStatus'])->name('change-status');
+        Route::post('/{id}/change-status', [EducationRepositoryController::class, 'changeStatus'])->name('education.change-status');
         Route::get('/{id}/workflow-history', [EducationRepositoryController::class, 'workflowHistory'])->name('workflow-history');
     });
 
@@ -264,7 +265,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::post('/{id}/increment-download', [OthersController::class, 'incrementDownload'])->name('increment-download');
 
         // Workflow routes
-        Route::post('/{id}/change-status', [OthersController::class, 'changeStatus'])->name('change-status');
+        Route::post('/{id}/change-status', [OthersController::class, 'changeStatus'])->name('others.change-status');
         Route::get('/{id}/workflow-history', [OthersController::class, 'workflowHistory'])->name('workflow-history');
     });
 

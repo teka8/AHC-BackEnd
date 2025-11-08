@@ -159,6 +159,15 @@ class PermissionService
                     'ai_content.generate',
                 ],
             ],
+            [
+                'group_name' => 'program',
+                'permissions' => [
+                    'program.create',
+                    'program.view',
+                    'program.edit',
+                    'program.delete',
+                ],
+            ],
             // ========== DOCUMENT REPOSITORY PERMISSIONS ==========
             [
                 'group_name' => 'document',
