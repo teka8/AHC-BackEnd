@@ -36,8 +36,12 @@ class RolesService
         return $query->paginate(config('settings.default_pagination', $perPage));
     }
 
-    public static function getPermissionsByGroupName(string $group_name): Collection
+    public static function getPermissionsByGroupName(?string $group_name): Collection
     {
+        if ($group_name === null) {
+            return collect([]);
+        }
+        
         return Permission::select('name', 'id')
             ->where('group_name', $group_name)
             ->get();

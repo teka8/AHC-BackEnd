@@ -28,6 +28,8 @@ use App\Policies\VenturePolicy;
 use App\Policies\VentureApplicationPolicy;
 use App\Policies\ScholarshipPolicy;
 use App\Policies\ScholarshipApplicationPolicy;
+use App\Policies\ProgramPolicy;
+use App\Models\Program;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -54,6 +56,7 @@ class AuthServiceProvider extends ServiceProvider
         VentureApplication::class => VentureApplicationPolicy::class,
         Scholarship::class => ScholarshipPolicy::class,
         ScholarshipApplication::class => ScholarshipApplicationPolicy::class,
+        Program::class => ProgramPolicy::class,
     ];
 
     /**

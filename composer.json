@@ -32,6 +32,7 @@
         "spatie/browsershot": "^5.0",
         "spatie/laravel-medialibrary": "^11.13",
         "spatie/laravel-permission": "^6.4",
+        "spatie/laravel-activitylog": "^4.0",
         "spatie/laravel-query-builder": "^6.3",
         "tormjens/eventy": "^0.8.0"
     },

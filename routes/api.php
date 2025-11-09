@@ -181,6 +181,9 @@ Route::prefix('v1')->group(function () {
         // Public media
         Route::get('/media', [\App\Http\Controllers\Api\PublicMediaController::class, 'index']);
 
+        // Public programs
+        Route::get('/programs', [\App\Http\Controllers\Api\ProgramController::class, 'index']);
+
         // Public resources
         Route::prefix('resources')->group(function () {
             // Categories routes first (no parameters)

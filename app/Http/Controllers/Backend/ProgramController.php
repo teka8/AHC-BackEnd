@@ -11,6 +11,7 @@ class ProgramController extends Controller
 {
     public function __construct(private readonly MediaLibraryService $mediaService)
     {
+        $this->authorizeResource(Program::class, 'program');
     }
 
     /**
@@ -18,6 +19,8 @@ class ProgramController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Program::class);
+        
         $breadcrumbs = [
             ['name' => 'Programs', 'route' => route('admin.programs.index')],
         ];
@@ -29,6 +32,8 @@ class ProgramController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Program::class);
+        
         $breadcrumbs = [
             ['name' => 'Programs', 'route' => route('admin.programs.index')],
             ['name' => 'Create'],
@@ -41,6 +46,8 @@ class ProgramController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Program::class);
+        
         $request->validate([
             'title' => 'required|string|max:255',
             'host' => 'required|string|max:255',
@@ -66,18 +73,25 @@ class ProgramController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Program $program)
     {
-        $program = Program::findOrFail($id);
-        return view('backend.pages.programs.show', compact('program'));
+        $this->authorize('view', $program);
+        
+        $breadcrumbs = [
+            ['name' => 'Programs', 'route' => route('admin.programs.index')],
+            ['name' => $program->title],
+        ];
+        
+        return view('backend.pages.programs.show', compact('program', 'breadcrumbs'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Program $program)
     {
-        $program = Program::findOrFail($id);
+        $this->authorize('update', $program);
+        
         $breadcrumbs = [
             ['name' => 'Programs', 'route' => route('admin.programs.index')],
             ['name' => 'Edit'],
@@ -88,17 +102,25 @@ class ProgramController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Program $program)
     {
+        $this->authorize('update', $program);
+        
         $request->validate([
             'title' => 'required|string|max:255',
             'host' => 'required|string|max:255',
             'description' => 'required|string',
-            'state' => 'required|in:paused,active,archived,upcoming',
+            'state' => 'sometimes|in:paused,active,archived,upcoming',
         ]);
-
-        $program = Program::findOrFail($id);
-        $program->update($request->all());
+        
+        $data = $request->only(['title', 'host', 'description']);
+        
+        // Only update state if it's provided
+        if ($request->filled('state')) {
+            $data['state'] = $request->input('state');
+        }
+        
+        $program->update($data);
 
         if ($request->hasFile('image')) {
             $program->clearMediaCollection('programs');
@@ -114,12 +136,14 @@ class ProgramController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Program $program)
     {
-        $program = Program::findOrFail($id);
+        $this->authorize('delete', $program);
+        
         $program->delete();
 
-        return redirect()->route('admin.programs.index')->with('success', 'Program deleted successfully.');
+        return redirect()->route('admin.programs.index')
+            ->with('success', 'Program deleted successfully.');
     }
 
     /**
@@ -127,6 +151,8 @@ class ProgramController extends Controller
      */
     public function changeStatus(Request $request, Program $program)
     {
+        $this->authorize('update', $program);
+        
         $action = $request->input('action');
 
         if ($program->changeStatus($action)) {

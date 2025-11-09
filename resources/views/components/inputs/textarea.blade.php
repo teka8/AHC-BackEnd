@@ -13,14 +13,14 @@
         <label class="form-label" for="{{ $name }}">{{ $label }}</label>
     @endif
     <textarea
-        name="{{ $name }}"
-        id="{{ $name }}"
+        @if($name) name="{{ $name }}" @endif
+        @if($name) id="{{ $name }}" @endif
         rows="{{ $rows }}"
         placeholder="{{ $placeholder }}"
         @if($required) required @endif
         @if($disabled) disabled @endif
-        {{ $attributes->class(['form-control-textarea']) }}
-    >{{ old($name, $value) }}</textarea>
+        {{ $attributes->merge(['class' => 'form-control-textarea']) }}
+    >@if(!$attributes->has('x-model')){{ old($name, $value) }}@endif</textarea>
     @if($hint)
         <div class="text-xs text-gray-400 mt-1">{{ $hint }}</div>
     @endif

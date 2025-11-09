@@ -117,7 +117,15 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::post('events/{id}/change-status', [EventController::class, 'changeStatus'])->name('events.change-status');
 
     // Program Routes.
-    Route::resource('programs', \App\Http\Controllers\Backend\ProgramController::class);
+    Route::resource('programs', \App\Http\Controllers\Backend\ProgramController::class)->names([
+        'index' => 'programs.index',
+        'create' => 'programs.create',
+        'store' => 'programs.store',
+        'show' => 'programs.show',
+        'edit' => 'programs.edit',
+        'update' => 'programs.update',
+        'destroy' => 'programs.destroy',
+    ]);
     Route::post('programs/{program}/change-status', [\App\Http\Controllers\Backend\ProgramController::class, 'changeStatus'])->name('programs.change-status');
 
 

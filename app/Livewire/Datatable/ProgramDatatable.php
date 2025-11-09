@@ -10,6 +10,7 @@ use Illuminate\Contracts\Support\Renderable;
 use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Support\Facades\Blade;
 use Livewire\Attributes\On;
+use Illuminate\Support\Facades\Log;
 
 class ProgramDatatable extends Datatable
 {
@@ -131,6 +132,8 @@ class ProgramDatatable extends Datatable
                 $q->where('state', $this->status);
             });
 
+        Log::info('ProgramDatatable buildQuery:', ['query' => $query->toSql(), 'bindings' => $query->getBindings()]);
+
         return $this->sortQuery($query);
     }
 
@@ -199,7 +202,8 @@ class ProgramDatatable extends Datatable
 
     public function renderActionsColumn($item): string|Renderable
     {
-        return '';
+        // Use the default implementation from HasDatatableActionItems trait
+        return parent::renderActionsColumn($item);
     }
 
     #[On('showDeleteModal')]
