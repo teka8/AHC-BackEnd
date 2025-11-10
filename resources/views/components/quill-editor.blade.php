@@ -65,8 +65,34 @@
         height: 100%;
         display: block;
     }
+
+    /* Image Resize Module Styles */
+    .ql-editor img {
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .ql-editor img:hover {
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+    }
+    .ql-editor img.dragging {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+
+    /* Image Resize Handles */
+    .ql-image-resize-display {
+        position: absolute;
+        font-size: 12px;
+        padding: 4px 8px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        border-radius: 4px;
+        pointer-events: none;
+        z-index: 1000;
+    }
 </style>
 
+<script src="{{ asset('vendor/quill/quill-image-resize.js') }}"></script>
 <script src="{{ asset('vendor/quill/quill.min.js') }}"></script>
 @endonce
 
@@ -158,6 +184,12 @@
         });
 
         window['quill_' + editorId] = quill;
+
+
+        // Initialize custom image resize module
+        if (typeof window.QuillImageResize !== 'undefined') {
+            new window.QuillImageResize(quill);
+        }
 
         // Create media selection handler function for this specific editor
         window[`handleQuillMediaSelect_${editorId}`] = function(files) {
