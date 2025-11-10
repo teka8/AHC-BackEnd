@@ -53,7 +53,7 @@ class Program extends Model implements HasMedia
 
         // 3) Fallback to image attribute (legacy column)
         if (!empty($this->image)) {
-            return $this->image;
+            return asset($this->image);
         }
 
         // 4) Final fallback: placeholder
