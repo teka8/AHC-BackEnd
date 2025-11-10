@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\ProgramStatus;
+use App\Enums\ProgramCategory;
 use Illuminate\Validation\Rule;
 
 class ProgramRequest extends FormRequest
@@ -28,6 +29,8 @@ class ProgramRequest extends FormRequest
             'host' => 'required|string|max:255',
             'description' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'categories' => ['nullable', 'array'],
+            'categories.*' => ['string', Rule::in(array_map(fn ($case) => $case->value, ProgramCategory::cases()))],
         ];
 
         if ($this->isMethod('put') || $this->isMethod('patch')) {

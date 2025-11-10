@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProgramCategory;
 use App\Enums\ProgramStatus;
 use App\Models\Media as StoredMedia;
 use App\Services\MediaLibraryService;
@@ -22,11 +23,13 @@ class Program extends Model implements HasMedia
         'description',
         'image',
         'state',
+        'categories',
     ];
 
     // Ensure new programs default to UPCOMING if state is omitted
     protected $attributes = [
         'state' => ProgramStatus::UPCOMING->value,
+        'categories' => '[]',
     ];
 
     protected $casts = [
@@ -44,7 +47,7 @@ class Program extends Model implements HasMedia
         // 1) Prefer the Media model URL (conversion if requested)
         $media = $this->getFirstMedia('featured');
         if ($media) {
-            return $conversion ? $media->getUrl($conversion) : $media->getUrl();
+            return $this->resolveMediaUrl($media, $conversion);
         }
 
         // Fallback to legacy "programs" collection if present
@@ -95,6 +98,108 @@ class Program extends Model implements HasMedia
         }
 
         return false;
+    }
+
+    /**
+     * Get available program categories with translated labels.
+     */
+    public static function getProgramCategories(): array
+    {
+        return ProgramCategory::options();
+    }
+
+    /**
+     * Normalized categories accessor (always at least uncategorized).
+     */
+    public function getCategoriesAttribute($value): array
+    {
+        $decoded = $value;
+
+        if (is_string($decoded)) {
+            $decoded = json_decode($decoded, true) ?? [];
+        }
+
+        if (! is_array($decoded)) {
+            $decoded = [];
+        }
+
+        $categories = collect($decoded)
+            ->flatMap(fn ($cat) => is_array($cat) ? $cat : [$cat])
+            ->filter()
+            ->map(fn ($cat) => is_string($cat) ? strtolower($cat) : (string) $cat)
+            ->map(fn ($cat) => ProgramCategory::tryFrom($cat))
+            ->filter()
+            ->map(fn (ProgramCategory $category) => $category->value)
+            ->unique()
+            ->values();
+
+        if ($categories->isEmpty()) {
+            return [ProgramCategory::UNCATEGORIZED->value];
+        }
+
+        return $categories->all();
+    }
+
+    /**
+     * Mutator to sanitize stored categories.
+     */
+    public function setCategoriesAttribute($value): void
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $value = $decoded;
+            }
+        }
+
+        $collection = collect(is_array($value) ? $value : [$value])
+            ->flatMap(fn ($cat) => is_array($cat) ? $cat : [$cat])
+            ->filter()
+            ->map(fn ($cat) => is_string($cat) ? strtolower($cat) : (string) $cat)
+            ->map(fn ($cat) => ProgramCategory::tryFrom($cat))
+            ->filter()
+            ->map(fn (ProgramCategory $category) => $category->value)
+            ->unique()
+            ->values();
+
+        if ($collection->isEmpty()) {
+            $collection = collect([ProgramCategory::UNCATEGORIZED->value]);
+        } else {
+            $collection = $collection->reject(fn ($cat) => $cat === ProgramCategory::UNCATEGORIZED->value)->values();
+
+            if ($collection->isEmpty()) {
+                $collection = collect([ProgramCategory::UNCATEGORIZED->value]);
+            }
+        }
+
+        $this->attributes['categories'] = $collection->toJson();
+    }
+
+    /**
+     * Category labels accessor for display.
+     */
+    public function getCategoryLabelsAttribute(): array
+    {
+        return collect($this->categories)
+            ->map(fn ($cat) => ProgramCategory::tryFrom($cat)?->label() ?? Str::of($cat)->headline())
+            ->all();
+    }
+
+    /**
+     * Scope programs by category value.
+     */
+    public function scopeForCategory($query, string $category)
+    {
+        if ($category === ProgramCategory::UNCATEGORIZED->value) {
+            return $query->where(function ($sub) {
+                $sub->whereNull('categories')
+                    ->orWhere('categories', '[]')
+                    ->orWhereJsonContains('categories', ProgramCategory::UNCATEGORIZED->value);
+            });
+        }
+
+        return $query->whereJsonContains('categories', $category);
     }
 
     /**

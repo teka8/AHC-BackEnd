@@ -45,6 +45,8 @@ class ProgramResource extends JsonResource
             'image_thumb' => $imageThumb,
             'image_id' => $this->when(is_numeric($this->image), fn () => (int) $this->image),
             'image_raw' => $this->image,
+            'categories' => $this->categories,
+            'category_labels' => $this->category_labels,
             'has_image' => $this->when(method_exists($this->resource, 'hasImage'), fn () => $this->resource->hasImage()),
             'created_at' => optional($this->created_at)->toISOString(),
             'updated_at' => optional($this->updated_at)->toISOString(),

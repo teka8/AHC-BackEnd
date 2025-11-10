@@ -54,6 +54,41 @@
                             @enderror
                         </div>
 
+                        @php
+                            $categoryOptions = \App\Models\Program::getProgramCategories();
+                            $defaultCategories = $program?->categories ?? [\App\Enums\ProgramCategory::UNCATEGORIZED->value];
+                            $selectedCategories = \Illuminate\Support\Arr::wrap(old('categories', $defaultCategories));
+                        @endphp
+
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {{ __('Program Categories') }}
+                            </label>
+                            <p class="text-xs text-gray-500 mb-2 dark:text-gray-400">
+                                {{ __('Select all categories that apply. Choose “Uncategorized” when none of the pillars fit.') }}
+                            </p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                @foreach($categoryOptions as $value => $label)
+                                    <label class="flex items-start gap-2 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-400 dark:hover:border-blue-400 transition-colors bg-white dark:bg-gray-800">
+                                        <input
+                                            type="checkbox"
+                                            name="categories[]"
+                                            value="{{ $value }}"
+                                            class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            @checked(in_array($value, $selectedCategories, true))
+                                        >
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ $label }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('categories')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                            @error('categories.*')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Description') }}</label>
                             <p class="text-xs text-gray-500 mb-2 dark:text-gray-400">

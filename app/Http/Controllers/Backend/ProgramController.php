@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Program;
-use Illuminate\Http\Request;
 use App\Services\MediaLibraryService;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Enums\ProgramCategory;
 
 class ProgramController extends Controller
 {
@@ -53,10 +55,13 @@ class ProgramController extends Controller
             'host' => 'required|string|max:255',
             'description' => 'required|string',
             'state' => 'sometimes|in:paused,active,archived,upcoming',
+            'categories' => ['nullable', 'array'],
+            'categories.*' => ['string', Rule::in(array_map(fn ($case) => $case->value, ProgramCategory::cases()))],
         ]);
 
         $data = $request->only(['title', 'host', 'description']);
         $data['state'] = $request->input('state', 'upcoming');
+        $data['categories'] = $this->resolveCategoriesFromRequest($request);
 
         $program = Program::create($data);
 
@@ -106,6 +111,8 @@ class ProgramController extends Controller
             'host' => 'required|string|max:255',
             'description' => 'required|string',
             'state' => 'sometimes|in:paused,active,archived,upcoming',
+            'categories' => ['nullable', 'array'],
+            'categories.*' => ['string', Rule::in(array_map(fn ($case) => $case->value, ProgramCategory::cases()))],
         ]);
 
         $data = $request->only(['title', 'host', 'description']);
@@ -114,6 +121,8 @@ class ProgramController extends Controller
         if ($request->filled('state')) {
             $data['state'] = $request->input('state');
         }
+
+        $data['categories'] = $this->resolveCategoriesFromRequest($request);
 
         $program->update($data);
 
@@ -189,5 +198,30 @@ class ProgramController extends Controller
         }
 
         $program->forceFill(['image' => $imageInput])->save();
+    }
+
+    private function resolveCategoriesFromRequest(Request $request): array
+    {
+        $categories = collect($request->input('categories', []))
+            ->flatMap(fn ($cat) => is_array($cat) ? $cat : [$cat])
+            ->filter()
+            ->map(fn ($cat) => is_string($cat) ? strtolower(trim($cat)) : (string) $cat)
+            ->map(fn ($cat) => ProgramCategory::tryFrom($cat))
+            ->filter()
+            ->map(fn (ProgramCategory $category) => $category->value)
+            ->unique()
+            ->values();
+
+        if ($categories->contains(ProgramCategory::UNCATEGORIZED->value)) {
+            $categories = $categories
+                ->reject(fn ($cat) => $cat === ProgramCategory::UNCATEGORIZED->value)
+                ->values();
+        }
+
+        if ($categories->isEmpty()) {
+            return [ProgramCategory::UNCATEGORIZED->value];
+        }
+
+        return $categories->all();
     }
 }

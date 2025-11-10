@@ -35,7 +35,7 @@ class ProgramDatatable extends Datatable
     public function getFilters(): array
     {
         $filters = [];
-        
+
         $statuses = ProgramStatus::cases();
 
         $translatedStatuses = collect($statuses)->mapWithKeys(function ($enum) {
@@ -60,8 +60,7 @@ class ProgramDatatable extends Datatable
         return [];
     }
 
-    protected function getItemRouteParameters($item):
-    array
+    protected function getItemRouteParameters($item): array
     {
         return [
             'program' => $item->id,
@@ -154,6 +153,16 @@ class ProgramDatatable extends Datatable
                 class="text-gray-700 dark:text-white font-medium hover:text-primary dark:hover:text-primary">
                 <?php echo $program->title; ?>
             </a>
+            <?php $labels = $program->category_labels ?? []; ?>
+            <?php if (! empty($labels)): ?>
+                <div class="mt-2 flex flex-wrap gap-1">
+                    <?php foreach ($labels as $label): ?>
+                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200">
+                            <?php echo e($label); ?>
+                        </span>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
         <?php
         return ob_get_clean();
