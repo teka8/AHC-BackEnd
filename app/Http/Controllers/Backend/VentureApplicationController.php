@@ -66,7 +66,7 @@ class VentureApplicationController extends Controller
         $this->authorize('update', $ventureApplication);
 
         $request->validate([
-            'status' => 'required|in:draft,submitted,under-review,approved,rejected',
+            'status' => 'required|in:draft,submitted,under-review,accepted,rejected',
         ]);
 
         $ventureApplication->update(['status' => $request->status]);
