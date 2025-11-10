@@ -3,17 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Enums\ProgramStatus;
+use App\Http\Resources\ProgramResource;
 use App\Models\Program;
-use App\Enums\ProgramStatus; // Import the ProgramStatus enum
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProgramController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
-        $programs = Program::where('state', '!=', ProgramStatus::ARCHIVED)->get();
+        $programs = Program::query()
+            ->with('media')
+            ->where('state', '!=', ProgramStatus::ARCHIVED->value)
+            ->orderByDesc('created_at')
+            ->get();
 
-        return response()->json($programs);
+        return ProgramResource::collection($programs);
     }
 }

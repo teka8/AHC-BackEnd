@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use App\Models\User;
+use App\Models\Media as StoredMedia;
 
 class Program extends Model implements HasMedia
 {
@@ -45,15 +45,30 @@ class Program extends Model implements HasMedia
             return $conversion ? $media->getUrl($conversion) : $media->getUrl();
         }
 
+        // Fallback to legacy "programs" collection if present
+        $legacyMedia = $this->getFirstMedia('programs');
+        if ($legacyMedia) {
+            return $this->resolveMediaUrl($legacyMedia, $conversion);
+        }
+
         // 2) Fallback to helper that may return converted url
         $url = $this->getFirstMediaUrl('featured', $conversion ?: '');
-        if (!empty($url)) {
+        if (! empty($url)) {
             return $url;
         }
 
+        // 2b) Try legacy collection helper as well
+        $legacyUrl = $this->getFirstMediaUrl('programs', $conversion ?: '');
+        if (! empty($legacyUrl)) {
+            return $legacyUrl;
+        }
+
         // 3) Fallback to image attribute (legacy column)
-        if (!empty($this->image)) {
-            return asset($this->image);
+        if (! empty($this->image)) {
+            $resolved = $this->resolveLegacyImageAttribute($conversion);
+            if ($resolved) {
+                return $resolved;
+            }
         }
 
         // 4) Final fallback: placeholder
@@ -65,7 +80,19 @@ class Program extends Model implements HasMedia
      */
     public function hasImage(): bool
     {
-        return $this->hasMedia('featured') || !empty($this->image);
+        if ($this->hasMedia('featured') || $this->hasMedia('programs')) {
+            return true;
+        }
+
+        if (empty($this->image)) {
+            return false;
+        }
+
+        if ($this->resolveLegacyImageAttribute()) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -74,7 +101,7 @@ class Program extends Model implements HasMedia
     public static function getProgramStatuses(): array
     {
         return collect(ProgramStatus::cases())
-            ->mapWithKeys(fn($case) => [$case->value => Str::of($case->name)->title()])
+            ->mapWithKeys(fn ($case) => [$case->value => Str::of($case->name)->title()])
             ->toArray();
     }
 
@@ -92,7 +119,7 @@ class Program extends Model implements HasMedia
                 'color' => 'green',
                 'needs_comment' => false,
                 'message' => __('This will activate the program and make it visible to users.'),
-                'programId' => $this->id
+                'programId' => $this->id,
             ];
         }
 
@@ -103,7 +130,7 @@ class Program extends Model implements HasMedia
                 'color' => 'yellow',
                 'needs_comment' => false,
                 'message' => __('This will pause the program and hide it from users.'),
-                'programId' => $this->id
+                'programId' => $this->id,
             ];
 
             $actions['archive'] = [
@@ -112,7 +139,7 @@ class Program extends Model implements HasMedia
                 'color' => 'gray',
                 'needs_comment' => false,
                 'message' => __('This will archive the program.'),
-                'programId' => $this->id
+                'programId' => $this->id,
             ];
         }
 
@@ -123,7 +150,7 @@ class Program extends Model implements HasMedia
                 'color' => 'green',
                 'needs_comment' => false,
                 'message' => __('This will reactivate the program.'),
-                'programId' => $this->id
+                'programId' => $this->id,
             ];
 
             $actions['archive'] = [
@@ -132,7 +159,7 @@ class Program extends Model implements HasMedia
                 'color' => 'gray',
                 'needs_comment' => false,
                 'message' => __('This will archive the program.'),
-                'programId' => $this->id
+                'programId' => $this->id,
             ];
         }
 
@@ -143,7 +170,7 @@ class Program extends Model implements HasMedia
                 'color' => 'blue',
                 'needs_comment' => false,
                 'message' => __('This will restore the program to the upcoming state.'),
-                'programId' => $this->id
+                'programId' => $this->id,
             ];
         }
 
@@ -157,13 +184,13 @@ class Program extends Model implements HasMedia
     {
         $user = $user ?: auth()->user();
 
-        if (!$user || !$this->canPerformAction($action, $user)) {
+        if (! $user || ! $this->canPerformAction($action, $user)) {
             return false;
         }
 
         $newStatus = $this->getStatusFromAction($action);
 
-        if (!$newStatus) {
+        if (! $newStatus) {
             return false;
         }
 
@@ -206,7 +233,7 @@ class Program extends Model implements HasMedia
     {
         $user = $user ?: auth()->user();
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -280,6 +307,11 @@ class Program extends Model implements HasMedia
         $this->addMediaCollection('featured')
             ->singleFile()
             ->useDisk('public');
+
+        // Legacy collection support for backward compatibility
+        $this->addMediaCollection('programs')
+            ->singleFile()
+            ->useDisk('public');
     }
 
     /**
@@ -299,26 +331,68 @@ class Program extends Model implements HasMedia
      * This allows the edit form to omit or send an empty state input (i.e. remove `required` from the select)
      * without clearing or setting an invalid enum value on the model.
      */
-        public function setStateAttribute($value): void
-        {
-            // Ignore null or empty string (keeps existing state)
-            if ($value === null || $value === '') {
-                return;
+    public function setStateAttribute($value): void
+    {
+        // Ignore null or empty string (keeps existing state)
+        if ($value === null || $value === '') {
+            return;
+        }
+
+        // If already an enum instance, set its value
+        if ($value instanceof ProgramStatus) {
+            $this->attributes['state'] = $value->value;
+            return;
+        }
+
+        // Try to coerce a valid enum value from string; ignore invalid values
+        try {
+            $enum = ProgramStatus::from($value);
+            $this->attributes['state'] = $enum->value;
+        } catch (\ValueError $e) {
+            // Invalid state provided — ignore to avoid breaking the model
+            return;
+        }
+    }
+
+    /**
+     * Resolve a URL for a stored media instance honouring conversions.
+     */
+    protected function resolveMediaUrl(Media $media, ?string $conversion = null): string
+    {
+        if ($conversion && method_exists($media, 'hasGeneratedConversion') && $media->hasGeneratedConversion($conversion)) {
+            return $media->getUrl($conversion);
+        }
+
+        return $media->getUrl();
+    }
+
+    /**
+     * Resolve legacy "image" attribute that may store a media ID, relative path, or absolute URL.
+     */
+    protected function resolveLegacyImageAttribute(?string $conversion = null): ?string
+    {
+        if (empty($this->image)) {
+            return null;
+        }
+
+        $value = $this->image;
+
+        if (is_numeric($value)) {
+            $media = StoredMedia::find((int) $value);
+
+            if (! $media) {
+                return null;
             }
-    
-            // If already an enum instance, set its value
-            if ($value instanceof ProgramStatus) {
-                $this->attributes['state'] = $value->value;
-                return;
-            }
-    
-            // Try to coerce a valid enum value from string; ignore invalid values
-            try {
-                $enum = ProgramStatus::from($value);
-                $this->attributes['state'] = $enum->value;
-            } catch (\ValueError $e) {
-                // Invalid state provided — ignore to avoid breaking the model
-                return;
-                    }
-                }
-            }
+
+            return $this->resolveMediaUrl($media, $conversion);
+        }
+
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+
+        $trimmed = ltrim((string) $value, '/');
+
+        return asset($trimmed);
+    }
+}

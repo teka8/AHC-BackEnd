@@ -20,7 +20,7 @@ class ProgramController extends Controller
     public function index()
     {
         $this->authorize('viewAny', Program::class);
-        
+
         $breadcrumbs = [
             ['name' => 'Programs', 'route' => route('admin.programs.index')],
         ];
@@ -33,7 +33,7 @@ class ProgramController extends Controller
     public function create()
     {
         $this->authorize('create', Program::class);
-        
+
         $breadcrumbs = [
             ['name' => 'Programs', 'route' => route('admin.programs.index')],
             ['name' => 'Create'],
@@ -47,7 +47,7 @@ class ProgramController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Program::class);
-        
+
         $request->validate([
             'title' => 'required|string|max:255',
             'host' => 'required|string|max:255',
@@ -61,11 +61,10 @@ class ProgramController extends Controller
         $program = Program::create($data);
 
         if ($request->hasFile('image')) {
-            $program->addMediaFromRequest('image')->toMediaCollection('programs');
+            $program->addMediaFromRequest('image')->toMediaCollection('featured');
         } elseif ($request->filled('media_id')) {
-            $this->mediaService->associateExistingMedia($program, $request->input('media_id'), 'programs');
+            $this->mediaService->associateExistingMedia($program, $request->input('media_id'), 'featured');
         }
-
 
         return redirect()->route('admin.programs.index')->with('success', 'Program created successfully.');
     }
@@ -76,12 +75,12 @@ class ProgramController extends Controller
     public function show(Program $program)
     {
         $this->authorize('view', $program);
-        
+
         $breadcrumbs = [
             ['name' => 'Programs', 'route' => route('admin.programs.index')],
             ['name' => $program->title],
         ];
-        
+
         return view('backend.pages.programs.show', compact('program', 'breadcrumbs'));
     }
 
@@ -91,7 +90,7 @@ class ProgramController extends Controller
     public function edit(Program $program)
     {
         $this->authorize('update', $program);
-        
+
         $breadcrumbs = [
             ['name' => 'Programs', 'route' => route('admin.programs.index')],
             ['name' => 'Edit'],
@@ -105,29 +104,29 @@ class ProgramController extends Controller
     public function update(Request $request, Program $program)
     {
         $this->authorize('update', $program);
-        
+
         $request->validate([
             'title' => 'required|string|max:255',
             'host' => 'required|string|max:255',
             'description' => 'required|string',
             'state' => 'sometimes|in:paused,active,archived,upcoming',
         ]);
-        
+
         $data = $request->only(['title', 'host', 'description']);
-        
+
         // Only update state if it's provided
         if ($request->filled('state')) {
             $data['state'] = $request->input('state');
         }
-        
+
         $program->update($data);
 
         if ($request->hasFile('image')) {
-            $program->clearMediaCollection('programs');
-            $program->addMediaFromRequest('image')->toMediaCollection('programs');
+            $program->clearMediaCollection('featured');
+            $program->addMediaFromRequest('image')->toMediaCollection('featured');
         } elseif ($request->filled('media_id')) {
-            $program->clearMediaCollection('programs');
-            $this->mediaService->associateExistingMedia($program, $request->input('media_id'), 'programs');
+            $program->clearMediaCollection('featured');
+            $this->mediaService->associateExistingMedia($program, $request->input('media_id'), 'featured');
         }
 
         return redirect()->route('admin.programs.index')->with('success', 'Program updated successfully.');
@@ -139,7 +138,7 @@ class ProgramController extends Controller
     public function destroy(Program $program)
     {
         $this->authorize('delete', $program);
-        
+
         $program->delete();
 
         return redirect()->route('admin.programs.index')
@@ -152,7 +151,7 @@ class ProgramController extends Controller
     public function changeStatus(Request $request, Program $program)
     {
         $this->authorize('update', $program);
-        
+
         $action = $request->input('action');
 
         if ($program->changeStatus($action)) {
