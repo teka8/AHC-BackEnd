@@ -10,6 +10,12 @@
                 <div>
                     <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">{{ $program->title }}</h2>
                     <p class="text-gray-600 dark:text-gray-300 mt-1">{{ $program->host }}</p>
+                    @if($program->country)
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+                            <iconify-icon icon="mdi:map-marker" class="w-4 h-4 text-blue-500"></iconify-icon>
+                            {{ $program->country }}
+                        </p>
+                    @endif
                     <div class="mt-2">
                         <span class="{{ get_program_status_class($program->state->value) }} px-2.5 py-0.5 rounded-full text-xs font-medium">
                             {{ ucfirst(__($program->state->value)) }}
@@ -50,9 +56,123 @@
                 </div>
             @endif
 
+            {{-- Primary Details --}}
+            @php
+                $contactPeople = collect($program->contact_people ?? [])
+                    ->map(fn ($contact) => [
+                        'name' => $contact['name'] ?? '',
+                        'bio' => $contact['bio'] ?? '',
+                        'contact' => $contact['contact'] ?? '',
+                    ])
+                    ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')
+                    ->values();
+            @endphp
+
             {{-- Program Description --}}
-            <div class="prose dark:prose-invert max-w-none mb-8">
-                {!! $program->description !!}
+                <div class="xl:col-span-2 space-y-6">
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
+                            <iconify-icon icon="mdi:file-document-edit-outline" class="w-5 h-5 text-blue-500"></iconify-icon>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Program Overview') }}</h3>
+                        </div>
+                        <div class="p-6 prose dark:prose-invert max-w-none">
+                            {!! $program->description !!}
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
+                            <iconify-icon icon="mdi:account-tie" class="w-5 h-5 text-blue-500"></iconify-icon>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Contact Persons') }}</h3>
+                        </div>
+                        <div class="p-6 space-y-4 text-sm text-gray-700 dark:text-gray-300">
+                            @forelse($contactPeople as $index => $contact)
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
+                                            {{ __('Contact') }} {{ $index + 1 }}
+                                        </h4>
+                                    </div>
+                                    <div class="grid sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ __('Name') }}</p>
+                                            <p class="mt-1 text-base font-semibold text-gray-900 dark:text-white">
+                                                {{ $contact['name'] ?: __('Not specified') }}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ __('Contact Details') }}</p>
+                                            <p class="mt-1 whitespace-pre-line">
+                                                {{ $contact['contact'] ?: __('Not provided') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4">
+                                        <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ __('Bio') }}</p>
+                                        <p class="mt-1 whitespace-pre-line">
+                                            {{ $contact['bio'] ?: __('No bio information available.') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('No contact persons provided for this program.') }}</p>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
+                            <iconify-icon icon="mdi:account-group" class="w-5 h-5 text-blue-500"></iconify-icon>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Partners Involved') }}</h3>
+                        </div>
+                        <div class="p-6 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                            {{ $program->partners_involved ?: __('No partners listed for this program.') }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
+                            <iconify-icon icon="mdi:shape-outline" class="w-5 h-5 text-blue-500"></iconify-icon>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Program Categories') }}</h3>
+                        </div>
+                        <div class="p-6">
+                            @forelse($program->category_labels as $label)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200 mr-2 mb-2">
+                                    {{ $label }}
+                                </span>
+                            @empty
+                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('No categories assigned.') }}</p>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
+                            <iconify-icon icon="mdi:information-outline" class="w-5 h-5 text-blue-500"></iconify-icon>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Program Details') }}</h3>
+                        </div>
+                        <dl class="p-6 space-y-4 text-sm text-gray-700 dark:text-gray-300">
+                            <div>
+                                <dt class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ __('Host Organisation') }}</dt>
+                                <dd class="mt-1 text-base font-medium text-gray-900 dark:text-white">{{ $program->host }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ __('Country') }}</dt>
+                                <dd class="mt-1">{{ $program->country ?: __('Not specified') }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ __('Current State') }}</dt>
+                                <dd class="mt-1 flex items-center gap-2">
+                                    <span class="{{ get_program_status_class($program->state->value) }} px-2.5 py-0.5 rounded-full text-xs font-medium">
+                                        {{ ucfirst(__($program->state->value)) }}
+                                    </span>
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
             </div>
 
             {{-- Status Actions --}}

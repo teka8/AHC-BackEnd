@@ -34,11 +34,32 @@ class ProgramResource extends JsonResource
             $stateValue = (string) $this->state;
         }
 
+        $contacts = collect($this->contact_people ?? [])
+            ->map(fn ($contact) => [
+                'name' => (string) ($contact['name'] ?? ''),
+                'bio' => (string) ($contact['bio'] ?? ''),
+                'contact' => (string) ($contact['contact'] ?? ''),
+            ])
+            ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')
+            ->values();
+
+        $primaryContact = $contacts->first() ?? [
+            'name' => (string) ($this->contact_name ?? ''),
+            'bio' => (string) ($this->contact_bio ?? ''),
+            'contact' => (string) ($this->contact_details ?? ''),
+        ];
+
         return [
             'id' => $this->id,
             'title' => $this->title,
             'host' => $this->host,
+            'country' => $this->country,
             'description' => $this->description,
+            'contact_people' => $contacts->all(),
+            'contact_name' => $primaryContact['name'] ?? null,
+            'contact_bio' => $primaryContact['bio'] ?? null,
+            'contact_details' => $primaryContact['contact'] ?? null,
+            'partners_involved' => $this->partners_involved,
             'state' => $stateValue,
             'state_label' => $this->when($stateValue !== null, fn () => ucfirst(__($stateValue))),
             'image' => $image,

@@ -16,7 +16,23 @@
             document.addEventListener('alpine:init', () => {
                 Alpine.data('programForm', () => ({
                     // Add any Alpine.js data or functions specific to the program form here
-                }))
+                }));
+
+                Alpine.data('programContacts', (initialContacts = []) => ({
+                    contacts: Array.isArray(initialContacts) && initialContacts.length
+                        ? initialContacts
+                        : [{ name: '', bio: '', contact: '' }],
+                    addContact() {
+                        this.contacts.push({ name: '', bio: '', contact: '' });
+                    },
+                    removeContact(index) {
+                        this.contacts.splice(index, 1);
+
+                        if (this.contacts.length === 0) {
+                            this.contacts.push({ name: '', bio: '', contact: '' });
+                        }
+                    },
+                }));
             });
         </script>
     @endpush

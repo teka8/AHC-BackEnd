@@ -53,16 +53,38 @@ class ProgramController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'host' => 'required|string|max:255',
+            'country' => 'nullable|string|max:255',
             'description' => 'required|string',
+            'contact_name' => 'nullable|string|max:255',
+            'contact_bio' => 'nullable|string',
+            'contact_details' => 'nullable|string',
+            'contacts' => ['nullable', 'array'],
+            'contacts.*.name' => ['nullable', 'string', 'max:255'],
+            'contacts.*.bio' => ['nullable', 'string'],
+            'contacts.*.contact' => ['nullable', 'string'],
+            'partners_involved' => 'nullable|string',
             'state' => 'sometimes|in:paused,active,archived,upcoming',
             'categories' => ['nullable', 'array'],
             'categories.*' => ['string', Rule::in(array_map(fn ($case) => $case->value, ProgramCategory::cases()))],
         ]);
 
-        $data = $request->only(['title', 'host', 'description']);
+        $data = $request->only([
+            'title',
+            'host',
+            'country',
+            'description',
+            'contact_name',
+            'contact_bio',
+            'contact_details',
+            'contacts',
+            'partners_involved',
+        ]);
         $data['state'] = $request->input('state', 'upcoming');
         $data['categories'] = $this->resolveCategoriesFromRequest($request);
 
+        $data['contact_people'] = $this->resolveContactsFromRequest($request);
+
+        unset($data['contacts']);
         $program = Program::create($data);
 
         $this->syncProgramImage($request, $program);
@@ -109,13 +131,32 @@ class ProgramController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'host' => 'required|string|max:255',
+            'country' => 'nullable|string|max:255',
             'description' => 'required|string',
+            'contact_name' => 'nullable|string|max:255',
+            'contact_bio' => 'nullable|string',
+            'contact_details' => 'nullable|string',
+            'contacts' => ['nullable', 'array'],
+            'contacts.*.name' => ['nullable', 'string', 'max:255'],
+            'contacts.*.bio' => ['nullable', 'string'],
+            'contacts.*.contact' => ['nullable', 'string'],
+            'partners_involved' => 'nullable|string',
             'state' => 'sometimes|in:paused,active,archived,upcoming',
             'categories' => ['nullable', 'array'],
             'categories.*' => ['string', Rule::in(array_map(fn ($case) => $case->value, ProgramCategory::cases()))],
         ]);
 
-        $data = $request->only(['title', 'host', 'description']);
+        $data = $request->only([
+            'title',
+            'host',
+            'country',
+            'description',
+            'contact_name',
+            'contact_bio',
+            'contact_details',
+            'contacts',
+            'partners_involved',
+        ]);
 
         // Only update state if it's provided
         if ($request->filled('state')) {
@@ -123,6 +164,9 @@ class ProgramController extends Controller
         }
 
         $data['categories'] = $this->resolveCategoriesFromRequest($request);
+        $data['contact_people'] = $this->resolveContactsFromRequest($request);
+
+        unset($data['contacts']);
 
         $program->update($data);
 
@@ -223,5 +267,26 @@ class ProgramController extends Controller
         }
 
         return $categories->all();
+    }
+
+    private function resolveContactsFromRequest(Request $request): array
+    {
+        return collect($request->input('contacts', []))
+            ->map(function ($contact) {
+                $normalized = [
+                    'name' => isset($contact['name']) ? (string) $contact['name'] : '',
+                    'bio' => isset($contact['bio']) ? (string) $contact['bio'] : '',
+                    'contact' => isset($contact['contact']) ? (string) $contact['contact'] : '',
+                ];
+
+                return [
+                    'name' => trim($normalized['name']),
+                    'bio' => trim($normalized['bio']),
+                    'contact' => trim($normalized['contact']),
+                ];
+            })
+            ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')
+            ->values()
+            ->all();
     }
 }

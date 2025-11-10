@@ -20,7 +20,13 @@ class Program extends Model implements HasMedia
     protected $fillable = [
         'title',
         'host',
+        'country',
         'description',
+        'contact_name',
+        'contact_bio',
+        'contact_details',
+        'contact_people',
+        'partners_involved',
         'image',
         'state',
         'categories',
@@ -30,6 +36,7 @@ class Program extends Model implements HasMedia
     protected $attributes = [
         'state' => ProgramStatus::UPCOMING->value,
         'categories' => '[]',
+        'contact_people' => '[]',
     ];
 
     protected $casts = [
@@ -184,6 +191,93 @@ class Program extends Model implements HasMedia
         return collect($this->categories)
             ->map(fn ($cat) => ProgramCategory::tryFrom($cat)?->label() ?? Str::of($cat)->headline())
             ->all();
+    }
+
+    /**
+     * Accessor for multiple contact people with legacy fallback.
+     */
+    public function getContactPeopleAttribute($value): array
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            $value = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+        }
+
+        if (! is_array($value)) {
+            $value = [];
+        }
+
+        $contacts = collect($value)
+            ->map(function ($contact) {
+                $normalized = [
+                    'name' => isset($contact['name']) ? (string) $contact['name'] : (string) ($contact['contact_name'] ?? ''),
+                    'bio' => isset($contact['bio']) ? (string) $contact['bio'] : (string) ($contact['contact_bio'] ?? ''),
+                    'contact' => isset($contact['contact']) ? (string) $contact['contact'] : (string) ($contact['contact_details'] ?? ''),
+                ];
+
+                return [
+                    'name' => trim($normalized['name']),
+                    'bio' => trim($normalized['bio']),
+                    'contact' => trim($normalized['contact']),
+                ];
+            })
+            ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')
+            ->values();
+
+        if ($contacts->isEmpty() && ($this->contact_name || $this->contact_bio || $this->contact_details)) {
+            $contacts = collect([[
+                'name' => (string) ($this->contact_name ?? ''),
+                'bio' => (string) ($this->contact_bio ?? ''),
+                'contact' => (string) ($this->contact_details ?? ''),
+            ]]);
+        }
+
+        return $contacts->map(fn ($contact) => [
+            'name' => $contact['name'],
+            'bio' => $contact['bio'],
+            'contact' => $contact['contact'],
+        ])->all();
+    }
+
+    /**
+     * Mutator to sanitize contact people input and sync legacy fields.
+     */
+    public function setContactPeopleAttribute($value): void
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $value = $decoded;
+            }
+        }
+
+        $collection = collect(is_array($value) ? $value : [])
+            ->map(function ($contact) {
+                $normalized = [
+                    'name' => isset($contact['name']) ? (string) $contact['name'] : (string) ($contact['contact_name'] ?? ''),
+                    'bio' => isset($contact['bio']) ? (string) $contact['bio'] : (string) ($contact['contact_bio'] ?? ''),
+                    'contact' => isset($contact['contact']) ? (string) $contact['contact'] : (string) ($contact['contact_details'] ?? ''),
+                ];
+
+                return [
+                    'name' => trim($normalized['name']),
+                    'bio' => trim($normalized['bio']),
+                    'contact' => trim($normalized['contact']),
+                ];
+            })
+            ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')
+            ->values();
+
+        $this->attributes['contact_people'] = $collection->isEmpty()
+            ? json_encode([])
+            : $collection->toJson();
+
+        $primary = $collection->first();
+
+        $this->attributes['contact_name'] = $primary['name'] ?? null;
+        $this->attributes['contact_bio'] = $primary['bio'] ?? null;
+        $this->attributes['contact_details'] = $primary['contact'] ?? null;
     }
 
     /**

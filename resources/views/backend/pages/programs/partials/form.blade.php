@@ -54,6 +54,142 @@
                             @enderror
                         </div>
 
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {{ __('Country') }}
+                            </label>
+                            <input
+                                type="text"
+                                name="country"
+                                value="{{ old('country', $program->country ?? '') }}"
+                                placeholder="e.g., Rwanda"
+                                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('country') border-red-500 @enderror"
+                            >
+                            @error('country')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        @php
+                            $rawContacts = old('contacts', $program->contact_people ?? []);
+                            if (! is_array($rawContacts)) {
+                                $rawContacts = [];
+                            }
+                            $preparedContacts = collect($rawContacts)
+                                ->map(function ($contact) {
+                                    if (! is_array($contact)) {
+                                        return ['name' => '', 'bio' => '', 'contact' => ''];
+                                    }
+
+                                    return [
+                                        'name' => $contact['name'] ?? ($contact['contact_name'] ?? ''),
+                                        'bio' => $contact['bio'] ?? ($contact['contact_bio'] ?? ''),
+                                        'contact' => $contact['contact'] ?? ($contact['contact_details'] ?? ''),
+                                    ];
+                                })
+                                ->map(fn ($contact) => [
+                                    'name' => trim((string) $contact['name']),
+                                    'bio' => trim((string) $contact['bio']),
+                                    'contact' => trim((string) $contact['contact']),
+                                ])
+                                ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')
+                                ->values()
+                                ->toArray();
+
+                            if (empty($preparedContacts)) {
+                                $preparedContacts = [['name' => '', 'bio' => '', 'contact' => '']];
+                            }
+                        @endphp
+
+                        <div class="space-y-4" x-data='programContacts(@json($preparedContacts))' x-cloak>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Contact Persons') }}</h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Add one or more contact persons, including their bio and preferred contact details.') }}</p>
+                                </div>
+                                <button type="button" x-on:click="addContact()" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
+                                    <span class="text-lg leading-none">+</span>
+                                    <span>{{ __('Add Contact') }}</span>
+                                </button>
+                            </div>
+
+                            <template x-for="(contact, index) in contacts" :key="index">
+                                <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                            {{ __('Contact Person') }} <span x-text="index + 1"></span>
+                                        </h4>
+                                        <button
+                                            type="button"
+                                            x-show="contacts.length > 1"
+                                            x-on:click="removeContact(index)"
+                                            class="inline-flex items-center gap-1 text-sm font-semibold text-red-600 hover:text-red-700"
+                                        >
+                                            <span class="text-lg leading-none">×</span>
+                                            <span>{{ __('Remove') }}</span>
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="space-y-2">
+                                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400">{{ __('Name') }}</label>
+                                            <input
+                                                type="text"
+                                                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                :name="`contacts[${index}][name]`"
+                                                x-model="contact.name"
+                                                placeholder="e.g., Dr. Jane Doe"
+                                            >
+                                        </div>
+                                        <div class="space-y-2">
+                                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400">{{ __('Contact Details') }}</label>
+                                            <textarea
+                                                rows="3"
+                                                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                :name="`contacts[${index}][contact]`"
+                                                x-model="contact.contact"
+                                                placeholder="{{ __('Email, phone number, or preferred contact method') }}"
+                                            ></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400">{{ __('Bio') }}</label>
+                                        <textarea
+                                            rows="3"
+                                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            :name="`contacts[${index}][bio]`"
+                                            x-model="contact.bio"
+                                            placeholder="{{ __('Brief background for this contact person') }}"
+                                        ></textarea>
+                                    </div>
+                                </div>
+                            </template>
+
+                            @foreach($errors->get('contacts.*.name') as $message)
+                                <p class="text-sm text-red-600">{{ $message }}</p>
+                            @endforeach
+                            @foreach($errors->get('contacts.*.bio') as $message)
+                                <p class="text-sm text-red-600">{{ $message }}</p>
+                            @endforeach
+                            @foreach($errors->get('contacts.*.contact') as $message)
+                                <p class="text-sm text-red-600">{{ $message }}</p>
+                            @endforeach
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {{ __('Partners Involved') }}
+                            </label>
+                            <textarea
+                                name="partners_involved"
+                                rows="4"
+                                placeholder="{{ __('List partner universities or organizations participating in this program.') }}"
+                                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('partners_involved') border-red-500 @enderror"
+                            >{{ old('partners_involved', $program->partners_involved ?? '') }}</textarea>
+                            @error('partners_involved')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         @php
                             $categoryOptions = \App\Models\Program::getProgramCategories();
                             $defaultCategories = $program?->categories ?? [\App\Enums\ProgramCategory::UNCATEGORIZED->value];
