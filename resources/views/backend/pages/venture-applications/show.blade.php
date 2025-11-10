@@ -36,7 +36,7 @@
                         <option value="draft" {{ $application->status === 'draft' ? 'selected' : '' }}>Draft</option>
                         <option value="submitted" {{ $application->status === 'submitted' ? 'selected' : '' }}>Submitted</option>
                         <option value="under-review" {{ $application->status === 'under-review' ? 'selected' : '' }}>Under Review</option>
-                        <option value="approved" {{ $application->status === 'approved' ? 'selected' : '' }}>Approved</option>
+                        <option value="accepted" {{ $application->status === 'accepted' ? 'selected' : '' }}>Accepted</option>
                         <option value="rejected" {{ $application->status === 'rejected' ? 'selected' : '' }}>Rejected</option>
                     </select>
                     <button type="submit" class="btn btn-primary">
@@ -115,6 +115,11 @@
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Solution Description</h3>
                 <p class="text-sm text-gray-900 dark:text-white">{!! nl2br(e($application->solution_description)) !!}</p>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Why Apply</h3>
+                <p class="text-sm text-gray-900 dark:text-white">{!! nl2br(e($application->why_apply)) !!}</p>
             </div>
         </div>
 
