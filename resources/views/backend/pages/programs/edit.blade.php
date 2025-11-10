@@ -22,15 +22,15 @@
                 Alpine.data('programContacts', (initialContacts = []) => ({
                     contacts: Array.isArray(initialContacts) && initialContacts.length
                         ? initialContacts
-                        : [{ name: '', bio: '', contact: '' }],
+                        : [{ name: '', bio: '', contact: '', image: '' }],
                     addContact() {
-                        this.contacts.push({ name: '', bio: '', contact: '' });
+                        this.contacts.push({ name: '', bio: '', contact: '', image: '' });
                     },
                     removeContact(index) {
                         this.contacts.splice(index, 1);
 
                         if (this.contacts.length === 0) {
-                            this.contacts.push({ name: '', bio: '', contact: '' });
+                            this.contacts.push({ name: '', bio: '', contact: '', image: '' });
                         }
                     },
                 }));

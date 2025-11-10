@@ -8,6 +8,8 @@ use App\Models\Media as StoredMedia;
 use App\Services\MediaLibraryService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -213,12 +215,14 @@ class Program extends Model implements HasMedia
                     'name' => isset($contact['name']) ? (string) $contact['name'] : (string) ($contact['contact_name'] ?? ''),
                     'bio' => isset($contact['bio']) ? (string) $contact['bio'] : (string) ($contact['contact_bio'] ?? ''),
                     'contact' => isset($contact['contact']) ? (string) $contact['contact'] : (string) ($contact['contact_details'] ?? ''),
+                    'image' => isset($contact['image']) ? (string) $contact['image'] : (string) ($contact['contact_image'] ?? ''),
                 ];
 
                 return [
                     'name' => trim($normalized['name']),
                     'bio' => trim($normalized['bio']),
                     'contact' => trim($normalized['contact']),
+                    'image' => trim($normalized['image']),
                 ];
             })
             ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')
@@ -229,6 +233,7 @@ class Program extends Model implements HasMedia
                 'name' => (string) ($this->contact_name ?? ''),
                 'bio' => (string) ($this->contact_bio ?? ''),
                 'contact' => (string) ($this->contact_details ?? ''),
+                'image' => '',
             ]]);
         }
 
@@ -236,6 +241,7 @@ class Program extends Model implements HasMedia
             'name' => $contact['name'],
             'bio' => $contact['bio'],
             'contact' => $contact['contact'],
+            'image' => $this->resolveContactImagePath($contact['image']),
         ])->all();
     }
 
@@ -258,12 +264,14 @@ class Program extends Model implements HasMedia
                     'name' => isset($contact['name']) ? (string) $contact['name'] : (string) ($contact['contact_name'] ?? ''),
                     'bio' => isset($contact['bio']) ? (string) $contact['bio'] : (string) ($contact['contact_bio'] ?? ''),
                     'contact' => isset($contact['contact']) ? (string) $contact['contact'] : (string) ($contact['contact_details'] ?? ''),
+                    'image' => isset($contact['image']) ? (string) $contact['image'] : (string) ($contact['contact_image'] ?? ''),
                 ];
 
                 return [
                     'name' => trim($normalized['name']),
                     'bio' => trim($normalized['bio']),
                     'contact' => trim($normalized['contact']),
+                    'image' => trim($normalized['image']),
                 ];
             })
             ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')
@@ -278,6 +286,29 @@ class Program extends Model implements HasMedia
         $this->attributes['contact_name'] = $primary['name'] ?? null;
         $this->attributes['contact_bio'] = $primary['bio'] ?? null;
         $this->attributes['contact_details'] = $primary['contact'] ?? null;
+    }
+
+    private function resolveContactImagePath(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            $url = Storage::disk('public')->url($path);
+
+            return URL::to($url);
+        }
+
+        if (str_starts_with($path, '/')) {
+            return URL::to($path);
+        }
+
+        return URL::to('/'.$path);
     }
 
     /**

@@ -62,6 +62,7 @@ class ProgramController extends Controller
             'contacts.*.name' => ['nullable', 'string', 'max:255'],
             'contacts.*.bio' => ['nullable', 'string'],
             'contacts.*.contact' => ['nullable', 'string'],
+            'contacts.*.image' => ['nullable', 'image', 'max:5120'],
             'partners_involved' => 'nullable|string',
             'state' => 'sometimes|in:paused,active,archived,upcoming',
             'categories' => ['nullable', 'array'],
@@ -140,6 +141,7 @@ class ProgramController extends Controller
             'contacts.*.name' => ['nullable', 'string', 'max:255'],
             'contacts.*.bio' => ['nullable', 'string'],
             'contacts.*.contact' => ['nullable', 'string'],
+            'contacts.*.image' => ['nullable', 'image', 'max:5120'],
             'partners_involved' => 'nullable|string',
             'state' => 'sometimes|in:paused,active,archived,upcoming',
             'categories' => ['nullable', 'array'],
@@ -271,18 +273,30 @@ class ProgramController extends Controller
 
     private function resolveContactsFromRequest(Request $request): array
     {
-        return collect($request->input('contacts', []))
-            ->map(function ($contact) {
+        $inputContacts = collect($request->input('contacts', []));
+        $fileContacts = $request->file('contacts', []);
+
+        return $inputContacts
+            ->map(function ($contact, $index) use ($fileContacts) {
                 $normalized = [
                     'name' => isset($contact['name']) ? (string) $contact['name'] : '',
                     'bio' => isset($contact['bio']) ? (string) $contact['bio'] : '',
                     'contact' => isset($contact['contact']) ? (string) $contact['contact'] : '',
                 ];
 
+                $imagePath = isset($contact['existing_image']) ? (string) $contact['existing_image'] : null;
+                $imagePath = is_string($imagePath) ? trim($imagePath) : null;
+
+                if (isset($fileContacts[$index]['image']) && $fileContacts[$index]['image']) {
+                    $imageFile = $fileContacts[$index]['image'];
+                    $imagePath = $imageFile->store('program-contacts', 'public');
+                }
+
                 return [
                     'name' => trim($normalized['name']),
                     'bio' => trim($normalized['bio']),
                     'contact' => trim($normalized['contact']),
+                    'image' => $imagePath,
                 ];
             })
             ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')

@@ -39,6 +39,7 @@ class ProgramResource extends JsonResource
                 'name' => (string) ($contact['name'] ?? ''),
                 'bio' => (string) ($contact['bio'] ?? ''),
                 'contact' => (string) ($contact['contact'] ?? ''),
+                'image' => (string) ($contact['image'] ?? ''),
             ])
             ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')
             ->values();
@@ -47,6 +48,7 @@ class ProgramResource extends JsonResource
             'name' => (string) ($this->contact_name ?? ''),
             'bio' => (string) ($this->contact_bio ?? ''),
             'contact' => (string) ($this->contact_details ?? ''),
+            'image' => '',
         ];
 
         return [
@@ -59,6 +61,7 @@ class ProgramResource extends JsonResource
             'contact_name' => $primaryContact['name'] ?? null,
             'contact_bio' => $primaryContact['bio'] ?? null,
             'contact_details' => $primaryContact['contact'] ?? null,
+            'contact_image' => $primaryContact['image'] ?? null,
             'partners_involved' => $this->partners_involved,
             'state' => $stateValue,
             'state_label' => $this->when($stateValue !== null, fn () => ucfirst(__($stateValue))),

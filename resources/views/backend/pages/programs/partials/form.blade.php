@@ -78,26 +78,28 @@
                             $preparedContacts = collect($rawContacts)
                                 ->map(function ($contact) {
                                     if (! is_array($contact)) {
-                                        return ['name' => '', 'bio' => '', 'contact' => ''];
+                                        return ['name' => '', 'bio' => '', 'contact' => '', 'image' => ''];
                                     }
 
                                     return [
                                         'name' => $contact['name'] ?? ($contact['contact_name'] ?? ''),
                                         'bio' => $contact['bio'] ?? ($contact['contact_bio'] ?? ''),
                                         'contact' => $contact['contact'] ?? ($contact['contact_details'] ?? ''),
+                                        'image' => $contact['image'] ?? ($contact['contact_image'] ?? ''),
                                     ];
                                 })
                                 ->map(fn ($contact) => [
                                     'name' => trim((string) $contact['name']),
                                     'bio' => trim((string) $contact['bio']),
                                     'contact' => trim((string) $contact['contact']),
+                                    'image' => trim((string) $contact['image']),
                                 ])
                                 ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')
                                 ->values()
                                 ->toArray();
 
                             if (empty($preparedContacts)) {
-                                $preparedContacts = [['name' => '', 'bio' => '', 'contact' => '']];
+                                $preparedContacts = [['name' => '', 'bio' => '', 'contact' => '', 'image' => '']];
                             }
                         @endphp
 
@@ -160,6 +162,21 @@
                                             x-model="contact.bio"
                                             placeholder="{{ __('Brief background for this contact person') }}"
                                         ></textarea>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400">{{ __('Photo') }}</label>
+                                        <input
+                                            type="file"
+                                            :name="`contacts[${index}][image]`"
+                                            accept="image/*"
+                                            class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                        >
+                                        <template x-if="contact.image">
+                                            <div class="mt-2">
+                                                <img :src="contact.image" alt="Contact photo" class="h-20 w-20 rounded-full object-cover border" />
+                                                <input type="hidden" :name="`contacts[${index}][existing_image]`" x-bind:value="contact.image">
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </template>
