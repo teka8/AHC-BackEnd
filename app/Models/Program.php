@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use App\Enums\ProgramStatus;
+use App\Models\Media as StoredMedia;
+use App\Services\MediaLibraryService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use App\Models\Media as StoredMedia;
 
 class Program extends Model implements HasMedia
 {
@@ -382,6 +384,25 @@ class Program extends Model implements HasMedia
 
             if (! $media) {
                 return null;
+            }
+
+            if (! $this->hasMedia('featured')) {
+                try {
+                    $copied = app(MediaLibraryService::class)
+                        ->associateExistingMedia($this, (string) $value, 'featured');
+
+                    if ($copied) {
+                        $this->forceFill(['image' => $copied->id])->saveQuietly();
+
+                        return $this->resolveMediaUrl($copied, $conversion);
+                    }
+                } catch (\Throwable $exception) {
+                    Log::warning('program_legacy_image_association_failed', [
+                        'program_id' => $this->id,
+                        'legacy_media_id' => $value,
+                        'message' => $exception->getMessage(),
+                    ]);
+                }
             }
 
             return $this->resolveMediaUrl($media, $conversion);

@@ -55,16 +55,12 @@ class ProgramController extends Controller
             'state' => 'sometimes|in:paused,active,archived,upcoming',
         ]);
 
-        $data = $request->all();
-        $data['state'] = $data['state'] ?? 'upcoming';
+        $data = $request->only(['title', 'host', 'description']);
+        $data['state'] = $request->input('state', 'upcoming');
 
         $program = Program::create($data);
 
-        if ($request->hasFile('image')) {
-            $program->addMediaFromRequest('image')->toMediaCollection('featured');
-        } elseif ($request->filled('media_id')) {
-            $this->mediaService->associateExistingMedia($program, $request->input('media_id'), 'featured');
-        }
+        $this->syncProgramImage($request, $program);
 
         return redirect()->route('admin.programs.index')->with('success', 'Program created successfully.');
     }
@@ -121,13 +117,7 @@ class ProgramController extends Controller
 
         $program->update($data);
 
-        if ($request->hasFile('image')) {
-            $program->clearMediaCollection('featured');
-            $program->addMediaFromRequest('image')->toMediaCollection('featured');
-        } elseif ($request->filled('media_id')) {
-            $program->clearMediaCollection('featured');
-            $this->mediaService->associateExistingMedia($program, $request->input('media_id'), 'featured');
-        }
+        $this->syncProgramImage($request, $program);
 
         return redirect()->route('admin.programs.index')->with('success', 'Program updated successfully.');
     }
@@ -159,5 +149,45 @@ class ProgramController extends Controller
         }
 
         return response()->json(['message' => 'Failed to update program status.'], 400);
+    }
+
+    private function syncProgramImage(Request $request, Program $program): void
+    {
+        $imageInput = $request->input('image');
+
+        if (is_array($imageInput)) {
+            $imageInput = $imageInput[0] ?? null;
+        }
+
+        $hasReplacement = $request->hasFile('image') || ($imageInput !== null && $imageInput !== '');
+
+        if ($request->boolean('remove_image') && ! $hasReplacement) {
+            $program->clearMediaCollection('featured');
+            $program->forceFill(['image' => null])->save();
+
+            return;
+        }
+
+        if ($request->hasFile('image')) {
+            $program->clearMediaCollection('featured');
+            $media = $program->addMediaFromRequest('image')->toMediaCollection('featured');
+            $program->forceFill(['image' => $media?->id])->save();
+
+            return;
+        }
+
+        if ($imageInput === null || $imageInput === '') {
+            return;
+        }
+
+        if (is_numeric($imageInput)) {
+            $program->clearMediaCollection('featured');
+            $media = $this->mediaService->associateExistingMedia($program, (string) $imageInput, 'featured');
+            $program->forceFill(['image' => $media?->id ?? (int) $imageInput])->save();
+
+            return;
+        }
+
+        $program->forceFill(['image' => $imageInput])->save();
     }
 }

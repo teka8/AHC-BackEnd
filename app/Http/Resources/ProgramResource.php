@@ -18,9 +18,14 @@ class ProgramResource extends JsonResource
             ? $this->resource->getImageUrl()
             : null;
 
-        $imageThumb = method_exists($this->resource, 'getImageUrl')
-            ? $this->resource->getImageUrl('thumb')
-            : null;
+        $imageThumb = null;
+        if (method_exists($this->resource, 'getImageUrl')) {
+            try {
+                $imageThumb = $this->resource->getImageUrl('thumb');
+            } catch (\Throwable $exception) {
+                $imageThumb = $image;
+            }
+        }
 
         $stateValue = null;
         if ($this->state instanceof \BackedEnum) {
