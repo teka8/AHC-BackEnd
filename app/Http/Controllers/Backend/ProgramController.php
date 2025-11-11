@@ -72,7 +72,6 @@ class ProgramController extends Controller
         $data = $request->only([
             'title',
             'host',
-            'country',
             'description',
             'contact_name',
             'contact_bio',
@@ -80,6 +79,7 @@ class ProgramController extends Controller
             'contacts',
             'partners_involved',
         ]);
+        $data['country'] = $this->normalizeCountryInput($request->input('country'));
         $data['state'] = $request->input('state', 'upcoming');
         $data['categories'] = $this->resolveCategoriesFromRequest($request);
 
@@ -151,7 +151,6 @@ class ProgramController extends Controller
         $data = $request->only([
             'title',
             'host',
-            'country',
             'description',
             'contact_name',
             'contact_bio',
@@ -159,6 +158,7 @@ class ProgramController extends Controller
             'contacts',
             'partners_involved',
         ]);
+        $data['country'] = $this->normalizeCountryInput($request->input('country'));
 
         // Only update state if it's provided
         if ($request->filled('state')) {
@@ -302,5 +302,22 @@ class ProgramController extends Controller
             ->filter(fn ($contact) => $contact['name'] !== '' || $contact['bio'] !== '' || $contact['contact'] !== '')
             ->values()
             ->all();
+    }
+
+    private function normalizeCountryInput(?string $country): ?string
+    {
+        if ($country === null) {
+            return null;
+        }
+
+        $countries = collect(preg_split('/[,\n\r;]+/', (string) $country))
+            ->map(fn ($item) => is_string($item) ? trim($item) : '')
+            ->map(fn ($item) => is_string($item) ? preg_replace('/\s+/', ' ', $item) : '')
+            ->map(fn ($item) => is_string($item) ? trim($item) : '')
+            ->filter()
+            ->unique()
+            ->values();
+
+        return $countries->isEmpty() ? null : $countries->implode(', ');
     }
 }

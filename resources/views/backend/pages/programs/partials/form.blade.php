@@ -62,9 +62,10 @@
                                 type="text"
                                 name="country"
                                 value="{{ old('country', $program->country ?? '') }}"
-                                placeholder="e.g., Rwanda"
+                                placeholder="e.g., Rwanda, Uganda, Kenya"
                                 class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('country') border-red-500 @enderror"
                             >
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Separate multiple countries with commas.') }}</p>
                             @error('country')
                                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror

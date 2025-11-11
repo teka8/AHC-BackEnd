@@ -41,6 +41,29 @@ class Program extends Model implements HasMedia
         'contact_people' => '[]',
     ];
 
+    public function setCountryAttribute($value): void
+    {
+        if ($value === null) {
+            $this->attributes['country'] = null;
+
+            return;
+        }
+
+        $segments = is_array($value)
+            ? collect($value)
+            : collect(preg_split('/[,\n\r;]+/', (string) $value));
+
+        $countries = $segments
+            ->map(fn ($item) => is_string($item) ? trim($item) : '')
+            ->map(fn ($item) => is_string($item) ? preg_replace('/\s+/', ' ', $item) : '')
+            ->map(fn ($item) => is_string($item) ? trim($item) : '')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $this->attributes['country'] = $countries->isEmpty() ? null : $countries->implode(', ');
+    }
+
     protected $casts = [
         'state' => ProgramStatus::class,
     ];
