@@ -388,6 +388,136 @@
                         </div>
 
 
+
+                        {{-- Scholarship Image --}}
+                        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                            <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                                <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                                    </svg>
+                                    {{ __('Scholarship Image') }}
+                                </h3>
+                                <p class="text-gray-500 text-sm mt-1">{{ __('Update scholarship visual') }}</p>
+                            </div>
+                            <div class="p-6">
+                                @if(isset($scholarship) && $scholarship->scholarship_image)
+                                    <div class="relative mb-4">
+                                        <img 
+                                            src="{{ asset('storage/' . $scholarship->scholarship_image) }}" 
+                                            alt="Scholarship preview" 
+                                            class="w-full h-32 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
+                                            onclick="showScholarshipImageModal('{{ asset('storage/' . $scholarship->scholarship_image) }}')"
+                                        >
+                                        <div class="absolute top-2 right-2">
+                                            <button 
+                                                type="button" 
+                                                class="bg-blue-500 text-white p-1 rounded-full hover:bg-blue-600 transition-colors text-xs"
+                                                onclick="showScholarshipImageModal('{{ asset('storage/' . $scholarship->scholarship_image) }}')"
+                                                title="{{ __('View full image') }}"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3-3H7" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endif
+                                
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors">
+                                    <input 
+                                        id="scholarship_image" 
+                                        name="scholarship_image" 
+                                        type="file" 
+                                        accept="image/*" 
+                                        class="hidden"
+                                        onchange="previewScholarshipImage(this)"
+                                    >
+                                    <label 
+                                        for="scholarship_image" 
+                                        class="cursor-pointer flex flex-col items-center gap-2"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                        </svg>
+                                        <span class="text-sm text-gray-500">
+                                            {{ isset($scholarship) && $scholarship->scholarship_image ? __('Change scholarship image') : __('Upload scholarship image') }}
+                                        </span>
+                                        <span class="text-xs text-gray-400">
+                                            {{ __('PNG, JPG up to 10MB') }}
+                                        </span>
+                                    </label>
+                                </div>
+                                
+                                <p class="text-xs text-gray-500 mt-3">
+                                    {{ __('Upload a new image or keep the current one') }}
+                                </p>
+                                
+                                <div id="scholarship-image-preview" class="mt-4 hidden">
+                                    <div class="relative">
+                                        <img id="scholarship-preview" class="w-full h-32 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity" onclick="showScholarshipImageModal(this.src)">
+                                        <div class="absolute top-2 right-2 flex gap-1">
+                                            <button 
+                                                type="button" 
+                                                class="bg-blue-500 text-white p-1 rounded-full hover:bg-blue-600 transition-colors text-xs"
+                                                onclick="showScholarshipImageModal(document.getElementById('scholarship-preview').src)"
+                                                title="{{ __('View full image') }}"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3-3H7" />
+                                                </svg>
+                                            </button>
+                                            <button type="button" onclick="removeScholarshipPreview()" class="bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors text-xs">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scholarship Image Modal -->
+                        <div id="scholarshipImageModal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 hidden">
+                            <div class="relative max-w-4xl max-h-full w-full">
+                                <!-- Close Button -->
+                                <button 
+                                    type="button" 
+                                    onclick="hideScholarshipImageModal()"
+                                    class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors z-10"
+                                >
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                                
+                                <!-- Image -->
+                                <img 
+                                    id="modalScholarshipImage" 
+                                    src="" 
+                                    alt="Scholarship image" 
+                                    class="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+                                >
+                                
+                                <!-- Download Button -->
+                                <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                                    <a 
+                                        id="downloadScholarshipImage" 
+                                        href="#" 
+                                        download
+                                        class="bg-white text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-lg"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        {{ __('Download') }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+
                         <!-- Dates & Availability -->
                         <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
                             <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
@@ -548,60 +678,6 @@
 </x-layouts.backend-layout>
 
 <script>
-    // Image preview functionality
-    function previewScholarshipImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('scholarship-preview').src = e.target.result;
-                document.getElementById('scholarship-image-preview').classList.remove('hidden');
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function removeScholarshipPreview() {
-        document.getElementById('scholarship-image-preview').classList.add('hidden');
-        document.getElementById('scholarship_image').value = '';
-    }
-
-    // Scholarship Image Modal Functions
-    function showScholarshipImageModal(imageSrc) {
-        const modal = document.getElementById('scholarshipImageModal');
-        const modalImage = document.getElementById('modalScholarshipImage');
-        const downloadLink = document.getElementById('downloadScholarshipImage');
-        
-        modalImage.src = imageSrc;
-        downloadLink.href = imageSrc;
-        downloadLink.download = 'scholarship-image.' + getFileExtension(imageSrc);
-        
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    }
-
-    function hideScholarshipImageModal() {
-        const modal = document.getElementById('scholarshipImageModal');
-        modal.classList.add('hidden');
-        document.body.style.overflow = ''; // Restore scrolling
-    }
-
-    function getFileExtension(filename) {
-        return filename.split('.').pop().split('?')[0];
-    }
-
-    // Close modal on ESC key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            hideScholarshipImageModal();
-        }
-    });
-
-    // Close modal when clicking on backdrop
-    document.getElementById('scholarshipImageModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            hideScholarshipImageModal();
-        }
-    });
 
     // Dynamic benefits and documents fields
     document.addEventListener('DOMContentLoaded', function() {
@@ -680,5 +756,61 @@
                 this.parentElement.remove();
             });
         });
+    });
+
+
+    // Scholarship Image preview functionality
+    function previewScholarshipImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('scholarship-preview').src = e.target.result;
+                document.getElementById('scholarship-image-preview').classList.remove('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removeScholarshipPreview() {
+        document.getElementById('scholarship-image-preview').classList.add('hidden');
+        document.getElementById('scholarship_image').value = '';
+    }
+
+    // Scholarship Image Modal Functions
+    function showScholarshipImageModal(imageSrc) {
+        const modal = document.getElementById('scholarshipImageModal');
+        const modalImage = document.getElementById('modalScholarshipImage');
+        const downloadLink = document.getElementById('downloadScholarshipImage');
+        
+        modalImage.src = imageSrc;
+        downloadLink.href = imageSrc;
+        downloadLink.download = 'scholarship-image.' + getScholarshipFileExtension(imageSrc);
+        
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideScholarshipImageModal() {
+        const modal = document.getElementById('scholarshipImageModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function getScholarshipFileExtension(filename) {
+        return filename.split('.').pop().split('?')[0];
+    }
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideScholarshipImageModal();
+        }
+    });
+
+    // Close modal when clicking on backdrop
+    document.getElementById('scholarshipImageModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideScholarshipImageModal();
+        }
     });
 </script>
