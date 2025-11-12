@@ -406,6 +406,42 @@
         @endif
         {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_CONTENT_PARENT, '') !!}
 
+        @php
+            $availablePillars = \App\Enums\PostPillar::options();
+            $selectedPillars = old('pillars', optional($post)->pillars ?? [\App\Enums\PostPillar::UNKNOWN->value]);
+        @endphp
+
+        <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Pillars') }}</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {{ __('Select the collaborative pillars this post aligns with.') }}
+                </p>
+            </div>
+            <div class="p-6 space-y-3">
+                <div class="space-y-2">
+                    @foreach ($availablePillars as $pillarValue => $pillarLabel)
+                        <label class="flex items-start gap-3">
+                            <input
+                                type="checkbox"
+                                name="pillars[]"
+                                value="{{ $pillarValue }}"
+                                class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800"
+                                @checked(in_array($pillarValue, (array) $selectedPillars, true))
+                            >
+                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $pillarLabel }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('pillars')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                @error('pillars.*')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
         <!-- Taxonomies -->
         @if (!empty($taxonomies))
             @foreach ($taxonomies as $taxonomy)

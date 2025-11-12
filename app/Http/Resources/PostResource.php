@@ -6,6 +6,8 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Enums\PostPillar;
+use Illuminate\Support\Str;
 
 class PostResource extends JsonResource
 {
@@ -18,7 +20,7 @@ class PostResource extends JsonResource
     {
         // Determine featured image
         $featuredFromMedia = method_exists($this, 'getFeaturedImageUrl') ? $this->getFeaturedImageUrl() : null;
-        if (!$featuredFromMedia) {
+        if (! $featuredFromMedia) {
             try {
                 $m = \Spatie\MediaLibrary\MediaCollections\Models\Media::query()
                     ->where('model_type', \App\Models\Post::class)
@@ -32,12 +34,12 @@ class PostResource extends JsonResource
                 // ignore and continue to other fallbacks
             }
         }
-        if (!$featuredFromMedia && method_exists($this, 'getMediaUrl')) {
+        if (! $featuredFromMedia && method_exists($this, 'getMediaUrl')) {
             // Fallback to any image from default collection
             $featuredFromMedia = $this->getMediaUrl('default') ?? null;
         }
         $featuredFromContent = null;
-        if (!$featuredFromMedia && !empty($this->content)) {
+        if (! $featuredFromMedia && ! empty($this->content)) {
             $html = (string) $this->content;
             if (preg_match('/<img[^>]+src=[\"\']([^\"\']+)[\"\']/i', $html, $m)) {
                 $featuredFromContent = $m[1] ?? null;
@@ -46,7 +48,7 @@ class PostResource extends JsonResource
             }
         }
         $featuredImage = $featuredFromMedia ?: $featuredFromContent;
-        if (!$featuredImage && !empty($this->featured_image)) {
+        if (! $featuredImage && ! empty($this->featured_image)) {
             $featuredImage = str_starts_with($this->featured_image, 'http')
                 ? $this->featured_image
                 : asset('storage/' . ltrim((string)$this->featured_image, '/'));
@@ -61,6 +63,15 @@ class PostResource extends JsonResource
             'featured_image' => $this->getFirstMediaUrl('featured'),
             'post_type' => $this->post_type,
             'status' => $this->status,
+            'pillars' => $this->pillars,
+            'pillar_labels' => collect($this->pillars)
+                ->map(function ($value) {
+                    $enum = PostPillar::tryFrom((string) $value);
+
+                    return $enum?->label() ?? Str::of((string) $value)->replace('_', ' ')->title();
+                })
+                ->values()
+                ->all(),
             'published_at' => $this->published_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

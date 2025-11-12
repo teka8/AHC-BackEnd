@@ -8,6 +8,7 @@ use App\Services\Content\ContentService;
 use App\Services\Content\PostType;
 use App\Concerns\QueryBuilderTrait;
 use App\Concerns\HasMedia;
+use App\Enums\PostPillar;
 use App\Enums\PostStatus;
 use App\Observers\PostObserver;
 use Spatie\MediaLibrary\HasMedia as SpatieHasMedia;
@@ -38,6 +39,7 @@ class Post extends Model implements SpatieHasMedia
         'excerpt',
         'content',
         'status',
+        'pillars',
         'meta',
         'parent_id',
         'published_at',
@@ -45,8 +47,65 @@ class Post extends Model implements SpatieHasMedia
 
     protected $casts = [
         'meta' => 'array',
+        'pillars' => 'array',
         'published_at' => 'datetime',
     ];
+
+    public function setPillarsAttribute(mixed $value): void
+    {
+        $this->attributes['pillars'] = json_encode($this->normalizePillars($value));
+    }
+
+    public function getPillarsAttribute(mixed $value): array
+    {
+        if (is_array($value)) {
+            return $this->normalizePillars($value);
+        }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+
+            return $this->normalizePillars(is_array($decoded) ? $decoded : []);
+        }
+
+        if ($value instanceof \JsonSerializable) {
+            return $this->normalizePillars($value->jsonSerialize());
+        }
+
+        return $this->normalizePillars([]);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function normalizePillars(mixed $value): array
+    {
+        if ($value instanceof \JsonSerializable) {
+            $value = $value->jsonSerialize();
+        }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            $value = is_array($decoded) ? $decoded : [];
+        }
+
+        if (! is_array($value)) {
+            $value = [];
+        }
+
+        $normalized = collect($value)
+            ->map(fn ($pillar) => is_string($pillar) ? strtolower($pillar) : null)
+            ->filter(fn ($pillar) => is_string($pillar) && in_array($pillar, PostPillar::values(), true))
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($normalized)) {
+            $normalized = [PostPillar::UNKNOWN->value];
+        }
+
+        return $normalized;
+    }
 
     /**
      * The "booted" method of the model.
@@ -60,6 +119,10 @@ class Post extends Model implements SpatieHasMedia
 
             if (empty($post->user_id) && Auth::check()) {
                 $post->user_id = Auth::id();
+            }
+
+            if (empty($post->getAttributes()['pillars'] ?? null)) {
+                $post->pillars = [PostPillar::UNKNOWN->value];
             }
         });
     }
@@ -363,11 +426,11 @@ class Post extends Model implements SpatieHasMedia
     /**
      * News workflow states
      */
-    const STATUS_DRAFT = 'draft';
-    const STATUS_REVIEWED = 'reviewed';
-    const STATUS_APPROVED = 'approved';
-    const STATUS_PUBLISHED = 'published';
-    const STATUS_ARCHIVED = 'archived';
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_REVIEWED = 'reviewed';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_PUBLISHED = 'published';
+    public const STATUS_ARCHIVED = 'archived';
 
     /**
      * Available transitions for news with permission requirements
@@ -381,70 +444,70 @@ class Post extends Model implements SpatieHasMedia
                     'label' => __('Send for Review'),
                     'color' => 'yellow',
                     'icon' => 'lucide:send',
-                    'required_permission' => 'news.view'
+                    'required_permission' => 'news.view',
                 ],
                 'publish' => [
                     'target' => self::STATUS_PUBLISHED,
                     'label' => __('Publish Now'),
                     'color' => 'green',
                     'icon' => 'lucide:globe',
-                    'required_permission' => 'news.publish'
-                ]
+                    'required_permission' => 'news.publish',
+                ],
             ],
-            
+
             self::STATUS_REVIEWED => [
                 'approve' => [
                     'target' => self::STATUS_APPROVED,
                     'label' => __('Approve'),
                     'color' => 'green',
                     'icon' => 'lucide:check-circle',
-                    'required_permission' => 'news.approve'
+                    'required_permission' => 'news.approve',
                 ],
                 'reject' => [
                     'target' => self::STATUS_DRAFT,
                     'label' => __('Request Changes'),
                     'color' => 'red',
                     'icon' => 'lucide:arrow-left',
-                    'required_permission' => 'news.approve'
-                ]
+                    'required_permission' => 'news.approve',
+                ],
             ],
-            
+
             self::STATUS_APPROVED => [
                 'publish' => [
                     'target' => self::STATUS_PUBLISHED,
                     'label' => __('Publish'),
                     'color' => 'green',
                     'icon' => 'lucide:globe',
-                    'required_permission' => 'news.publish'
+                    'required_permission' => 'news.publish',
                 ],
                 'send_back' => [
                     'target' => self::STATUS_REVIEWED,
                     'label' => __('Send Back for Review'),
                     'color' => 'yellow',
                     'icon' => 'lucide:arrow-left',
-                    'required_permission' => 'news.view'
-                ]
+                    'required_permission' => 'news.view',
+                ],
             ],
-            
+
             self::STATUS_PUBLISHED => [
                 'unpublish' => [
                     'target' => self::STATUS_DRAFT,
                     'label' => __('Unpublish'),
                     'color' => 'gray',
                     'icon' => 'lucide:eye-off',
-                    'required_permission' => 'news.approve'
-                ]
+                    'required_permission' => 'news.approve',
+                ],
             ],
-            
+
             self::STATUS_ARCHIVED => [
                 'restore' => [
                     'target' => self::STATUS_DRAFT,
                     'label' => __('Restore'),
                     'color' => 'blue',
                     'icon' => 'lucide:refresh-cw',
-                    'required_permission' => 'news.view'
-                ]
-            ]
+                    'required_permission' => 'news.view',
+                ],
+            ],
         ];
 
         return $transitions[$currentStatus] ?? [];
@@ -475,7 +538,7 @@ class Post extends Model implements SpatieHasMedia
     {
         $user = $user ?: auth()->user();
         $availableActions = $this->getAvailableActions($user);
-        
+
         return isset($availableActions[$action]);
     }
 }

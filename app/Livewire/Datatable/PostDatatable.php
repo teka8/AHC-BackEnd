@@ -5,15 +5,13 @@ declare(strict_types=1);
 namespace App\Livewire\Datatable;
 
 use App\Enums\Hooks\DatatableHook;
+use App\Enums\PostPillar;
 use App\Enums\PostStatus;
 use App\Models\Post;
 use App\Models\Term;
-use App\Models\User;
-use App\Notifications\PostStatusChanged;
 use App\Services\Content\ContentService;
 use App\Services\Content\PostType;
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Support\Facades\Notification;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class PostDatatable extends Datatable
@@ -21,12 +19,14 @@ class PostDatatable extends Datatable
     public string $status = '';
     public string $tag = '';
     public string $category = '';
+    public string $pillar = '';
     public string $postType = PostType::POST;
     public array $queryString = [
         ...parent::QUERY_STRING_DEFAULTS,
         'status' => [],
         'tag' => [],
         'category' => [],
+        'pillar' => [],
     ];
     public array $categories = [];
     public string $model = Post::class;
@@ -47,6 +47,11 @@ class PostDatatable extends Datatable
     }
 
     public function updatingCategory()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPillar()
     {
         $this->resetPage();
     }
@@ -76,7 +81,7 @@ class PostDatatable extends Datatable
     {
         $postTypeModel = $this->getPostTypeModelProperty();
         $filters = [];
-        
+
         $statuses = Post::getPostStatuses();
 
         $translatedStatuses = collect($statuses)->mapWithKeys(function ($value, $key) {
@@ -91,6 +96,16 @@ class PostDatatable extends Datatable
             'allLabel' => __('All Statuses'),
             'options' => $translatedStatuses,
             'selected' => $this->status,
+        ];
+
+        $filters[] = [
+            'id' => 'pillar',
+            'label' => __('Pillar'),
+            'filterLabel' => __('Pillar'),
+            'icon' => 'lucide:layers',
+            'allLabel' => __('All Pillars'),
+            'options' => PostPillar::options(),
+            'selected' => $this->pillar,
         ];
 
         if ($postTypeModel->supports_taxonomies && $postTypeModel->taxonomies && in_array('tag', $postTypeModel->taxonomies)) {
@@ -168,15 +183,12 @@ class PostDatatable extends Datatable
             ],
         ];
 
-        if ($postTypeModel->supports_taxonomies && $postTypeModel->taxonomies && in_array('category', $postTypeModel->taxonomies)) {
-            $headers[] = [
-                'id' => 'category',
-                'title' => __('Category'),
-                'width' => null,
-                'sortable' => true,
-                'sortBy' => 'category',
-            ];
-        }
+        $headers[] = [
+            'id' => 'pillars',
+            'title' => __('Pillars'),
+            'width' => null,
+            'sortable' => false,
+        ];
 
         $headers[] = [
             'id' => 'created_at',
@@ -185,8 +197,6 @@ class PostDatatable extends Datatable
             'sortable' => true,
             'sortBy' => 'created_at',
         ];
-
-
 
         $headers[] = [
             'id' => 'actions',
@@ -225,6 +235,9 @@ class PostDatatable extends Datatable
                     $q->where('taxonomy', 'category')
                         ->where('terms.id', $this->category);
                 });
+            })
+            ->when($this->pillar, function ($q) {
+                $q->whereJsonContains('pillars', $this->pillar);
             });
 
         return $this->sortQuery($query);
@@ -269,10 +282,15 @@ class PostDatatable extends Datatable
         return ucfirst($post->author->full_name ?? '');
     }
 
-    public function renderCategoryColumn(Post $post): string|Renderable
+    public function renderPillarsColumn(Post $post): string|Renderable
     {
-        return $post->categories->pluck('name')->map(fn ($name) => "<span class='badge'>" . ucfirst($name) . "</span>")->join(' ');
-    }
+        return collect($post->pillars)
+            ->map(function ($pillar) {
+                $label = PostPillar::tryFrom($pillar)?->label() ?? ucfirst(str_replace('_', ' ', (string) $pillar));
 
+                return "<span class='badge'>" . e($label) . '</span>';
+            })
+            ->join(' ');
+    }
 
 }

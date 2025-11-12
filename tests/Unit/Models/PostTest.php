@@ -21,6 +21,7 @@ it('has fillable attributes', function () {
         'excerpt',
         'content',
         'status',
+        'pillars',
         'meta',
         'parent_id',
         'published_at',
@@ -32,6 +33,8 @@ it('has casted attributes', function () {
     $casts = $post->getCasts();
     expect($casts)->toHaveKey('meta');
     expect($casts['meta'])->toEqual('array');
+    expect($casts)->toHaveKey('pillars');
+    expect($casts['pillars'])->toEqual('array');
     expect($casts)->toHaveKey('published_at');
     expect($casts['published_at'])->toEqual('datetime');
 });

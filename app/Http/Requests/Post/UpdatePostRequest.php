@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Requests\Post;
 
 use App\Enums\Hooks\PostFilterHook;
+use App\Enums\PostPillar;
 use App\Enums\PostStatus;
 use App\Http\Requests\FormRequest;
 use App\Support\Facades\Hook;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class UpdatePostRequest extends FormRequest
 {
@@ -32,11 +34,27 @@ class UpdatePostRequest extends FormRequest
             // Ensure $metaKeys is always an array
             $metaKeys = is_array($metaKeys) ? $metaKeys : [];
             $sanitizedKeys = array_map(function ($key) {
-                return !empty($key) ? Str::slug($key, '_') : $key;
+                return ! empty($key) ? Str::slug($key, '_') : $key;
             }, $metaKeys);
 
             $this->merge([
                 'meta_keys' => $sanitizedKeys,
+            ]);
+        }
+
+        if ($this->has('pillars')) {
+            $pillars = $this->input('pillars');
+
+            if (is_null($pillars)) {
+                $pillars = [];
+            }
+
+            if (! is_array($pillars)) {
+                $pillars = [$pillars];
+            }
+
+            $this->merge([
+                'pillars' => array_values(array_filter($pillars, static fn ($value) => ! is_null($value))),
             ]);
         }
     }
@@ -49,7 +67,7 @@ class UpdatePostRequest extends FormRequest
     public function rules(): array
     {
         $postId = $this->post;
-        $postStatuses = implode(',', array_map(fn($status) => $status->value, PostStatus::cases()));
+        $postStatuses = implode(',', array_map(fn ($status) => $status->value, PostStatus::cases()));
 
         return Hook::applyFilters(PostFilterHook::POST_UPDATE_VALIDATION_RULES, [
             /** @example "Updated: Laravel Development Best Practices" */
@@ -91,6 +109,10 @@ class UpdatePostRequest extends FormRequest
 
             /** @example "Author Name" */
             'meta_default_values.*' => 'nullable|string',
+
+            /** Pillar selections */
+            'pillars' => ['nullable', 'array'],
+            'pillars.*' => ['string', Rule::in(PostPillar::values())],
         ], $postId);
     }
 }

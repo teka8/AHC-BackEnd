@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Term;
 use App\Models\User;
+use App\Enums\PostPillar;
 use App\Enums\PostStatus;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -26,7 +27,6 @@ use App\Http\Requests\Post\StorePostRequest;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Notification;
 use App\Http\Requests\Post\UpdatePostRequest;
-use App\Http\Requests\Common\BulkDeleteRequest;
 
 class PostController extends Controller
 {
@@ -46,7 +46,7 @@ class PostController extends Controller
         // Get post type.
         $postTypeModel = $this->contentService->getPostType($postType);
 
-        if (!$postTypeModel) {
+        if (! $postTypeModel) {
             return redirect()->route('admin.posts.index')->with('error', 'Post type not found');
         }
 
@@ -75,13 +75,13 @@ class PostController extends Controller
         // Get post type.
         $postTypeModel = $this->contentService->getPostType($postType);
 
-        if (!$postTypeModel) {
+        if (! $postTypeModel) {
             return redirect()->route('admin.posts.index')->with('error', 'Post type not found');
         }
 
         // Get taxonomies.
         $taxonomies = [];
-        if (!empty($postTypeModel->taxonomies)) {
+        if (! empty($postTypeModel->taxonomies)) {
             $taxonomies = $this->contentService->getTaxonomies()
                 ->whereIn('name', $postTypeModel->taxonomies)
                 ->all();
@@ -108,7 +108,7 @@ class PostController extends Controller
         // Get post type.
         $postTypeModel = $this->contentService->getPostType($postType);
 
-        if (!$postTypeModel) {
+        if (! $postTypeModel) {
             return redirect()->route('admin.posts.index')->with('error', 'Post type not found');
         }
 
@@ -128,13 +128,14 @@ class PostController extends Controller
         $post->post_type = $postType;
         $post->user_id = Auth::id();
         $post->parent_id = $data['parent_id'] ?? null;
+        $post->pillars = $data['pillars'] ?? [PostPillar::UNKNOWN->value];
 
         $post->save();
 
         // Handle featured image removal first.
         if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
             $post->clearMediaCollection('featured');
-        } elseif (!empty($data['featured_image'])) {
+        } elseif (! empty($data['featured_image'])) {
             if ($request->hasFile('featured_image')) {
                 $post->clearMediaCollection('featured');
                 $post->addMediaFromRequest('featured_image')->toMediaCollection('featured');
@@ -143,7 +144,7 @@ class PostController extends Controller
                 $mediaIds = is_array($data['featured_image']) ? $data['featured_image'] : [$data['featured_image']];
                 $post->clearMediaCollection('featured');
                 foreach ($mediaIds as $mediaId) {
-                    if (!empty($mediaId)) {
+                    if (! empty($mediaId)) {
                         $this->mediaService->associateExistingMedia($post, $mediaId, 'featured');
                     }
                 }
@@ -193,13 +194,13 @@ class PostController extends Controller
         // Get post type
         $postTypeModel = $this->contentService->getPostType($postType);
 
-        if (!$postTypeModel) {
+        if (! $postTypeModel) {
             return redirect()->route('admin.posts.index')->with('error', 'Post type not found');
         }
 
         // Get taxonomies
         $taxonomies = [];
-        if (!empty($postTypeModel->taxonomies)) {
+        if (! empty($postTypeModel->taxonomies)) {
             $taxonomies = $this->contentService->getTaxonomies()
                 ->whereIn('name', $postTypeModel->taxonomies)
                 ->all();
@@ -218,7 +219,7 @@ class PostController extends Controller
         $selectedTerms = [];
         foreach ($post->terms as $term) {
             $taxonomyName = $term->getAttribute('taxonomy');
-            if ($taxonomyName && !isset($selectedTerms[$taxonomyName])) {
+            if ($taxonomyName && ! isset($selectedTerms[$taxonomyName])) {
                 $selectedTerms[$taxonomyName] = [];
             }
             if ($taxonomyName) {
@@ -248,16 +249,15 @@ class PostController extends Controller
         $post->content = $data['content'];
         $post->excerpt = $data['excerpt'];
         $post->parent_id = $data['parent_id'] ?? null;
-
-
+        $post->pillars = $data['pillars'] ?? [PostPillar::UNKNOWN->value];
 
         // Handle publish date.
-        if (isset($data['schedule_post']) && $data['schedule_post'] && !empty($data['published_at'])) {
+        if (isset($data['schedule_post']) && $data['schedule_post'] && ! empty($data['published_at'])) {
             $post->status = PostStatus::SCHEDULED->value;
             $post->published_at = Carbon::parse($data['published_at']);
-        } elseif (isset($data['status']) && $data['status'] === PostStatus::SCHEDULED->value && !empty($data['published_at'])) {
+        } elseif (isset($data['status']) && $data['status'] === PostStatus::SCHEDULED->value && ! empty($data['published_at'])) {
             $post->published_at = Carbon::parse($data['published_at']);
-        } elseif (isset($data['status']) && $data['status'] === PostStatus::PUBLISHED->value && !$post->published_at) {
+        } elseif (isset($data['status']) && $data['status'] === PostStatus::PUBLISHED->value && ! $post->published_at) {
             $post->published_at = now();
         }
 
@@ -266,7 +266,7 @@ class PostController extends Controller
         // Handle featured image
         if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
             $post->clearMediaCollection('featured');
-        } elseif (!empty($data['featured_image'])) {
+        } elseif (! empty($data['featured_image'])) {
             if ($request->hasFile('featured_image')) {
                 $post->clearMediaCollection('featured');
                 $post->addMediaFromRequest('featured_image')->toMediaCollection('featured');
@@ -275,7 +275,7 @@ class PostController extends Controller
                 $mediaIds = is_array($data['featured_image']) ? $data['featured_image'] : [$data['featured_image']];
                 $post->clearMediaCollection('featured');
                 foreach ($mediaIds as $mediaId) {
-                    if (!empty($mediaId)) {
+                    if (! empty($mediaId)) {
                         $this->mediaService->associateExistingMedia($post, $mediaId, 'featured');
                     }
                 }
@@ -294,15 +294,15 @@ class PostController extends Controller
     {
         $post = Post::where('post_type', $postType)->findOrFail($id);
         $this->authorize('update', $post);
-        
+
         $request->validate([
-            'status' => 'required|string|in:draft,edited,approved,published,unpublished,archived'
+            'status' => 'required|string|in:draft,edited,approved,published,unpublished,archived',
         ]);
-        
+
         $post->update(['status' => $request->status]);
-        
+
         session()->flash('success', __('Post status updated successfully.'));
-        
+
         return back();
     }
 
@@ -311,7 +311,7 @@ class PostController extends Controller
         // Get current post type.
         $postTypeModel = $this->contentService->getPostType($post->post_type);
 
-        if (!$postTypeModel || empty($postTypeModel->taxonomies)) {
+        if (! $postTypeModel || empty($postTypeModel->taxonomies)) {
             return;
         }
 
@@ -348,7 +348,7 @@ class PostController extends Controller
 
         // Add new meta.
         foreach ($metaKeys as $index => $key) {
-            if (!empty($key) && isset($metaValues[$index])) {
+            if (! empty($key) && isset($metaValues[$index])) {
                 $this->postMetaService->setMeta(
                     $post->id,
                     $key,
@@ -374,59 +374,59 @@ class PostController extends Controller
     /**
  * Change news status (workflow action)
  */
-public function changeStatus(Request $request, $id)
-{
-    $post = Post::findOrFail($id);
-    $action = $request->input('action');
-    $comment = $request->input('comment', '');
+    public function changeStatus(Request $request, $id)
+    {
+        $post = Post::findOrFail($id);
+        $action = $request->input('action');
+        $comment = $request->input('comment', '');
 
-    // Check if user can perform this action
-    if (!$post->canPerformAction($action)) {
-        return response()->json([
-            'success' => false,
-            'message' => __('You do not have permission to perform this action.')
-        ], 403);
-    }
-
-    $availableActions = $post->getAvailableActions();
-    $targetStatus = $availableActions[$action]['target'];
-
-    try {
-        \DB::beginTransaction();
-
-        $oldStatus = $post->status;
-        
-        // Update post status
-        $updateData = [
-            'status' => $targetStatus,
-        ];
-
-        // Set published_at if publishing
-        if ($targetStatus === Post::STATUS_PUBLISHED && !$post->published_at) {
-            $updateData['published_at'] = now();
+        // Check if user can perform this action
+        if (! $post->canPerformAction($action)) {
+            return response()->json([
+                'success' => false,
+                'message' => __('You do not have permission to perform this action.'),
+            ], 403);
         }
 
-        $post->update($updateData);
+        $availableActions = $post->getAvailableActions();
+        $targetStatus = $availableActions[$action]['target'];
 
-        // Log the status change
-        //$this->postService->logStatusChange($post, $oldStatus, $targetStatus, Auth::id(), $comment);
+        try {
+            \DB::beginTransaction();
 
-        \DB::commit();
+            $oldStatus = $post->status;
 
-        return response()->json([
-            'success' => true,
-            'message' => __('News status updated successfully'),
-        ]);
+            // Update post status
+            $updateData = [
+                'status' => $targetStatus,
+            ];
 
-    } catch (\Exception $e) {
-        \DB::rollBack();
-        
-        \Log::error('News status change failed: ' . $e->getMessage());
+            // Set published_at if publishing
+            if ($targetStatus === Post::STATUS_PUBLISHED && ! $post->published_at) {
+                $updateData['published_at'] = now();
+            }
 
-        return response()->json([
-            'success' => false,
-            'message' => __('Failed to update news status: ') . $e->getMessage()
-        ], 500);
+            $post->update($updateData);
+
+            // Log the status change
+            //$this->postService->logStatusChange($post, $oldStatus, $targetStatus, Auth::id(), $comment);
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('News status updated successfully'),
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+
+            \Log::error('News status change failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to update news status: ') . $e->getMessage(),
+            ], 500);
+        }
     }
-}
 }

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Requests\Post;
 
 use App\Enums\Hooks\PostFilterHook;
+use App\Enums\PostPillar;
 use App\Http\Requests\FormRequest;
 use App\Support\Facades\Hook;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class StorePostRequest extends FormRequest
 {
@@ -36,6 +38,22 @@ class StorePostRequest extends FormRequest
 
             $this->merge([
                 'meta_keys' => $sanitizedKeys,
+            ]);
+        }
+
+        if ($this->has('pillars')) {
+            $pillars = $this->input('pillars');
+
+            if (is_null($pillars)) {
+                $pillars = [];
+            }
+
+            if (! is_array($pillars)) {
+                $pillars = [$pillars];
+            }
+
+            $this->merge([
+                'pillars' => array_values(array_filter($pillars, static fn ($value) => ! is_null($value))),
             ]);
         }
     }
@@ -86,6 +104,10 @@ class StorePostRequest extends FormRequest
 
             /** @example "laravel" */
             'meta_default_values.*' => 'nullable|string',
+
+            /** Pillar selections */
+            'pillars' => ['nullable', 'array'],
+            'pillars.*' => ['string', Rule::in(PostPillar::values())],
         ]);
     }
 }
