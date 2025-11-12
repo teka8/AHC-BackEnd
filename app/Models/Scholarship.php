@@ -22,6 +22,7 @@ class Scholarship extends Model
         'application_start_date',
         'status',
         'available_slots',
+        'scholarship_image',
     ];
 
     protected $casts = [

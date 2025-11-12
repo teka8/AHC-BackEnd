@@ -10,6 +10,8 @@ use App\Models\Scholarship;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
 
 class ScholarshipController extends Controller
 {
@@ -61,6 +63,7 @@ class ScholarshipController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        
         $this->authorize('create', Scholarship::class);
 
         $validated = $request->validate([
@@ -76,8 +79,18 @@ class ScholarshipController extends Controller
             'application_start_date' => 'nullable|date',
             'status' => 'required|in:open,closed,upcoming',
             'available_slots' => 'nullable|integer|min:1',
+            'scholarship_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max
+
         ]);
 
+        /**
+         *  Handle Event Image Upload (Single)
+         */
+        if ($request->hasFile('scholarship_image')) {
+            $imagePath = $request->file('scholarship_image')->store('scholarship-images', 'public');
+            $validated['scholarship_image'] = $imagePath;
+        }
+        
         Scholarship::create($validated);
 
         return redirect()
@@ -127,7 +140,20 @@ class ScholarshipController extends Controller
             'application_start_date' => 'nullable|date',
             'status' => 'required|in:open,closed,upcoming',
             'available_slots' => 'nullable|integer|min:1',
+            'scholarship_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max
+
         ]);
+
+        // Handle scholarship image upload
+        if ($request->hasFile('scholarship_image')) {
+            // Delete old image if exists
+            if ($scholarship->scholarship_image) {
+                Storage::disk('public')->delete($scholarship->scholarship_image);
+            }
+            
+            $imagePath = $request->file('scholarship_image')->store('scholarship-images', 'public');
+            $validated['scholarship_image'] = $imagePath;
+        }
 
         $scholarship->update($validated);
 
