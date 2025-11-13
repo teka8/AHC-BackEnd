@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\URL;
 
 class ScholarshipResource extends JsonResource
 {
@@ -24,6 +25,7 @@ class ScholarshipResource extends JsonResource
             'application_start_date' => $this->application_start_date?->format('Y-m-d'),
             'status' => $this->status,
             'available_slots' => $this->available_slots,
+            'scholarship_image' => URL::asset($this->scholarship_image),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
