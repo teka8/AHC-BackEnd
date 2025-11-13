@@ -21,8 +21,39 @@ class PublicPostController extends Controller
         $search = (string) ($request->input('search') ?? '');
         $pillarParam = $request->input('pillar');
 
+        $typeParam = $request->input('type', $request->input('post_type', 'news'));
+        $typeValues = is_array($typeParam)
+            ? $typeParam
+            : (preg_split('/[,|]/', (string) $typeParam) ?: []);
+
+        $allowedTypes = collect(['news', 'announcement']);
+        $postTypes = collect($typeValues)
+            ->map(fn ($value) => is_string($value) ? strtolower(trim($value)) : null)
+            ->filter()
+            ->unique()
+            ->intersect($allowedTypes)
+            ->values()
+            ->all();
+
+        if (empty($postTypes)) {
+            $postTypes = ['news'];
+        }
+
         $query = Post::query()
-            ->where('post_type', 'news')
+            ->where(function ($q) use ($postTypes) {
+                $isFirst = true;
+                foreach ($postTypes as $type) {
+                    if ($isFirst) {
+                        $q->whereRaw('LOWER(post_type) = ?', [$type]);
+                        $isFirst = false;
+                    } else {
+                        $q->orWhereRaw('LOWER(post_type) = ?', [$type]);
+                    }
+                }
+            })
+            ->with(['terms' => function ($relation) {
+                $relation->select('terms.id', 'terms.name', 'terms.slug', 'terms.taxonomy');
+            }])
             ->where('status', PostStatus::PUBLISHED->value);
 
         if ($search !== '') {
@@ -65,6 +96,21 @@ class PublicPostController extends Controller
         // Order by created_at to avoid DB errors if published_at column is absent or null
         $posts = $query->orderByDesc('created_at')->paginate($perPage);
 
+        $collection = $posts->getCollection();
+
+        $categories = $collection
+            ->flatMap(function (Post $post) {
+                return $post->terms->where('taxonomy', 'category');
+            })
+            ->unique('id')
+            ->values()
+            ->map(fn ($term) => [
+                'id' => $term->id,
+                'name' => $term->name,
+                'slug' => $term->slug,
+            ])
+            ->all();
+
         return PostResource::collection($posts)->additional([
             'meta' => [
                 'current_page' => $posts->currentPage(),
@@ -81,6 +127,9 @@ class PublicPostController extends Controller
                 'prev' => $posts->previousPageUrl(),
                 'next' => $posts->nextPageUrl(),
             ],
+            'filters' => [
+                'categories' => $categories,
+            ],
         ]);
     }
 
@@ -89,8 +138,15 @@ class PublicPostController extends Controller
      */
     public function show(int $id)
     {
-        $post = Post::where('post_type', 'news')
-            ->where('status', 'Published')
+        $post = Post::query()
+            ->where(function ($q) {
+                $q->whereRaw('LOWER(post_type) = ?', ['news'])
+                  ->orWhereRaw('LOWER(post_type) = ?', ['announcement']);
+            })
+            ->where('status', PostStatus::PUBLISHED->value)
+            ->with(['terms' => function ($relation) {
+                $relation->select('terms.id', 'terms.name', 'terms.slug', 'terms.taxonomy');
+            }])
             ->findOrFail($id);
 
         return new PostResource($post);

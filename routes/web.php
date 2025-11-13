@@ -73,13 +73,14 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
 
     // Action Log Routes.
     Route::get('/action-log', [ActionLogController::class, 'index'])->name('actionlog.index');
-    
+
     // Notification Routes.
     Route::get('/notifications', [App\Http\Controllers\Backend\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/mark-all-read', [App\Http\Controllers\Backend\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/read/{id}', [App\Http\Controllers\Backend\NotificationController::class, 'markAsRead'])->name('notifications.read');
 
     Route::post('/news/{id}/change-status', [PostController::class, 'changeStatus'])->name('news.change-status');
+    Route::post('/announcements/{id}/change-status', [PostController::class, 'changeStatus'])->name('announcements.change-status');
     // Posts/Pages Routes - Dynamic post types.
     Route::get('/posts/{postType?}', [PostController::class, 'index'])->name('posts.index');
     Route::get('/posts/{postType}/create', [PostController::class, 'create'])->name('posts.create');
@@ -91,8 +92,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::delete('/posts/{postType}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::delete('/posts/{postType}/delete/bulk-delete', [PostController::class, 'bulkDelete'])->name('posts.bulk-delete');
 
-
-    // Pages Routes 
+    // Pages Routes
     Route::get('pages', [PageController::class, 'index'])->name('pages.index');
     Route::get('pages/create', [PageController::class, 'create'])->name('pages.create');
     Route::post('pages', [PageController::class, 'store'])->name('pages.store');
@@ -102,8 +102,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::put('/pages/{page}', [PageController::class, 'update'])->name('pages.update');
     Route::delete('/pages/{page}', [PageController::class, 'destroy'])->name('pages.destroy');
     Route::delete('/pages/delete/bulk-delete', [PageController::class, 'bulkDelete'])->name('pages.bulk-delete');
-
-
 
     // Event Routes.
     Route::get('events', [EventController::class, 'index'])->name('events.index');
@@ -127,7 +125,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         'destroy' => 'programs.destroy',
     ]);
     Route::post('programs/{program}/change-status', [\App\Http\Controllers\Backend\ProgramController::class, 'changeStatus'])->name('programs.change-status');
-
 
     // Health Innovation Routes
     Route::prefix('ventures')->name('ventures.')->group(function () {
@@ -184,7 +181,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::delete('/delete/bulk-delete', [\App\Http\Controllers\Backend\ScholarshipEvaluationController::class, 'bulkDelete'])->name('bulk-delete');
     });
 
-
     // Terms Routes (Categories, Tags, etc.).
     Route::get('/terms/{taxonomy}', [TermController::class, 'index'])->name('terms.index');
     Route::get('/terms/{taxonomy}/{term}/edit', [TermController::class, 'edit'])->name('terms.edit');
@@ -210,8 +206,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::post('/', [DocumentRepositoryController::class, 'store'])->name('store')->middleware('check.upload.limits');
         Route::get('/upload-limits', [DocumentRepositoryController::class, 'getUploadLimits'])->name('upload-limits');
 
-
-
         Route::get('/{id}/edit', [DocumentRepositoryController::class, 'edit'])->name('edit');
         Route::put('/{id}', [DocumentRepositoryController::class, 'update'])->name('update');
         Route::post('/{id}/publish', [DocumentRepositoryController::class, 'publish'])->name('publish');
@@ -221,14 +215,13 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::delete('/', [DocumentRepositoryController::class, 'bulkDelete'])->name('bulk-delete');
         Route::post('/{id}/restore', [DocumentRepositoryController::class, 'restore'])->name('restore');
         Route::delete('/{id}/force', [DocumentRepositoryController::class, 'forceDelete'])->name('force-delete');
-    
+
         // Download routes
         Route::get('/{id}/download', [DocumentRepositoryController::class, 'download'])->name('download');
         Route::get('/{id}/preview', [DocumentRepositoryController::class, 'preview'])->name('preview');
         Route::get('/{id}/stats', [DocumentRepositoryController::class, 'downloadStats'])->name('stats');
         Route::post('/{id}/increment-download', [DocumentRepositoryController::class, 'incrementDownload'])->name('increment-download');
-    
-    
+
         // Workflow routes
         Route::post('/{id}/change-status', [DocumentRepositoryController::class, 'changeStatus'])->name('document.change-status');
         Route::get('/{id}/workflow-history', [DocumentRepositoryController::class, 'workflowHistory'])->name('workflow-history');
@@ -277,7 +270,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/{id}/workflow-history', [OthersController::class, 'workflowHistory'])->name('workflow-history');
     });
 
-
     // Editor Upload Route.
     Route::post('/editor/upload', [App\Http\Controllers\Backend\EditorController::class, 'upload'])->name('editor.upload');
 
@@ -287,9 +279,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::post('/generate-content', [App\Http\Controllers\Backend\AiContentController::class, 'generateContent'])->name('generate-content');
     });
 
-
     // remember to remove this below code after finalizing this project
-    Route::get('/clear-cache', function() {
+    Route::get('/clear-cache', function () {
         if (app()->environment('local')) {
             Artisan::call('optimize:clear');
             return "✅ Cache cleared in local environment!";
@@ -306,34 +297,34 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         // Auto-discover all seeders
         $seederPath = database_path('seeders');
         $seederFiles = File::glob($seederPath . '/*Seeder.php');
-        
+
         $allSeeders = collect($seederFiles)
-            ->map(fn($file) => basename($file, '.php'))
-            ->filter(fn($seeder) => $seeder !== 'DatabaseSeeder') // Exclude main seeder
+            ->map(fn ($file) => basename($file, '.php'))
+            ->filter(fn ($seeder) => $seeder !== 'DatabaseSeeder') // Exclude main seeder
             ->values()
             ->toArray();
-        
+
         $excludeSeeders = ['UserSeeder', 'ContentSeeder', 'TestUserProfileFieldsSeeder', 'SettingsSeeder']; // ← Customize exclusions
-        
+
         $seedersToRun = array_diff($allSeeders, $excludeSeeders);
-        
+
         $results = [];
         foreach ($seedersToRun as $seeder) {
             try {
                 Artisan::call('db:seed', [
                     '--class' => $seeder,
-                    '--force' => true
+                    '--force' => true,
                 ]);
                 $results[] = "✓ {$seeder}";
             } catch (\Exception $e) {
                 $results[] = "✗ {$seeder}: " . $e->getMessage();
             }
         }
-        
+
         return response()->json([
             'message' => 'Seeding completed!',
             'excluded' => $excludeSeeders,
-            'results' => $results
+            'results' => $results,
         ], 200);
     });
 });
@@ -349,4 +340,4 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth'
 
 Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch');
 Route::get('/screenshot-login/{email}', [ScreenshotGeneratorLoginController::class, 'login'])->middleware('web')->name('screenshot.login');
-Route::get('/demo-preview', fn() => view('demo.preview'))->name('demo.preview');
+Route::get('/demo-preview', fn () => view('demo.preview'))->name('demo.preview');

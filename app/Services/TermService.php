@@ -71,6 +71,7 @@ class TermService
         $term->taxonomy = $taxonomy;
         $term->description = $data['description'] ?? null;
         $term->parent_id = $data['parent_id'] ?? null;
+        $term->post_types = $this->normalizePostTypes($data, ['announcement']);
         $term->save();
 
         if (isset($data['featured_image']) && ! empty($data['featured_image'])) {
@@ -101,6 +102,12 @@ class TermService
 
         $term->description = $data['description'] ?? null;
         $term->parent_id = $data['parent_id'] ?? null;
+        if ($term->isAnnouncementDefaultCategory()) {
+            // Preserve protection for default announcement categories.
+            $term->post_types = ['announcement'];
+        } else {
+            $term->post_types = $this->normalizePostTypes($data, $term->post_types ?? ['announcement']);
+        }
         $term->save();
 
         if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {
@@ -122,8 +129,44 @@ class TermService
         return $term;
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<int, string>|null  $fallback
+     * @return array<int, string>
+     */
+    protected function normalizePostTypes(array $data, ?array $fallback = null): array
+    {
+        $postTypes = $data['post_types'] ?? $data['post_type'] ?? $data['context_post_type'] ?? null;
+
+        $normalized = collect(is_array($postTypes) ? $postTypes : ($postTypes ? [$postTypes] : []))
+            ->map(fn ($value) => is_string($value) ? strtolower(trim($value)) : null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($normalized)) {
+            $fallbackTypes = collect($fallback ?? [])
+                ->map(fn ($value) => strtolower(trim((string) $value)))
+                ->filter()
+                ->all();
+
+            if (! empty($fallbackTypes)) {
+                return array_values(array_unique($fallbackTypes));
+            }
+
+            return ['news'];
+        }
+
+        return $normalized;
+    }
+
     public function deleteTerm(Term $term): bool
     {
+        if ($term->isAnnouncementDefaultCategory()) {
+            return false;
+        }
+
         // Check if term has posts.
         if ($term->posts()->count() > 0) {
             return false;
@@ -140,6 +183,10 @@ class TermService
     public function canDeleteTerm(Term $term): array
     {
         $errors = [];
+
+        if ($term->isAnnouncementDefaultCategory()) {
+            $errors[] = 'protected';
+        }
 
         if ($term->posts()->count() > 0) {
             $errors[] = 'has_posts';

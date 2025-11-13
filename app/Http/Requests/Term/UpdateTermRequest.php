@@ -8,6 +8,7 @@ use App\Enums\Hooks\TermFilterHook;
 use App\Http\Requests\FormRequest;
 use App\Support\Facades\Hook;
 use App\Services\Content\ContentService;
+use Illuminate\Validation\Rule;
 
 class UpdateTermRequest extends FormRequest
 {
@@ -43,7 +44,10 @@ class UpdateTermRequest extends FormRequest
             'parent_id' => 'nullable|exists:terms,id',
 
             /** @example null */
+            'context_post_type' => 'nullable|string',
             'remove_featured_image' => 'nullable',
+            'post_types' => ['required', 'array', 'min:1'],
+            'post_types.*' => ['string'],
         ];
 
         // Add featured image validation if taxonomy supports it.
@@ -82,6 +86,15 @@ class UpdateTermRequest extends FormRequest
                 },
             ];
         }
+
+        $postTypeNames = app(ContentService::class)
+            ->getPostTypes()
+            ->keys()
+            ->map(fn ($name) => strtolower((string) $name))
+            ->values()
+            ->all();
+
+        $rules['post_types.*'][] = Rule::in($postTypeNames);
 
         return Hook::applyFilters(TermFilterHook::TERM_UPDATE_VALIDATION_RULES, $rules, $taxonomyName);
     }

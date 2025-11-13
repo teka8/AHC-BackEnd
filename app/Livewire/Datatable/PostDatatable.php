@@ -62,7 +62,10 @@ class PostDatatable extends Datatable
 
         $postTypeModel = $this->getPostTypeModelProperty();
         if ($postTypeModel->supports_taxonomies && $postTypeModel->taxonomies && in_array('category', $postTypeModel->taxonomies)) {
-            $this->categories = Term::where('taxonomy', 'category')->get()->toArray();
+            $this->categories = Term::where('taxonomy', 'category')
+                ->forPostType($this->postType)
+                ->get()
+                ->toArray();
         }
 
         // Apply hooks to modify datatable initialization.
@@ -145,6 +148,15 @@ class PostDatatable extends Datatable
     protected function getRouteParameters(): array
     {
         return ['postType' => $this->postType];
+    }
+
+    protected function getNewResourceLinkLabel(): string
+    {
+        if ($this->postType === 'announcement') {
+            return __('New Announcement');
+        }
+
+        return parent::getNewResourceLinkLabel();
     }
 
     protected function getItemRouteParameters($item): array

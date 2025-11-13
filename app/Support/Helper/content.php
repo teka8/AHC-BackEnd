@@ -99,6 +99,8 @@ if (! function_exists('get_post_type_icon')) {
     {
         return match ($postType) {
             'post' => 'lucide:file-text',
+            'news' => 'lucide:newspaper',
+            'announcement' => 'lucide:megaphone',
             'page' => 'lucide:file',
             default => 'lucide:files'
         };

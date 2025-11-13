@@ -31,10 +31,22 @@ class TermController extends Controller
             return redirect()->route('admin.posts.index')->with('error', __('Taxonomy not found'));
         }
 
+        $availablePostTypes = $this->contentService->getPostTypes();
+        $defaultPostType = $availablePostTypes->has('announcement')
+            ? 'announcement'
+            : ($availablePostTypes->keys()->first() ?? 'news');
+        $postType = strtolower((string) $request->query('post_type', $defaultPostType));
+        $postTypeModel = $this->contentService->getPostType($postType) ?? $this->contentService->getPostType($defaultPostType);
+        if (! $postTypeModel) {
+            $postType = $defaultPostType;
+        }
+
         // Get parent terms for hierarchical taxonomies.
         $parentTerms = [];
         if ($taxonomyModel->hierarchical) {
             $parentTerms = Term::where('taxonomy', $taxonomy)
+                ->forPostType($postType)
+                ->forPostType($postType)
                 ->orderBy('name', 'asc')
                 ->get();
         }
@@ -47,7 +59,15 @@ class TermController extends Controller
 
         $this->setBreadcrumbTitle($taxonomyModel->label);
 
-        return $this->renderViewWithBreadcrumbs('backend.pages.terms.index', compact('taxonomy', 'taxonomyModel', 'parentTerms', 'term'));
+        return $this->renderViewWithBreadcrumbs('backend.pages.terms.index', [
+            'taxonomy' => $taxonomy,
+            'taxonomyModel' => $taxonomyModel,
+            'parentTerms' => $parentTerms,
+            'term' => $term,
+            'postType' => $postType,
+            'postTypeModel' => $postTypeModel,
+            'availablePostTypes' => $availablePostTypes,
+        ]);
     }
 
     public function store(StoreTermRequest $request, string $taxonomy)
@@ -66,7 +86,12 @@ class TermController extends Controller
         // Get taxonomy label for message
         $taxLabel = $this->termService->getTaxonomyLabel($taxonomy, true);
 
-        return redirect()->route('admin.terms.index', $taxonomy)
+        $postType = strtolower((string) $request->input('context_post_type', $request->query('post_type', 'news')));
+
+        return redirect()->route('admin.terms.index', [
+            'taxonomy' => $taxonomy,
+            'post_type' => $postType,
+        ])
             ->with('success', __(':taxLabel created successfully', ['taxLabel' => $taxLabel]));
     }
 
@@ -85,16 +110,30 @@ class TermController extends Controller
         $this->authorize('update', $term);
 
         // Update term using service
+        $postTypeContext = strtolower((string) $request->input('context_post_type', $request->query('post_type')));
+
+        if ($term->isProtectedForPostType($postTypeContext)) {
+            return redirect()->route('admin.terms.index', [
+                'taxonomy' => $taxonomy,
+                'post_type' => $postTypeContext ?: 'announcement',
+            ])->with('error', __('This category is protected and cannot be modified.'));
+        }
+
         $this->termService->updateTerm($term, $request->validated());
 
         // Get taxonomy label for message
         $taxLabel = $this->termService->getTaxonomyLabel($taxonomy, true);
 
-        return redirect()->route('admin.terms.index', $taxonomy)
+        $postType = $postTypeContext ?: 'announcement';
+
+        return redirect()->route('admin.terms.index', [
+            'taxonomy' => $taxonomy,
+            'post_type' => $postType,
+        ])
             ->with('success', __(':taxLabel updated successfully', ['taxLabel' => $taxLabel]));
     }
 
-    public function destroy(string $taxonomy, string $id)
+    public function destroy(Request $request, string $taxonomy, string $id)
     {
         // Get taxonomy using service
         $taxonomyModel = $this->termService->getTaxonomy($taxonomy);
@@ -107,6 +146,15 @@ class TermController extends Controller
         $term = $this->termService->getTermById((int) $id, $taxonomy);
 
         $this->authorize('delete', $term);
+
+        $postTypeContext = strtolower((string) $request->input('context_post_type', $request->query('post_type')));
+
+        if ($term->isProtectedForPostType($postTypeContext)) {
+            return redirect()->route('admin.terms.index', [
+                'taxonomy' => $taxonomy,
+                'post_type' => $postTypeContext ?: 'announcement',
+            ])->with('error', __('This category is protected and cannot be deleted.'));
+        }
 
         // Get taxonomy label for messages
         $taxLabel = $this->termService->getTaxonomyLabel($taxonomy, true);
@@ -127,7 +175,12 @@ class TermController extends Controller
         // Delete term using service
         $this->termService->deleteTerm($term);
 
-        return redirect()->route('admin.terms.index', $taxonomy)
+        $postType = $postTypeContext ?: 'announcement';
+
+        return redirect()->route('admin.terms.index', [
+            'taxonomy' => $taxonomy,
+            'post_type' => $postType,
+        ])
             ->with('success', __(':taxLabel deleted successfully', ['taxLabel' => $taxLabel]));
     }
 
@@ -148,7 +201,10 @@ class TermController extends Controller
         // Get parent terms for hierarchical taxonomies.
         $parentTerms = [];
         if ($taxonomyModel->hierarchical) {
+            $currentPostType = strtolower((string) request()->query('post_type', 'announcement'));
+
             $parentTerms = Term::where('taxonomy', $taxonomy)
+                ->forPostType($currentPostType)
                 ->orderBy('name', 'asc')
                 ->get();
         }
@@ -156,7 +212,25 @@ class TermController extends Controller
         $this->setBreadcrumbTitle(__('Edit :taxLabel', ['taxLabel' => $taxonomyModel->label_singular]))
             ->addBreadcrumbItem($taxonomyModel->label, route('admin.terms.index', $taxonomy));
 
-        return $this->renderViewWithBreadcrumbs('backend.pages.terms.edit', compact('taxonomy', 'taxonomyModel', 'term', 'parentTerms'));
+        $availablePostTypes = $this->contentService->getPostTypes();
+        $postType = strtolower((string) request()->query('post_type', $availablePostTypes->has('announcement') ? 'announcement' : 'news'));
+
+        if ($term->isProtectedForPostType($postType)) {
+            return redirect()->route('admin.terms.index', [
+                'taxonomy' => $taxonomy,
+                'post_type' => $postType,
+            ])->with('error', __('This category is protected and cannot be edited.'));
+        }
+
+        return $this->renderViewWithBreadcrumbs('backend.pages.terms.edit', [
+            'taxonomy' => $taxonomy,
+            'taxonomyModel' => $taxonomyModel,
+            'term' => $term,
+            'parentTerms' => $parentTerms,
+            'postType' => $postType,
+            'availablePostTypes' => $availablePostTypes,
+            'postTypeModel' => $this->contentService->getPostType($postType),
+        ]);
     }
 
     /**
@@ -186,11 +260,18 @@ class TermController extends Controller
         $deletedCount = 0;
         $errorMessages = [];
 
+        $postTypeContext = strtolower((string) $request->input('context_post_type', $request->query('post_type')));
+
         foreach ($ids as $id) {
             // Get term using service
             $term = $this->termService->getTermById((int) $id, $taxonomy);
 
             if (! $term) {
+                continue;
+            }
+
+            if ($term->isProtectedForPostType($postTypeContext)) {
+                $errorMessages[] = __('":name" is protected and cannot be deleted.', ['name' => $term->name]);
                 continue;
             }
 
@@ -227,6 +308,11 @@ class TermController extends Controller
             session()->flash('error', __('No :taxLabel were deleted', ['taxLabel' => strtolower($taxonomyModel->label)]));
         }
 
-        return redirect()->route('admin.terms.index', $taxonomy);
+        $postType = $postTypeContext ?: 'announcement';
+
+        return redirect()->route('admin.terms.index', [
+            'taxonomy' => $taxonomy,
+            'post_type' => $postType,
+        ]);
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Requests\FormRequest;
 use App\Support\Facades\Hook;
 use App\Services\Content\ContentService;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Validation\Rule;
 
 class StoreTermRequest extends FormRequest
 {
@@ -43,6 +44,8 @@ class StoreTermRequest extends FormRequest
 
             /** @example "post" */
             'post_type' => 'nullable|string',
+
+            'context_post_type' => 'nullable|string',
 
             /** @example null */
             'post_id' => 'nullable|numeric',
@@ -87,6 +90,16 @@ class StoreTermRequest extends FormRequest
                 },
             ];
         }
+
+        $postTypeNames = app(ContentService::class)
+            ->getPostTypes()
+            ->keys()
+            ->map(fn ($name) => strtolower((string) $name))
+            ->values()
+            ->all();
+
+        $rules['post_types'] = ['required', 'array', 'min:1'];
+        $rules['post_types.*'] = ['string', Rule::in($postTypeNames)];
 
         return Hook::applyFilters(TermFilterHook::TERM_STORE_VALIDATION_RULES, $rules, $taxonomyName);
     }

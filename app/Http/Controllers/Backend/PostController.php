@@ -163,9 +163,12 @@ class PostController extends Controller
         // Handle taxonomies
         $this->handleTaxonomies($request, $post);
 
-        session()->flash('success', __('News has been created.'));
+        $labelSingular = $postTypeModel->label_singular ?? Str::title($postType);
+        $labelPlural = $postTypeModel->label ?? Str::title($postType);
+
+        session()->flash('success', __(':type has been created.', ['type' => $labelSingular]));
         $users = User::permission('blog.edit')->get();
-        Notification::send($users, new StatusChanged($post, "Editable News: {$post->title}"));
+        Notification::send($users, new StatusChanged($post, "Editable {$labelPlural}: {$post->title}"));
 
         return redirect()->route('admin.posts.index', [$postType, $post->id]);
     }

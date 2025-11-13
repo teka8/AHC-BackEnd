@@ -119,6 +119,11 @@ class ContentSeeder extends Seeder
                 ], [
                     'description' => $category['description'],
                 ]);
+
+                if (empty($category->post_types)) {
+                    $category->post_types = ['announcement'];
+                    $category->save();
+                }
                 $this->logAction(ActionType::CREATED->value, Term::class, $category->toArray());
 
                 $this->command->info("Created category: {$category['name']}");

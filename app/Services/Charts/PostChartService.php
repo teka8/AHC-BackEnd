@@ -55,29 +55,29 @@ class PostChartService
 
             // Count posts by status
             $createdCount = Post::where('status', PostStatus::DRAFT->value)
-                ->where('post_type', 'News')
+                ->whereRaw('LOWER(post_type) = ?', ['news'])
                 ->whereBetween('created_at', [$rangeStart, $rangeEnd])
                 ->count();
 
-           $reviewedCount = Post::where('post_type', 'News')
-    ->where(function($query) {
-        $query->where('status', PostStatus::REVIEWED->value)
-              ->orWhere('status', PostStatus::EDITED->value);
-    })
-    ->whereBetween('updated_at', [$rangeStart, $rangeEnd])
-    ->count();
+            $reviewedCount = Post::whereRaw('LOWER(post_type) = ?', ['news'])
+                ->where(function ($query) {
+                    $query->where('status', PostStatus::REVIEWED->value)
+                          ->orWhere('status', PostStatus::EDITED->value);
+                })
+                ->whereBetween('updated_at', [$rangeStart, $rangeEnd])
+                ->count();
             $approvedCount = Post::where('status', PostStatus::APPROVED->value)
-                ->where('post_type', 'News')
+                ->whereRaw('LOWER(post_type) = ?', ['news'])
                 ->whereBetween('updated_at', [$rangeStart, $rangeEnd])
                 ->count();
 
             $publishedCount = Post::where('status', PostStatus::PUBLISHED->value)
-                ->where('post_type', 'News')
+                ->whereRaw('LOWER(post_type) = ?', ['news'])
                 ->whereBetween('updated_at', [$rangeStart, $rangeEnd])
                 ->count();
 
             $archivedCount = Post::where('status', PostStatus::ARCHIVED->value)
-                ->where('post_type', 'News')
+                ->whereRaw('LOWER(post_type) = ?', ['news'])
                 ->whereBetween('updated_at', [$rangeStart, $rangeEnd])
                 ->count();
 

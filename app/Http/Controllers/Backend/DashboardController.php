@@ -11,7 +11,6 @@ use App\Services\Charts\PostChartService;
 use App\Services\Charts\UserChartService;
 use App\Services\LanguageService;
 use App\Enums\PostStatus;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use App\Models\Event;
 
@@ -39,9 +38,9 @@ class DashboardController extends Controller
                     'active' => number_format(count($this->languageService->getActiveLanguages())),
                 ],
 
-                // 
-                'total_news' => number_format(Post::where('post_type', 'news')->count()),
-                'published_news' => number_format(Post::where('post_type', 'news')
+                //
+                'total_news' => number_format(Post::whereRaw('LOWER(post_type) = ?', ['news'])->count()),
+                'published_news' => number_format(Post::whereRaw('LOWER(post_type) = ?', ['news'])
                     ->where('status', PostStatus::PUBLISHED->value)
                     ->count()),
 

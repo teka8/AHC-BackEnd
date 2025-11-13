@@ -12,6 +12,7 @@
             {{ $term ? __("Edit {$taxonomyModel->label_singular}") : __("Add New {$taxonomyModel->label_singular}") }}
         </x-slot>
         <div x-data="slugGenerator('{{ old('name', $term ? $term->name : '') }}', '{{ old('slug', $term ? $term->slug : '') }}')">
+            <input type="hidden" name="context_post_type" value="{{ $postType ?? 'announcement' }}">
             <div class="space-y-1">
                 <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     {{ __('Name') }}
@@ -64,6 +65,49 @@
                     </div>
                 @endif
             </div>
+
+            @php
+                $postTypeOptions = ($availablePostTypes ?? collect())
+                    ->map(function ($type, $key) {
+                        $label = $type->label ?? \Illuminate\Support\Str::title($key);
+
+                        return [
+                            'key' => $key,
+                            'label' => $label,
+                        ];
+                    })
+                    ->values();
+                $selectedPostTypes = collect(old('post_types', $term?->post_types ?? (($postType ?? null) ? [strtolower($postType)] : ['announcement'])))
+                    ->map(fn ($value) => strtolower($value))
+                    ->unique()
+                    ->all();
+            @endphp
+
+            @if($postTypeOptions->isNotEmpty())
+                <div class="mt-4 space-y-1">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {{ __('Applies to post types') }}
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex flex-wrap gap-3">
+                        @foreach ($postTypeOptions as $typeOption)
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+                                <input
+                                    type="checkbox"
+                                    name="post_types[]"
+                                    value="{{ $typeOption['key'] }}"
+                                    class="rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
+                                    {{ in_array(strtolower($typeOption['key']), $selectedPostTypes, true) ? 'checked' : '' }}
+                                >
+                                <span>{{ $typeOption['label'] }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('post_types')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+            @endif
 
             @if ($taxonomyModel->hierarchical)
                 <div class="mt-2">

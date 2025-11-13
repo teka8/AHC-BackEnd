@@ -53,15 +53,26 @@ class ContentServiceProvider extends ServiceProvider
     {
         $contentService = app(ContentService::class);
 
+        // Reset cached definitions so defaults stay in sync on every boot.
+        $contentService->clearPostTypesCache();
+
         // Register post type.
         $contentService->registerPostType([
-            'name' => 'News',
+            'name' => 'news',
             'label' => 'News',
             'label_singular' => 'News',
-            'description' => 'Default News type for blog entries',
+            'description' => 'Latest stories and updates',
             'taxonomies' => ['category', 'tag'],
             'show_in_menu' => true,
+        ]);
 
+        $contentService->registerPostType([
+            'name' => 'announcement',
+            'label' => 'Announcements',
+            'label_singular' => 'Announcement',
+            'description' => 'Official announcements shared with the public',
+            'taxonomies' => ['category', 'tag'],
+            'show_in_menu' => true,
         ]);
 
         // Register page type.
@@ -79,7 +90,6 @@ class ContentServiceProvider extends ServiceProvider
         // Allow other plugins/modules to register post types.
         Hook::doAction(ContentActionHook::REGISTER_POST_TYPES, $contentService);
     }
-
 
     protected function registerDefaultTaxonomies(): void
     {

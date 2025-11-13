@@ -447,6 +447,8 @@ class AdminMenuService
             }
 
             // Create children menu items.
+            $currentPostType = strtolower((string) request()->query('post_type'));
+
             $children = [
                 [
                     'title' => __("All {$type->label}"),
@@ -476,8 +478,13 @@ class AdminMenuService
                     $children[] = [
                         'title' => __($taxonomy->label),
                         'route' => 'admin.terms.index',
-                        'params' => $taxonomy->name,
-                        'active' => request()->is('admin/terms/' . $taxonomy->name . '*'),
+                        'params' => [
+                            'taxonomy' => $taxonomy->name,
+                            'post_type' => $typeName,
+                        ],
+                        'active' => request()->segment(2) === 'terms'
+                            && request()->segment(3) === $taxonomy->name
+                            && $currentPostType === strtolower($typeName),
                         'priority' => 30 + $taxonomy->id, // Prioritize after standard items
                         'permissions' => 'term.view',
                     ];
@@ -490,7 +497,7 @@ class AdminMenuService
                 'icon' => get_post_type_icon($typeName),
                 'id' => 'post-type-' . $typeName,
                 'active' => request()->is('admin/posts/' . $typeName . '*') ||
-                    (!empty($type->taxonomies) && $this->isCurrentTermBelongsToPostType($type->taxonomies)),
+                    (!empty($type->taxonomies) && $this->isCurrentTermBelongsToPostType($type->taxonomies, $typeName)),
                 'priority' => 10,
                 'permissions' => 'news.view',
                 'children' => $children,
@@ -505,7 +512,7 @@ class AdminMenuService
     /**
      * Check if the current term route belongs to the given taxonomies
      */
-    protected function isCurrentTermBelongsToPostType(array $taxonomies): bool
+    protected function isCurrentTermBelongsToPostType(array $taxonomies, string $postType): bool
     {
         if (!request()->is('admin/terms/*')) {
             return false;
@@ -514,7 +521,11 @@ class AdminMenuService
         // Get the current taxonomy from the route
         $currentTaxonomy = request()->segment(3); // admin/terms/{taxonomy}
 
-        return in_array($currentTaxonomy, $taxonomies);
+        if (! in_array($currentTaxonomy, $taxonomies)) {
+            return false;
+        }
+
+        return strtolower((string) request()->query('post_type')) === strtolower($postType);
     }
 
     protected function sortMenuItemsByPriority(): void
@@ -568,7 +579,7 @@ class AdminMenuService
     {
         $html = '';
         foreach ($groupItems as $menuItem) {
-            $filterKey = $menuItem->id ?? Str::slug($menuItem->label) ?: '';
+            $filterKey = ($menuItem->id ?? Str::slug($menuItem->label)) ?: '';
             $html .= Hook::applyFilters(AdminFilterHook::SIDEBAR_MENU_BEFORE->value . $filterKey, '');
 
             $html .= view('backend.layouts.partials.sidebar.menu-item', [
