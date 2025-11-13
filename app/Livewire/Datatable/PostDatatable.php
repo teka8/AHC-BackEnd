@@ -153,7 +153,7 @@ class PostDatatable extends Datatable
     protected function getNewResourceLinkLabel(): string
     {
         if ($this->postType === 'announcement') {
-            return __('New Announcement');
+            return __('Add New');
         }
 
         return parent::getNewResourceLinkLabel();
