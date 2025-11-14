@@ -187,7 +187,9 @@ class Term extends Model implements SpatieHasMedia
                     ->values()
                     ->all();
 
-                return empty($normalized) ? null : $normalized;
+                return [
+                    'post_types' => empty($normalized) ? null : json_encode($normalized),
+                ];
             }
         );
     }

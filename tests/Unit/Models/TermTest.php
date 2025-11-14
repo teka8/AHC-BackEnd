@@ -20,6 +20,7 @@ it('has fillable attributes', function () {
         'description',
         'parent_id',
         'count',
+        'post_types',
     ]);
 });
 
