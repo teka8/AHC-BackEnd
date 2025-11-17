@@ -148,14 +148,12 @@ class PublicMediaController extends Controller
 
     private function resolveUrl(Media $media): string
     {
-        try {
-            $url = $media->getUrl();
+        $candidates = [];
 
-            if ($this->urlLooksUsable($url)) {
-                return $url;
-            }
+        try {
+            $candidates[] = $media->getUrl();
         } catch (\Throwable $e) {
-            // Fall through to manual resolution.
+            // Ignore and continue with fallback candidates.
         }
 
         $disk = $media->disk ?? config('filesystems.default');
@@ -163,14 +161,24 @@ class PublicMediaController extends Controller
         $explicitPath = 'media/' . ltrim($fileName, '/');
 
         if (Storage::disk($disk)->exists($explicitPath)) {
-            return Storage::disk($disk)->url($explicitPath);
+            $candidates[] = Storage::disk($disk)->url($explicitPath);
         }
 
         if (Storage::disk($disk)->exists($fileName)) {
-            return Storage::disk($disk)->url($fileName);
+            $candidates[] = Storage::disk($disk)->url($fileName);
         }
 
-        return asset('storage/media/' . $fileName);
+        $candidates[] = asset('storage/media/' . $fileName);
+
+        foreach ($candidates as $candidate) {
+            if (! $this->urlLooksUsable($candidate)) {
+                continue;
+            }
+
+            return $this->toAbsoluteUrl($candidate);
+        }
+
+        return $this->toAbsoluteUrl('storage/media/' . $fileName);
     }
 
     private function resolveThumbUrl(Media $media): string
@@ -180,7 +188,7 @@ class PublicMediaController extends Controller
                 $thumbUrl = $media->getUrl('thumb');
 
                 if ($this->urlLooksUsable($thumbUrl)) {
-                    return $thumbUrl;
+                    return $this->toAbsoluteUrl($thumbUrl);
                 }
             } catch (\Throwable $e) {
                 // Fall through to main URL.
@@ -193,6 +201,38 @@ class PublicMediaController extends Controller
     private function urlLooksUsable(?string $url): bool
     {
         return is_string($url) && $url !== '' && $url !== '/';
+    }
+
+    private function toAbsoluteUrl(string $url): string
+    {
+        $request = request();
+        $host = $request->getHost();
+        $scheme = $request->getScheme();
+
+        if (Str::startsWith($url, ['http://', 'https://'])) {
+            $parts = parse_url($url);
+
+            if (! $parts) {
+                return $url;
+            }
+
+            $targetHost = $parts['host'] ?? null;
+            $targetScheme = $parts['scheme'] ?? null;
+
+            $path = $parts['path'] ?? '';
+            $query = isset($parts['query']) ? '?' . $parts['query'] : '';
+            $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
+
+            if ($targetHost === $host && $targetScheme === $scheme) {
+                return $url;
+            }
+
+            return sprintf('%s://%s%s%s%s', $scheme, $host, $path, $query, $fragment);
+        }
+
+        $relative = str_starts_with($url, '/') ? $url : '/' . ltrim($url, '/');
+
+        return sprintf('%s://%s%s', $scheme, $host, $relative);
     }
 
     private function buildBreadcrumbs(MediaFolder $folder): array
