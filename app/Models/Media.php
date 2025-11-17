@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Observers\MediaObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
 
 /**
@@ -16,4 +17,9 @@ class Media extends SpatieMedia
 {
     // Inherit all functionality from Spatie Media
     // Add any custom functionality here if needed.
+
+    public function folder(): BelongsTo
+    {
+        return $this->belongsTo(MediaFolder::class, 'folder_id');
+    }
 }

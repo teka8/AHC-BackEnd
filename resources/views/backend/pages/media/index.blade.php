@@ -320,6 +320,12 @@
                                                 {{ strtoupper(pathinfo($item->file_name, PATHINFO_EXTENSION)) }} •
                                                 {{ \Illuminate\Support\Str::limit($item->human_readable_size, 10) }}
                                             </p>
+                                            @if ($item->caption)
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 italic truncate"
+                                                    title="{{ $item->caption }}">
+                                                    {{ $item->caption }}
+                                                </p>
+                                            @endif
                                         </div>
 
                                         <!-- Actions overlay -->

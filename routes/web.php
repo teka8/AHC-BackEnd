@@ -7,6 +7,7 @@ use App\Http\Controllers\Backend\Auth\ScreenshotGeneratorLoginController;
 use App\Http\Controllers\Backend\DashboardController;
 use App\Http\Controllers\Backend\LocaleController;
 use App\Http\Controllers\Backend\MediaController;
+use App\Http\Controllers\Backend\MediaManagerController;
 use App\Http\Controllers\Backend\DocumentRepositoryController;
 use App\Http\Controllers\Backend\EducationRepositoryController;
 use App\Http\Controllers\Backend\ModuleController;
@@ -197,6 +198,18 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/upload-limits', [MediaController::class, 'getUploadLimits'])->name('upload-limits');
         Route::delete('/{id}', [MediaController::class, 'destroy'])->name('destroy');
         Route::delete('/', [MediaController::class, 'bulkDelete'])->name('bulk-delete');
+    });
+
+    Route::prefix('media-manager')->name('media-manager.')->group(function () {
+        Route::get('/', [MediaManagerController::class, 'index'])->name('index');
+        Route::post('/folders', [MediaManagerController::class, 'store'])->name('folders.store');
+        Route::put('/folders/{folder}', [MediaManagerController::class, 'update'])->name('folders.update');
+        Route::delete('/folders/{folder}', [MediaManagerController::class, 'destroy'])->name('folders.destroy');
+        Route::post('/folders/{folder}/upload', [MediaManagerController::class, 'upload'])
+            ->name('folders.upload')
+            ->middleware('check.upload.limits');
+        Route::put('/media/{media}', [MediaManagerController::class, 'updateMedia'])->name('media.update');
+        Route::delete('/media/{media}', [MediaManagerController::class, 'destroyMedia'])->name('media.destroy');
     });
 
     // Media Routes.

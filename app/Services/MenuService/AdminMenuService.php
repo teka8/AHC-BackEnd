@@ -29,7 +29,7 @@ class AdminMenuService
     {
         $group = $group ?: __('Main');
         $menuItem = $this->createAdminMenuItem($item);
-        if (!isset($this->groups[$group])) {
+        if (! isset($this->groups[$group])) {
             $this->groups[$group] = [];
         }
 
@@ -51,7 +51,7 @@ class AdminMenuService
                 function ($child) {
                     // Check if user is authenticated
                     $user = auth()->user();
-                    if (!$user) {
+                    if (! $user) {
                         return null;
                     }
 
@@ -121,7 +121,7 @@ class AdminMenuService
                 [
                     'label' => __('All Events'),
                     'route' => route('admin.events.index'),
-                    'active' => Route::is('admin.events.index') || Route::is('admin.events.*') && !Route::is('admin.events.create'),
+                    'active' => Route::is('admin.events.index') || Route::is('admin.events.*') && ! Route::is('admin.events.create'),
                     'priority' => 20,
                     'permissions' => 'event.view',
                 ],
@@ -208,7 +208,6 @@ class AdminMenuService
             ],
         ]);
 
-
         // pages
         $this->addMenuItem([
             'label' => __('Pages'),
@@ -221,7 +220,7 @@ class AdminMenuService
                 [
                     'label' => __('All Pages'),
                     'route' => route('admin.pages.index'),
-                    'active' => Route::is('admin.pages.index') || Route::is('admin.pages.*') && !Route::is('admin.pages.create'),
+                    'active' => Route::is('admin.pages.index') || Route::is('admin.pages.*') && ! Route::is('admin.pages.create'),
                     'priority' => 20,
                     'permissions' => 'page.view',
                 ],
@@ -246,11 +245,21 @@ class AdminMenuService
         ]);
 
         $this->addMenuItem([
+            'label' => __('Media'),
+            'icon' => 'lucide:folders',
+            'route' => route('admin.media-manager.index'),
+            'active' => Route::is('admin.media-manager.*'),
+            'id' => 'media-manager',
+            'priority' => 36,
+            'permissions' => 'media.view',
+        ]);
+
+        $this->addMenuItem([
             'label' => __('Programs'),
             'icon' => 'lucide:award',
             'id' => 'programs-submenu',
             'active' => Route::is('admin.programs.*'),
-            'priority' => 36,
+            'priority' => 37,
             'permissions' => 'program.view',
             'children' => [
                 [
@@ -442,7 +451,7 @@ class AdminMenuService
 
         foreach ($postTypes as $typeName => $type) {
             // Skip if not showing in menu.
-            if (isset($type->show_in_menu) && !$type->show_in_menu) {
+            if (isset($type->show_in_menu) && ! $type->show_in_menu) {
                 continue;
             }
 
@@ -455,7 +464,7 @@ class AdminMenuService
                     'route' => 'admin.posts.index',
                     'params' => $typeName,
                     'active' => request()->is('admin/posts/' . $typeName) ||
-                        (request()->is('admin/posts/' . $typeName . '/*') && !request()->is('admin/posts/' . $typeName . '/create')),
+                        (request()->is('admin/posts/' . $typeName . '/*') && ! request()->is('admin/posts/' . $typeName . '/create')),
                     'priority' => 10,
                     'permissions' => 'news.view',
                 ],
@@ -470,7 +479,7 @@ class AdminMenuService
             ];
 
             // Add taxonomies as children of this post type if this post type has them.
-            if (!empty($type->taxonomies)) {
+            if (! empty($type->taxonomies)) {
                 $taxonomies = $contentService->getTaxonomies()
                     ->whereIn('name', $type->taxonomies);
 
@@ -497,12 +506,11 @@ class AdminMenuService
                 'icon' => get_post_type_icon($typeName),
                 'id' => 'post-type-' . $typeName,
                 'active' => request()->is('admin/posts/' . $typeName . '*') ||
-                    (!empty($type->taxonomies) && $this->isCurrentTermBelongsToPostType($type->taxonomies, $typeName)),
+                    (! empty($type->taxonomies) && $this->isCurrentTermBelongsToPostType($type->taxonomies, $typeName)),
                 'priority' => 10,
                 'permissions' => 'news.view',
                 'children' => $children,
-                
-            
+
             ];
 
             $this->addMenuItem($menuItem, $group ?: __('Main'));
@@ -514,7 +522,7 @@ class AdminMenuService
      */
     protected function isCurrentTermBelongsToPostType(array $taxonomies, string $postType): bool
     {
-        if (!request()->is('admin/terms/*')) {
+        if (! request()->is('admin/terms/*')) {
             return false;
         }
 
@@ -550,7 +558,7 @@ class AdminMenuService
             $filteredItems = Hook::applyFilters(AdminFilterHook::SIDEBAR_MENU->value . strtolower((string) $group), $filteredItems);
 
             // Only add the group if it has items after filtering.
-            if (!empty($filteredItems)) {
+            if (! empty($filteredItems)) {
                 $result[$group] = $filteredItems;
             }
         }

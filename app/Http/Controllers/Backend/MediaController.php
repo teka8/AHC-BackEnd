@@ -49,7 +49,9 @@ class MediaController extends Controller
             $request->get('type'),
             $request->get('sort', 'created_at'),
             $request->get('direction', 'desc'),
-            50
+            50,
+            null,
+            'uploads'
         );
 
         // Transform media items to include proper URLs.
@@ -66,6 +68,8 @@ class MediaController extends Controller
                 $item->url = asset('storage/media/' . $item->file_name);
                 $item->thumb_url = $item->url;
             }
+
+            $item->caption = $item->getCustomProperty('caption');
 
             return $item;
         });
@@ -106,7 +110,12 @@ class MediaController extends Controller
         }
 
         try {
-            $uploadedFiles = $this->mediaLibraryService->uploadMedia($request->file('files', []));
+            $uploadedFiles = $this->mediaLibraryService->uploadMedia(
+                $request->file('files', []),
+                null,
+                'uploads',
+                $request->input('captions', [])
+            );
 
             return response()->json([
                 'success' => true,
@@ -160,7 +169,9 @@ class MediaController extends Controller
             $request->get('type'),
             $request->get('sort', 'created_at'),
             $request->get('direction', 'desc'),
-            (int) $request->get('per_page', 100)
+            (int) $request->get('per_page', 100),
+            null,
+            'uploads'
         );
 
         // Transform media for API response.
@@ -196,6 +207,7 @@ class MediaController extends Controller
                 'model_type' => $item->model_type,
                 'model_id' => $item->model_id,
                 'is_standalone' => empty($item->model_type) || $item->model_id == 0,
+                'caption' => $item->getCustomProperty('caption'),
             ];
         });
 

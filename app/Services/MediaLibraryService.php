@@ -6,10 +6,10 @@ namespace App\Services;
 
 use App\Concerns\HandlesMediaOperations;
 use App\Models\Media;
+use App\Models\MediaFolder;
 use App\Support\Helper\MediaHelper;
 use Spatie\MediaLibrary\HasMedia;
 use Illuminate\Http\Request;
-use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -23,9 +23,11 @@ class MediaLibraryService
         ?string $type = null,
         string $sort = 'created_at',
         string $direction = 'desc',
-        int $perPage = 24
+        int $perPage = 24,
+        ?int $folderId = null,
+        ?string $collection = null
     ): array {
-        $query = SpatieMedia::query()->latest();
+        $query = Media::query()->latest();
 
         // Apply search filter
         if ($search) {
@@ -60,6 +62,14 @@ class MediaLibraryService
             }
         }
 
+        if ($folderId !== null) {
+            $query->where('folder_id', $folderId);
+        }
+
+        if ($collection !== null) {
+            $query->where('collection_name', $collection);
+        }
+
         // Apply sorting
         if (in_array($sort, ['name', 'size', 'created_at', 'mime_type'])) {
             $query->orderBy($sort, $direction);
@@ -77,7 +87,7 @@ class MediaLibraryService
         });
 
         // Get statistics
-        $stats = $this->getMediaStatistics();
+        $stats = $this->getMediaStatistics($collection, $folderId);
 
         return [
             'media' => $media,
@@ -85,26 +95,39 @@ class MediaLibraryService
         ];
     }
 
-    public function getMediaStatistics(): array
+    public function getMediaStatistics(?string $collection = null, ?int $folderId = null): array
     {
+        $query = Media::query();
+
+        if ($collection !== null) {
+            $query->where('collection_name', $collection);
+        }
+
+        if ($folderId !== null) {
+            $query->where('folder_id', $folderId);
+        }
+
+        $statsQuery = (clone $query);
+
         return [
-            'total' => SpatieMedia::count(),
-            'images' => SpatieMedia::where('mime_type', 'like', 'image/%')->count(),
-            'videos' => SpatieMedia::where('mime_type', 'like', 'video/%')->count(),
-            'audio' => SpatieMedia::where('mime_type', 'like', 'audio/%')->count(),
-            'documents' => SpatieMedia::whereNotLike('mime_type', 'image/%')
+            'total' => $query->count(),
+            'images' => (clone $statsQuery)->where('mime_type', 'like', 'image/%')->count(),
+            'videos' => (clone $statsQuery)->where('mime_type', 'like', 'video/%')->count(),
+            'audio' => (clone $statsQuery)->where('mime_type', 'like', 'audio/%')->count(),
+            'documents' => (clone $statsQuery)
+                ->whereNotLike('mime_type', 'image/%')
                 ->whereNotLike('mime_type', 'video/%')
                 ->whereNotLike('mime_type', 'audio/%')
                 ->count(),
-            'total_size' => $this->formatFileSize((int) SpatieMedia::sum('size')),
+            'total_size' => $this->formatFileSize((int) $statsQuery->sum('size')),
         ];
     }
 
-    public function uploadMedia(array $files): array
+    public function uploadMedia(array $files, ?MediaFolder $folder = null, string $collection = 'uploads', array $captions = []): array
     {
         $uploadedFiles = [];
 
-        foreach ($files as $file) {
+        foreach ($files as $index => $file) {
             // Skip files that don't pass security checks
             if (! $this->isSecureFile($file)) {
                 continue;
@@ -124,12 +147,17 @@ class MediaLibraryService
             // Store the file with a secure name
             $path = $file->storeAs('media', $safeFileName, 'public');
 
+            $caption = $captions[$index] ?? null;
+            $customProperties = $caption !== null && $caption !== ''
+                ? ['caption' => $caption]
+                : [];
+
             // Create media record directly in the media table for standalone uploads
-            $mediaItem = SpatieMedia::create([
+            $mediaItem = Media::query()->create([
                 'model_type' => '', // Empty for standalone media
                 'model_id' => 0,   // 0 for standalone media
                 'uuid' => Str::uuid(),
-                'collection_name' => 'uploads',
+                'collection_name' => $collection,
                 'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
                 'file_name' => basename($path),
                 'mime_type' => $file->getMimeType(),
@@ -137,10 +165,11 @@ class MediaLibraryService
                 'conversions_disk' => 'public',
                 'size' => $file->getSize(),
                 'manipulations' => '[]',
-                'custom_properties' => '[]',
+                'custom_properties' => $customProperties,
                 'generated_conversions' => '[]',
                 'responsive_images' => '[]',
                 'order_column' => null,
+                'folder_id' => $folder?->getKey(),
             ]);
 
             $uploadedFiles[] = $mediaItem;
@@ -266,7 +295,7 @@ class MediaLibraryService
                     $mediaPath = null;
                     try {
                         $relative = method_exists($media, 'getPathRelativeToRoot') ? $media->getPathRelativeToRoot() : null;
-                        if ($relative && !empty($media->disk)) {
+                        if ($relative && ! empty($media->disk)) {
                             $mediaPath = \Illuminate\Support\Facades\Storage::disk($media->disk)->path($relative);
                         }
                     } catch (\Throwable $t) {
@@ -286,7 +315,10 @@ class MediaLibraryService
                                 public_path('storage/' . $media->id . '/' . $media->file_name),
                             ];
                             foreach ($candidatePaths as $p) {
-                                if (file_exists($p)) { $mediaPath = $p; break; }
+                                if (file_exists($p)) {
+                                    $mediaPath = $p;
+                                    break;
+                                }
                             }
                         }
                     }

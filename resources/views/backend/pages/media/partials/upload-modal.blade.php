@@ -48,9 +48,8 @@
                            @endif
                            class="hidden">
                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-2 space-y-1">
-                        <p>{{ __('Maximum file size:') }} <span class="font-medium">{{ $uploadLimits['effective_max_filesize_formatted'] }}</span></p>
+                        <p>{{ __('No application file size limit. Server maximum: :limit', ['limit' => $uploadLimits['effective_max_filesize_formatted']]) }}</p>
                         <p>{{ __('Maximum files at once:') }} <span class="font-medium">{{ $uploadLimits['max_file_uploads'] }}</span></p>
-                        <p>{{ __('Maximum total upload:') }} <span class="font-medium">{{ $uploadLimits['post_max_size_formatted'] }}</span></p>
 
                         @if(config('app.demo_mode', false))
                         <p class="text-orange-600 dark:text-orange-400 font-medium">
@@ -88,6 +87,7 @@
 const uploadLimits = @json($uploadLimits);
 const isDemoMode = {{ config('app.demo_mode', false) ? 'true' : 'false' }};
 const allowedDemoMimeTypes = @json(config('app.demo_mode', false) ? \App\Support\Helper\MediaHelper::getAllowedMimeTypesForDemo() : []);
+const captionLabel = @json(__('Caption (optional)'));
 
 // Function to check if file type is allowed in demo mode
 function isFileAllowedInDemo(fileType) {
@@ -96,51 +96,44 @@ function isFileAllowedInDemo(fileType) {
 }
 
 document.getElementById('file-input').addEventListener('change', function(e) {
-    const files = Array.from(e.target.files);
+    const fileInputEl = e.target;
+    const files = Array.from(fileInputEl.files);
     const preview = document.getElementById('file-preview');
     const fileList = document.getElementById('file-list');
     
     // Validate files before showing them
     const validFiles = [];
     const errors = [];
+    const dt = new DataTransfer();
     
     if (files.length > uploadLimits.max_file_uploads) {
         errors.push(`{{ __('You can upload a maximum of :max files at once.', ['max' => '']) }}${uploadLimits.max_file_uploads}`);
     }
     
-    let totalSize = 0;
     files.forEach((file, index) => {
-        totalSize += file.size;
-        
         // Check demo mode restrictions
         if (isDemoMode && !isFileAllowedInDemo(file.type)) {
             errors.push(`{{ __('File ":name" is not allowed in demo mode. Only images, videos, PDFs, and documents are permitted.', ['name' => '']) }}${file.name}"`);
             return;
         }
         
-        if (file.size > uploadLimits.effective_max_filesize) {
-            errors.push(`{{ __('File ":name" exceeds the maximum size of :max', ['name' => '', 'max' => '']) }}${file.name}" exceeds ${uploadLimits.effective_max_filesize_formatted}`);
-        } else {
-            validFiles.push(file);
-        }
+        validFiles.push(file);
+        dt.items.add(file);
     });
-    
-    if (totalSize > uploadLimits.post_max_size) {
-        errors.push(`{{ __('Total upload size exceeds the limit of :max', ['max' => '']) }}${uploadLimits.post_max_size_formatted}`);
-    }
     
     if (errors.length > 0) {
         alert(errors.join('\n'));
-        this.value = '';
+        fileInputEl.value = '';
         preview.classList.add('hidden');
         return;
     }
     
     if (validFiles.length > 0) {
+        fileInputEl.files = dt.files;
         preview.classList.remove('hidden');
         fileList.innerHTML = '';
         
-        validFiles.forEach((file, index) => {
+        Array.from(fileInputEl.files).forEach((file, index) => {
             const fileItem = document.createElement('div');
             fileItem.className = 'flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded';
             fileItem.innerHTML = `
@@ -149,10 +142,19 @@ document.getElementById('file-input').addEventListener('change', function(e) {
                     <span class="text-sm text-gray-700 dark:text-gray-300">${file.name}</span>
                     <span class="text-xs text-gray-500 ml-2">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
                 </div>
-                <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700">
-                    <iconify-icon icon="lucide:x" class="w-4 h-4"></iconify-icon>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700">
+                        <iconify-icon icon="lucide:x" class="w-4 h-4"></iconify-icon>
+                    </button>
+                </div>
             `;
+            const captionWrapper = document.createElement('div');
+            captionWrapper.className = 'mt-2 w-full';
+            captionWrapper.innerHTML = `
+                <input type="text" class="caption-input w-full rounded border border-gray-200 bg-white p-2 text-sm text-gray-700 focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" data-index="${index}" placeholder="${captionLabel}">
+            `;
+
+            fileItem.appendChild(captionWrapper);
             fileList.appendChild(fileItem);
         });
     } else {
@@ -188,6 +190,9 @@ function uploadFiles() {
     for (const file of fileInput.files) {
         formData.append('files[]', file);
     }
+    document.querySelectorAll('.caption-input').forEach((input) => {
+        formData.append(`captions[${input.dataset.index}]`, input.value);
+    });
     formData.append('_token', '{{ csrf_token() }}');
     
     uploadBtn.disabled = true;

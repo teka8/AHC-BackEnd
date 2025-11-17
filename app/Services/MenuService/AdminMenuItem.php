@@ -154,8 +154,16 @@ class AdminMenuItem
         }
 
         $user = Auth::user();
+        if (! $user) {
+            return false;
+        }
+
+        if (method_exists($user, 'hasRole') && $user->hasRole('Superadmin')) {
+            return true;
+        }
+
         foreach ($this->permissions as $permission) {
-            if ($user && $user->can($permission)) {
+            if ($user->can($permission)) {
                 return true;
             }
         }

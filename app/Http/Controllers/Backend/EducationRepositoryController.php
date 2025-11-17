@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Backend;
 
 use App\Models\EducationalResource;
-use App\Models\EducationalResourceTag;
 use App\Http\Controllers\Controller;
 use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
@@ -30,11 +29,11 @@ class EducationRepositoryController extends Controller
     {
         $document = EducationalResource::findOrFail($id);
 
-        if (!$document->isAccessibleBy(Auth::user())) {
+        if (! $document->isAccessibleBy(Auth::user())) {
             abort(403, __('You do not have permission to download this resource'));
         }
 
-        if (!$document->file_path || !\Storage::disk('public')->exists($document->file_path)) {
+        if (! $document->file_path || ! \Storage::disk('public')->exists($document->file_path)) {
             abort(404, __('Resource file not found'));
         }
 
@@ -47,7 +46,7 @@ class EducationRepositoryController extends Controller
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
                 'action' => 'download',
-                'referrer' => request()->header('referer')
+                'referrer' => request()->header('referer'),
             ]);
 
             $filePath = \Storage::disk('public')->path($document->file_path);
@@ -106,7 +105,7 @@ class EducationRepositoryController extends Controller
             'document.review',
             'document.approve',
             'document.publish',
-            'document.unpublish'
+            'document.unpublish',
         ])->get();
     }
 
@@ -122,10 +121,10 @@ class EducationRepositoryController extends Controller
         // Derive available actions and target status
         $availableActions = method_exists($document, 'getAvailableActions') ? $document->getAvailableActions() : [];
 
-        if (!isset($availableActions[$action])) {
+        if (! isset($availableActions[$action])) {
             return response()->json([
                 'success' => false,
-                'message' => __('This action is not available for the current resource status or you do not have permission.')
+                'message' => __('This action is not available for the current resource status or you do not have permission.'),
             ], 403);
         }
 
@@ -140,7 +139,7 @@ class EducationRepositoryController extends Controller
                 'updated_by' => Auth::id(),
             ];
 
-            if ($targetStatus === EducationalResource::STATUS_PUBLISHED && !$document->published_at) {
+            if ($targetStatus === EducationalResource::STATUS_PUBLISHED && ! $document->published_at) {
                 $updateData['published_at'] = now();
             }
             if ($targetStatus === EducationalResource::STATUS_APPROVED) {
@@ -161,8 +160,8 @@ class EducationRepositoryController extends Controller
                     'new_status' => $targetStatus,
                     'status_display' => method_exists($document, 'getStatusDisplay') ? $document->getStatusDisplay() : $targetStatus,
                     'status_color' => method_exists($document, 'getStatusColor') ? $document->getStatusColor() : 'gray',
-                    'available_actions' => method_exists($document, 'getAvailableActions') ? $document->getAvailableActions() : []
-                ]
+                    'available_actions' => method_exists($document, 'getAvailableActions') ? $document->getAvailableActions() : [],
+                ],
             ]);
 
         } catch (\Exception $e) {
@@ -170,7 +169,7 @@ class EducationRepositoryController extends Controller
             \Log::error('Education status change failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to update resource status: ') . $e->getMessage()
+                'message' => __('Failed to update resource status: ') . $e->getMessage(),
             ], 500);
         }
     }
@@ -183,7 +182,7 @@ class EducationRepositoryController extends Controller
         // No dedicated workflow log model for education; return empty list
         return response()->json([
             'success' => true,
-            'data' => []
+            'data' => [],
         ]);
     }
 
@@ -203,10 +202,10 @@ class EducationRepositoryController extends Controller
     public function preview($id)
     {
         $document = EducationalResource::findOrFail($id);
-        if (!$document->isAccessibleBy(Auth::user())) {
+        if (! $document->isAccessibleBy(Auth::user())) {
             abort(403);
         }
-        if (!$document->file_path || !\Storage::disk('public')->exists($document->file_path)) {
+        if (! $document->file_path || ! \Storage::disk('public')->exists($document->file_path)) {
             abort(404);
         }
         // Fallback to download if not a PDF (no extension stored reliably)
@@ -343,8 +342,8 @@ class EducationRepositoryController extends Controller
                 EducationalResource::STATUS_UNDER_REVIEW,
                 EducationalResource::STATUS_APPROVED,
                 EducationalResource::STATUS_PUBLISHED,
-                EducationalResource::STATUS_ARCHIVED
-            ]
+                EducationalResource::STATUS_ARCHIVED,
+            ],
         ]);
     }
 
@@ -415,13 +414,13 @@ class EducationRepositoryController extends Controller
                 EducationalResource::STATUS_UNDER_REVIEW => __('Under Review'),
                 EducationalResource::STATUS_APPROVED => __('Approved'),
                 EducationalResource::STATUS_PUBLISHED => __('Published'),
-                EducationalResource::STATUS_ARCHIVED => __('Archived')
+                EducationalResource::STATUS_ARCHIVED => __('Archived'),
             ],
             'accessLevels' => [
                 EducationalResource::ACCESS_PUBLIC => __('Public'),
                 EducationalResource::ACCESS_PARTNER_ONLY => __('Partner Universities Only'),
-                EducationalResource::ACCESS_INTERNAL_ONLY => __('Internal Only')
-            ]
+                EducationalResource::ACCESS_INTERNAL_ONLY => __('Internal Only'),
+            ],
         ]);
     }
 
@@ -520,7 +519,7 @@ class EducationRepositoryController extends Controller
             ], $fileData));
 
             // Handle tags
-            if (!empty($validated['tags'])) {
+            if (! empty($validated['tags'])) {
                 $this->processTags($document, $validated['tags']);
             } else {
                 $document->tags = [];
@@ -528,7 +527,7 @@ class EducationRepositoryController extends Controller
             }
 
             // Handle status changes
-            if ($validated['status'] === EducationalResource::STATUS_PUBLISHED && !$document->published_at) {
+            if ($validated['status'] === EducationalResource::STATUS_PUBLISHED && ! $document->published_at) {
                 $document->update(['published_at' => now()]);
             }
 
@@ -549,7 +548,7 @@ class EducationRepositoryController extends Controller
             \Log::error('Document update failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'document_id' => $id,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()->back()
@@ -574,10 +573,9 @@ class EducationRepositoryController extends Controller
                 'updated_by' => Auth::id(),
             ]);
 
-
             return response()->json([
                 'success' => true,
-                'message' => __('Document published successfully')
+                'message' => __('Document published successfully'),
             ]);
 
         } catch (\Exception $e) {
@@ -585,7 +583,7 @@ class EducationRepositoryController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to publish document')
+                'message' => __('Failed to publish document'),
             ], 500);
         }
     }
@@ -613,7 +611,7 @@ class EducationRepositoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => __('Document approved successfully')
+                'message' => __('Document approved successfully'),
             ]);
 
         } catch (\Exception $e) {
@@ -621,7 +619,7 @@ class EducationRepositoryController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to approve document')
+                'message' => __('Failed to approve document'),
             ], 500);
         }
     }
@@ -702,15 +700,14 @@ class EducationRepositoryController extends Controller
             ]);
 
             // Handle tags
-            if (!empty($validated['tags'])) {
+            if (! empty($validated['tags'])) {
                 $this->processTags($document, $validated['tags']);
             }
-
 
             return response()->json([
                 'success' => true,
                 'message' => __('File uploaded successfully'),
-                'data' => $document
+                'data' => $document,
             ], 201);
 
         } catch (\Exception $e) {
@@ -722,12 +719,12 @@ class EducationRepositoryController extends Controller
             \Log::error('Document upload failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'file' => $request->file('files')[0]?->getClientOriginalName(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to upload file: ') . $e->getMessage()
+                'message' => __('Failed to upload file: ') . $e->getMessage(),
             ], 500);
         }
     }
@@ -739,7 +736,7 @@ class EducationRepositoryController extends Controller
     {
         // Parse comma-separated tags and filter empty values
         $tags = array_filter(array_map('trim', explode(',', $tagsInput)));
-        
+
         // Save tags as JSON array directly in the tags field
         $document->tags = array_values($tags);
         $document->save();
@@ -760,7 +757,7 @@ class EducationRepositoryController extends Controller
             '#06b6d4',
             '#84cc16',
             '#f97316',
-            '#6b7280'
+            '#6b7280',
         ];
 
         $hash = crc32($tagName);
@@ -830,7 +827,7 @@ class EducationRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __('Document deleted successfully')
+                    'message' => __('Document deleted successfully'),
                 ]);
             }
 
@@ -843,13 +840,13 @@ class EducationRepositoryController extends Controller
             \Log::error('Document deletion failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'document_id' => $id,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to delete document: ') . $e->getMessage()
+                    'message' => __('Failed to delete document: ') . $e->getMessage(),
                 ], 500);
             }
 
@@ -869,7 +866,7 @@ class EducationRepositoryController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('No documents selected for deletion')
+                    'message' => __('No documents selected for deletion'),
                 ], 400);
             }
             return redirect()->back()->with('error', __('No documents selected for deletion'));
@@ -885,13 +882,13 @@ class EducationRepositoryController extends Controller
             foreach ($documentIds as $documentId) {
                 $document = EducationalResource::find($documentId);
 
-                if (!$document) {
+                if (! $document) {
                     $failedCount++;
                     continue;
                 }
 
                 // Check authorization for each document
-                if (!Auth::user()->can('delete', $document)) {
+                if (! Auth::user()->can('delete', $document)) {
                     $failedCount++;
                     continue;
                 }
@@ -938,7 +935,7 @@ class EducationRepositoryController extends Controller
                     'success' => $deletedCount > 0,
                     'message' => trim($message),
                     'deleted_count' => $deletedCount,
-                    'failed_count' => $failedCount
+                    'failed_count' => $failedCount,
                 ]);
             }
 
@@ -951,13 +948,13 @@ class EducationRepositoryController extends Controller
             \Log::error('Bulk document deletion failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'document_ids' => $documentIds,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to delete documents: ') . $e->getMessage()
+                    'message' => __('Failed to delete documents: ') . $e->getMessage(),
                 ], 500);
             }
 
@@ -1001,7 +998,7 @@ class EducationRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __('Document permanently deleted')
+                    'message' => __('Document permanently deleted'),
                 ]);
             }
 
@@ -1016,7 +1013,7 @@ class EducationRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to permanently delete document')
+                    'message' => __('Failed to permanently delete document'),
                 ], 500);
             }
 
@@ -1045,7 +1042,7 @@ class EducationRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __('Document restored successfully')
+                    'message' => __('Document restored successfully'),
                 ]);
             }
 
@@ -1058,7 +1055,7 @@ class EducationRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to restore document')
+                    'message' => __('Failed to restore document'),
                 ], 500);
             }
 
@@ -1066,7 +1063,6 @@ class EducationRepositoryController extends Controller
                 ->with('error', __('Failed to restore document'));
         }
     }
-
 
     public function api(Request $request)
     {
@@ -1077,7 +1073,9 @@ class EducationRepositoryController extends Controller
             $request->get('type'),
             $request->get('sort', 'created_at'),
             $request->get('direction', 'desc'),
-            (int) $request->get('per_page', 100)
+            (int) $request->get('per_page', 100),
+            null,
+            'uploads'
         );
 
         // Transform media for API response.
@@ -1129,6 +1127,5 @@ class EducationRepositoryController extends Controller
             ],
         ]);
     }
-
 
 }

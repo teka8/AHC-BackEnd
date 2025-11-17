@@ -6,13 +6,10 @@ namespace App\Http\Controllers\Backend;
 
 use App\Support\Helper\MediaHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Backend\MediaBulkDeleteRequest;
-use App\Http\Requests\Backend\MediaUploadRequest;
 use App\Models\Media;
 use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
 use App\Models\Document;
-use App\Models\DocumentTag;
 
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -113,8 +110,8 @@ class DocumentRepositoryController extends Controller
                 Document::STATUS_UNDER_REVIEW,
                 Document::STATUS_APPROVED,
                 Document::STATUS_PUBLISHED,
-                Document::STATUS_ARCHIVED
-            ]
+                Document::STATUS_ARCHIVED,
+            ],
         ]);
     }
 
@@ -178,13 +175,13 @@ class DocumentRepositoryController extends Controller
                 Document::STATUS_UNDER_REVIEW => __('Under Review'),
                 Document::STATUS_APPROVED => __('Approved'),
                 Document::STATUS_PUBLISHED => __('Published'),
-                Document::STATUS_ARCHIVED => __('Archived')
+                Document::STATUS_ARCHIVED => __('Archived'),
             ],
             'accessLevels' => [
                 Document::ACCESS_PUBLIC => __('Public'),
                 Document::ACCESS_PARTNER_ONLY => __('Partner Universities Only'),
-                Document::ACCESS_INTERNAL_ONLY => __('Internal Only')
-            ]
+                Document::ACCESS_INTERNAL_ONLY => __('Internal Only'),
+            ],
         ]);
     }
 
@@ -259,7 +256,7 @@ class DocumentRepositoryController extends Controller
             ], $fileData));
 
             // Handle tags
-            if (!empty($validated['tags'])) {
+            if (! empty($validated['tags'])) {
                 $this->processTags($document, $validated['tags']);
             } else {
                 $document->tags = [];
@@ -267,7 +264,7 @@ class DocumentRepositoryController extends Controller
             }
 
             // Handle status changes
-            if ($validated['status'] === Document::STATUS_PUBLISHED && !$document->published_at) {
+            if ($validated['status'] === Document::STATUS_PUBLISHED && ! $document->published_at) {
                 $document->update(['published_at' => now()]);
             }
 
@@ -288,7 +285,7 @@ class DocumentRepositoryController extends Controller
             \Log::error('Document update failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'document_id' => $id,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()->back()
@@ -320,7 +317,7 @@ class DocumentRepositoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => __('Document published successfully')
+                'message' => __('Document published successfully'),
             ]);
 
         } catch (\Exception $e) {
@@ -328,7 +325,7 @@ class DocumentRepositoryController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to publish document')
+                'message' => __('Failed to publish document'),
             ], 500);
         }
     }
@@ -356,7 +353,7 @@ class DocumentRepositoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => __('Document approved successfully')
+                'message' => __('Document approved successfully'),
             ]);
 
         } catch (\Exception $e) {
@@ -364,7 +361,7 @@ class DocumentRepositoryController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to approve document')
+                'message' => __('Failed to approve document'),
             ], 500);
         }
     }
@@ -422,15 +419,14 @@ class DocumentRepositoryController extends Controller
             ]);
 
             // Handle tags
-            if (!empty($validated['tags'])) {
+            if (! empty($validated['tags'])) {
                 $this->processTags($document, $validated['tags']);
             }
-
 
             return response()->json([
                 'success' => true,
                 'message' => __('Document uploaded successfully'),
-                'data' => $document
+                'data' => $document,
             ], 201);
 
         } catch (\Exception $e) {
@@ -442,12 +438,12 @@ class DocumentRepositoryController extends Controller
             \Log::error('Document upload failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'file' => $request->file('files')[0]?->getClientOriginalName(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to upload document: ') . $e->getMessage()
+                'message' => __('Failed to upload document: ') . $e->getMessage(),
             ], 500);
         }
     }
@@ -459,7 +455,7 @@ class DocumentRepositoryController extends Controller
     {
         // Parse comma-separated tags and filter empty values
         $tags = array_filter(array_map('trim', explode(',', $tagsInput)));
-        
+
         // Save tags as JSON array directly in the tags field
         $document->tags = array_values($tags);
         $document->save();
@@ -480,7 +476,7 @@ class DocumentRepositoryController extends Controller
             '#06b6d4',
             '#84cc16',
             '#f97316',
-            '#6b7280'
+            '#6b7280',
         ];
 
         $hash = crc32($tagName);
@@ -579,7 +575,7 @@ class DocumentRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __('Document deleted successfully')
+                    'message' => __('Document deleted successfully'),
                 ]);
             }
 
@@ -592,13 +588,13 @@ class DocumentRepositoryController extends Controller
             \Log::error('Document deletion failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'document_id' => $id,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to delete document: ') . $e->getMessage()
+                    'message' => __('Failed to delete document: ') . $e->getMessage(),
                 ], 500);
             }
 
@@ -618,7 +614,7 @@ class DocumentRepositoryController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('No documents selected for deletion')
+                    'message' => __('No documents selected for deletion'),
                 ], 400);
             }
             return redirect()->back()->with('error', __('No documents selected for deletion'));
@@ -634,13 +630,13 @@ class DocumentRepositoryController extends Controller
             foreach ($documentIds as $documentId) {
                 $document = Document::find($documentId);
 
-                if (!$document) {
+                if (! $document) {
                     $failedCount++;
                     continue;
                 }
 
                 // Check authorization for each document
-                if (!Auth::user()->can('delete', $document)) {
+                if (! Auth::user()->can('delete', $document)) {
                     $failedCount++;
                     continue;
                 }
@@ -687,7 +683,7 @@ class DocumentRepositoryController extends Controller
                     'success' => $deletedCount > 0,
                     'message' => trim($message),
                     'deleted_count' => $deletedCount,
-                    'failed_count' => $failedCount
+                    'failed_count' => $failedCount,
                 ]);
             }
 
@@ -700,13 +696,13 @@ class DocumentRepositoryController extends Controller
             \Log::error('Bulk document deletion failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'document_ids' => $documentIds,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to delete documents: ') . $e->getMessage()
+                    'message' => __('Failed to delete documents: ') . $e->getMessage(),
                 ], 500);
             }
 
@@ -750,7 +746,7 @@ class DocumentRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __('Document permanently deleted')
+                    'message' => __('Document permanently deleted'),
                 ]);
             }
 
@@ -765,7 +761,7 @@ class DocumentRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to permanently delete document')
+                    'message' => __('Failed to permanently delete document'),
                 ], 500);
             }
 
@@ -794,7 +790,7 @@ class DocumentRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __('Document restored successfully')
+                    'message' => __('Document restored successfully'),
                 ]);
             }
 
@@ -807,7 +803,7 @@ class DocumentRepositoryController extends Controller
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to restore document')
+                    'message' => __('Failed to restore document'),
                 ], 500);
             }
 
@@ -825,7 +821,9 @@ class DocumentRepositoryController extends Controller
             $request->get('type'),
             $request->get('sort', 'created_at'),
             $request->get('direction', 'desc'),
-            (int) $request->get('per_page', 100)
+            (int) $request->get('per_page', 100),
+            null,
+            'uploads'
         );
 
         // Transform media for API response.
@@ -910,22 +908,22 @@ class DocumentRepositoryController extends Controller
         $document = Document::findOrFail($id);
 
         // Check if user has permission to download based on access level
-        if (!$document->isAccessibleBy(Auth::user())) {
+        if (! $document->isAccessibleBy(Auth::user())) {
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('You do not have permission to download this document')
+                    'message' => __('You do not have permission to download this document'),
                 ], 403);
             }
             abort(403, __('You do not have permission to download this document'));
         }
 
         // Check if file exists
-        if (!\Storage::disk('public')->exists($document->file_path)) {
+        if (! \Storage::disk('public')->exists($document->file_path)) {
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Document file not found')
+                    'message' => __('Document file not found'),
                 ], 404);
             }
             abort(404, __('Document file not found'));
@@ -953,7 +951,7 @@ class DocumentRepositoryController extends Controller
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
                 'action' => 'download',
-                'referrer' => request()->header('referer')
+                'referrer' => request()->header('referer'),
             ]);
 
             // Get file path and set appropriate headers
@@ -977,13 +975,13 @@ class DocumentRepositoryController extends Controller
                 'user_id' => Auth::id(),
                 'document_id' => $id,
                 'file_path' => $document->file_path ?? 'unknown',
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to download document: ') . $e->getMessage()
+                    'message' => __('Failed to download document: ') . $e->getMessage(),
                 ], 500);
             }
 
@@ -1000,7 +998,7 @@ class DocumentRepositoryController extends Controller
         $document = Document::findOrFail($id);
 
         // Check if user has permission to view
-        if (!$document->isAccessibleBy(Auth::user())) {
+        if (! $document->isAccessibleBy(Auth::user())) {
             abort(403, __('You do not have permission to view this document'));
         }
 
@@ -1010,7 +1008,7 @@ class DocumentRepositoryController extends Controller
         }
 
         // Check if file exists
-        if (!\Storage::disk('public')->exists($document->file_path)) {
+        if (! \Storage::disk('public')->exists($document->file_path)) {
             abort(404, __('Document file not found'));
         }
 
@@ -1032,7 +1030,7 @@ class DocumentRepositoryController extends Controller
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
                 'action' => 'preview',
-                'referrer' => request()->header('referer')
+                'referrer' => request()->header('referer'),
             ]);
 
             // Increment view count (but not download count)
@@ -1081,7 +1079,7 @@ class DocumentRepositoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $stats
+            'data' => $stats,
         ]);
     }
 
@@ -1108,10 +1106,10 @@ class DocumentRepositoryController extends Controller
     {
         $document = Document::findOrFail($id);
 
-        if (!$document->isAccessibleBy(Auth::user())) {
+        if (! $document->isAccessibleBy(Auth::user())) {
             return response()->json([
                 'success' => false,
-                'message' => __('Permission denied')
+                'message' => __('Permission denied'),
             ], 403);
         }
 
@@ -1125,12 +1123,12 @@ class DocumentRepositoryController extends Controller
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
                 'action' => 'download',
-                'referrer' => request()->header('referer')
+                'referrer' => request()->header('referer'),
             ]);
 
             return response()->json([
                 'success' => true,
-                'download_count' => $document->download_count
+                'download_count' => $document->download_count,
             ]);
 
         } catch (\Exception $e) {
@@ -1138,7 +1136,7 @@ class DocumentRepositoryController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to track download')
+                'message' => __('Failed to track download'),
             ], 500);
         }
     }
@@ -1150,7 +1148,7 @@ class DocumentRepositoryController extends Controller
     {
         $document = Document::findOrFail($id);
 
-        if (!$document->isAccessibleBy(Auth::user())) {
+        if (! $document->isAccessibleBy(Auth::user())) {
             return response()->json(['success' => false], 403);
         }
 
@@ -1162,13 +1160,11 @@ class DocumentRepositoryController extends Controller
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
             'action' => 'view',
-            'referrer' => request()->header('referer')
+            'referrer' => request()->header('referer'),
         ]);
 
         return response()->json(['success' => true]);
     }
-
-
 
     /**
      * Get document workflow history
@@ -1185,7 +1181,7 @@ class DocumentRepositoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $history
+            'data' => $history,
         ]);
     }
 
@@ -1199,10 +1195,10 @@ class DocumentRepositoryController extends Controller
         $comment = $request->input('comment', '');
 
         // Check if user can perform this action
-        if (!$document->canPerformAction($action)) {
+        if (! $document->canPerformAction($action)) {
             return response()->json([
                 'success' => false,
-                'message' => __('You do not have permission to perform this action.')
+                'message' => __('You do not have permission to perform this action.'),
             ], 403);
         }
 
@@ -1220,7 +1216,7 @@ class DocumentRepositoryController extends Controller
             ];
 
             // Set published_at if publishing
-            if ($targetStatus === Document::STATUS_PUBLISHED && !$document->published_at) {
+            if ($targetStatus === Document::STATUS_PUBLISHED && ! $document->published_at) {
                 $updateData['published_at'] = now();
             }
 
@@ -1230,7 +1226,6 @@ class DocumentRepositoryController extends Controller
             }
 
             $document->update($updateData);
-
 
             // Send notifications to relevant users
             $this->sendStatusChangeNotifications($document, $oldStatus, $targetStatus, $action);
@@ -1246,7 +1241,7 @@ class DocumentRepositoryController extends Controller
                 'action' => $action,
                 'comment' => $comment,
                 'required_permission' => $availableActions[$action]['required_permission'],
-                'ip_address' => request()->ip()
+                'ip_address' => request()->ip(),
             ]);
 
             \DB::commit();
@@ -1258,8 +1253,8 @@ class DocumentRepositoryController extends Controller
                     'new_status' => $targetStatus,
                     'status_display' => $document->getStatusDisplay(),
                     'status_color' => $document->getStatusColor(),
-                    'available_actions' => $document->getAvailableActions()
-                ]
+                    'available_actions' => $document->getAvailableActions(),
+                ],
             ]);
 
         } catch (\Exception $e) {
@@ -1269,7 +1264,7 @@ class DocumentRepositoryController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to update document status: ') . $e->getMessage()
+                'message' => __('Failed to update document status: ') . $e->getMessage(),
             ], 500);
         }
     }
@@ -1329,7 +1324,7 @@ class DocumentRepositoryController extends Controller
             'document.review',
             'document.approve',
             'document.publish',
-            'document.unpublish'
+            'document.unpublish',
         ])->get();
     }
 }

@@ -18,15 +18,15 @@ class MediaUploadRequest extends FormRequest
     public function rules(): array
     {
         $limits = MediaHelper::getUploadLimits();
-        $maxFileSizeKb = floor($limits['effective_max_filesize'] / 1024); // Convert to KB for Laravel validation
 
         $rules = [
             'files' => 'required|array|max:' . $limits['max_file_uploads'],
             'files.*' => [
                 'required',
                 'file',
-                'max:' . $maxFileSizeKb, // in KB
             ],
+            'captions' => ['nullable', 'array'],
+            'captions.*' => ['nullable', 'string', 'max:500'],
         ];
 
         // Add MIME type restrictions for demo mode
@@ -47,10 +47,9 @@ class MediaUploadRequest extends FormRequest
             'files.max' => __('You can upload a maximum of :max files at once.', ['max' => $limits['max_file_uploads']]),
             'files.*.required' => __('Each file is required.'),
             'files.*.file' => __('Each upload must be a valid file.'),
-            'files.*.max' => __('Each file cannot exceed :max. Current PHP limit: :limit', [
-                'max' => $limits['effective_max_filesize_formatted'],
-                'limit' => $limits['effective_max_filesize_formatted'],
-            ]),
+            'captions.array' => __('Captions must be submitted as an array.'),
+            'captions.*.string' => __('Captions must be text values.'),
+            'captions.*.max' => __('Captions may not be greater than :max characters.', ['max' => 500]),
         ];
 
         // Add demo mode specific message
