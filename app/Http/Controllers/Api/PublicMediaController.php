@@ -10,6 +10,7 @@ use App\Models\MediaFolder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PublicMediaController extends Controller
@@ -148,23 +149,50 @@ class PublicMediaController extends Controller
     private function resolveUrl(Media $media): string
     {
         try {
-            return $media->getUrl();
+            $url = $media->getUrl();
+
+            if ($this->urlLooksUsable($url)) {
+                return $url;
+            }
         } catch (\Throwable $e) {
-            return asset('storage/media/' . $media->file_name);
+            // Fall through to manual resolution.
         }
+
+        $disk = $media->disk ?? config('filesystems.default');
+        $fileName = $media->file_name;
+        $explicitPath = 'media/' . ltrim($fileName, '/');
+
+        if (Storage::disk($disk)->exists($explicitPath)) {
+            return Storage::disk($disk)->url($explicitPath);
+        }
+
+        if (Storage::disk($disk)->exists($fileName)) {
+            return Storage::disk($disk)->url($fileName);
+        }
+
+        return asset('storage/media/' . $fileName);
     }
 
     private function resolveThumbUrl(Media $media): string
     {
         if ($media->hasGeneratedConversion('thumb')) {
             try {
-                return $media->getUrl('thumb');
+                $thumbUrl = $media->getUrl('thumb');
+
+                if ($this->urlLooksUsable($thumbUrl)) {
+                    return $thumbUrl;
+                }
             } catch (\Throwable $e) {
-                // Fall through to main URL
+                // Fall through to main URL.
             }
         }
 
         return $this->resolveUrl($media);
+    }
+
+    private function urlLooksUsable(?string $url): bool
+    {
+        return is_string($url) && $url !== '' && $url !== '/';
     }
 
     private function buildBreadcrumbs(MediaFolder $folder): array

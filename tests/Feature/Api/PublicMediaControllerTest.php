@@ -81,7 +81,7 @@ class PublicMediaControllerTest extends TestCase
 
         $media = Media::query()->create($attributes);
 
-        Storage::disk('public')->put($media->id . '/' . $media->file_name, 'test');
+        Storage::disk('public')->put('media/' . $media->file_name, 'test');
 
         return $media;
     }
