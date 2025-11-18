@@ -550,11 +550,11 @@
                     x-cloak
                     x-show="uploadModal.open"
                     x-transition.opacity
-                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                    class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 backdrop-blur-sm px-4 py-10"
                     @keydown.escape.window="closeModal('uploadModal')"
                 >
-                    <div class="w-full max-w-3xl rounded-2xl bg-white dark:bg-slate-950 shadow-xl border border-white/20 dark:border-slate-800">
-                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+                    <div class="flex w-full max-w-3xl max-h-[90vh] flex-col overflow-x-hidden overflow-y-auto rounded-2xl border border-white/20 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-950">
+                        <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
                             <div>
                                 <h2 class="text-lg font-semibold text-slate-800 dark:text-white">{{ __('Upload media') }}</h2>
                                 <p class="text-xs text-slate-400 dark:text-slate-500">
@@ -566,64 +566,65 @@
                             </button>
                         </div>
 
-                        <form method="POST" :action="uploadModal.action" enctype="multipart/form-data" class="px-6 py-6 space-y-6">
+                        <form method="POST" :action="uploadModal.action" enctype="multipart/form-data" class="flex h-full min-h-0 flex-col">
                             @csrf
+                            <div class="flex-1 min-h-0 overflow-y-auto px-6 py-6 space-y-6">
+                                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-6 text-center dark:border-slate-700 dark:bg-slate-900/40">
+                                    <input
+                                        type="file"
+                                        name="files[]"
+                                        multiple
+                                        class="hidden"
+                                        x-ref="uploadInput"
+                                        @change="handleFileSelection"
+                                    >
+                                    <button type="button" class="btn-primary" @click="$refs.uploadInput.click()">
+                                        <iconify-icon icon="lucide:cloud-upload" class="mr-2 h-5 w-5"></iconify-icon>
+                                        {{ __('Select files') }}
+                                    </button>
+                                    <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                                        {{ __('You can add up to :count files per upload.', ['count' => $uploadLimits['max_file_uploads']]) }}
+                                        {{ __('Server limit: :size per file (effective).', ['size' => $uploadLimits['effective_max_filesize_formatted']]) }}
+                                    </p>
+                                </div>
 
-                            <div class="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/40 p-6 text-center">
-                                <input
-                                    type="file"
-                                    name="files[]"
-                                    multiple
-                                    class="hidden"
-                                    x-ref="uploadInput"
-                                    @change="handleFileSelection"
-                                >
-                                <button type="button" class="btn-primary" @click="$refs.uploadInput.click()">
-                                    <iconify-icon icon="lucide:cloud-upload" class="w-5 h-5 mr-2"></iconify-icon>
-                                    {{ __('Select files') }}
-                                </button>
-                                <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                                    {{ __('You can add up to :count files per upload.', ['count' => $uploadLimits['max_file_uploads']]) }}
-                                    {{ __('Server limit: :size per file (effective).', ['size' => $uploadLimits['effective_max_filesize_formatted']]) }}
-                                </p>
+                                <template x-if="uploadModal.files.length">
+                                    <div class="space-y-4">
+                                        <p class="text-sm font-medium text-slate-700 dark:text-slate-200" x-text="uploadModal.files.length + ' ' + labels.filesSelected"></p>
+
+                                        <template x-for="(file, index) in uploadModal.files" :key="file.id">
+                                            <div class="space-y-3 rounded-xl border border-slate-200 px-4 py-3 dark:border-slate-700">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="mt-1">
+                                                        <iconify-icon icon="lucide:file" class="h-6 w-6 text-slate-400"></iconify-icon>
+                                                    </div>
+                                                    <div class="min-w-0 flex-1">
+                                                        <p class="truncate text-sm font-medium text-slate-800 dark:text-white" x-text="file.name"></p>
+                                                        <p class="text-xs text-slate-400" x-text="formatFileSize(file.size) + ' • ' + (file.type || labels.unknownType)"></p>
+                                                    </div>
+                                                    <button type="button" class="btn-ghost-danger btn-icon" @click="removeUploadFile(index)">
+                                                        <iconify-icon icon="lucide:x" class="h-4 w-4"></iconify-icon>
+                                                    </button>
+                                                </div>
+
+                                                <div class="space-y-2">
+                                                    <label class="text-xs font-medium text-slate-500 dark:text-slate-300">{{ __('Caption (optional)') }}</label>
+                                                    <input
+                                                        type="text"
+                                                        class="form-input text-sm"
+                                                        name="captions[]"
+                                                        x-model="file.caption"
+                                                        maxlength="500"
+                                                        placeholder="{{ __('Describe this media...') }}"
+                                                    >
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
                             </div>
 
-                            <template x-if="uploadModal.files.length">
-                                <div class="space-y-4">
-                                    <p class="text-sm font-medium text-slate-700 dark:text-slate-200" x-text="uploadModal.files.length + ' ' + labels.filesSelected"></p>
-
-                                    <template x-for="(file, index) in uploadModal.files" :key="file.id">
-                                        <div class="rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 space-y-3">
-                                            <div class="flex items-start gap-3">
-                                                <div class="mt-1">
-                                                    <iconify-icon icon="lucide:file" class="w-6 h-6 text-slate-400"></iconify-icon>
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <p class="text-sm font-medium text-slate-800 dark:text-white truncate" x-text="file.name"></p>
-                                                    <p class="text-xs text-slate-400" x-text="formatFileSize(file.size) + ' • ' + (file.type || labels.unknownType)"></p>
-                                                </div>
-                                                <button type="button" class="btn-ghost-danger btn-icon" @click="removeUploadFile(index)">
-                                                    <iconify-icon icon="lucide:x" class="w-4 h-4"></iconify-icon>
-                                                </button>
-                                            </div>
-
-                                            <div class="space-y-2">
-                                                <label class="text-xs font-medium text-slate-500 dark:text-slate-300">{{ __('Caption (optional)') }}</label>
-                                                <input
-                                                    type="text"
-                                                    class="form-input text-sm"
-                                                    name="captions[]"
-                                                    x-model="file.caption"
-                                                    maxlength="500"
-                                                    placeholder="{{ __('Describe this media...') }}"
-                                                >
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </template>
-
-                            <div class="flex justify-end gap-2">
+                            <div class="flex items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-900/60">
                                 <button type="button" class="btn-secondary" @click="closeModal('uploadModal')">{{ __('Cancel') }}</button>
                                 <button type="submit" class="btn-primary" :disabled="uploadModal.files.length === 0">
                                     {{ __('Upload now') }}
