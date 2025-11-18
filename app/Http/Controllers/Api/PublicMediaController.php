@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\MediaFolder;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -148,37 +149,52 @@ class PublicMediaController extends Controller
 
     private function resolveUrl(Media $media): string
     {
-        $candidates = [];
+        $fileName = ltrim((string) $media->file_name, '/');
+
+        if (blank($fileName)) {
+            return $this->normalizeUrl('storage/media');
+        }
+
+        if (blank($media->model_type) || (int) $media->model_id === 0) {
+            return $this->normalizeUrl('storage/media/' . $fileName);
+        }
 
         try {
-            $candidates[] = $media->getUrl();
-        } catch (\Throwable $e) {
-            // Ignore and continue with fallback candidates.
-        }
-
-        $disk = $media->disk ?? config('filesystems.default');
-        $fileName = $media->file_name;
-        $explicitPath = 'media/' . ltrim($fileName, '/');
-
-        if (Storage::disk($disk)->exists($explicitPath)) {
-            $candidates[] = Storage::disk($disk)->url($explicitPath);
-        }
-
-        if (Storage::disk($disk)->exists($fileName)) {
-            $candidates[] = Storage::disk($disk)->url($fileName);
-        }
-
-        $candidates[] = asset('storage/media/' . $fileName);
-
-        foreach ($candidates as $candidate) {
-            if (! $this->urlLooksUsable($candidate)) {
-                continue;
+            $candidate = $media->getUrl();
+            if ($this->urlLooksUsable($candidate)) {
+                return $this->normalizeUrl($candidate);
             }
-
-            return $this->toAbsoluteUrl($candidate);
+        } catch (\Throwable $e) {
+            // Ignore and continue with disk-based fallbacks.
         }
 
-        return $this->toAbsoluteUrl('storage/media/' . $fileName);
+        $disk = $this->resolveDisk($media->disk ?? config('filesystems.default'));
+
+        if ($disk) {
+            foreach ($this->preferredDiskPaths($media, $fileName) as $path) {
+                try {
+                    if ($disk->exists($path)) {
+                        $candidate = $disk->url($path);
+
+                        if ($this->urlLooksUsable($candidate)) {
+                            return $this->normalizeUrl($candidate);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // Ignore and move on to the next path option.
+                }
+            }
+        }
+
+        foreach ($this->buildFallbackRelativePaths($media, $fileName) as $relative) {
+            $candidate = asset($relative);
+
+            if ($this->urlLooksUsable($candidate)) {
+                return $this->normalizeUrl($candidate);
+            }
+        }
+
+        return $this->normalizeUrl('storage/media/' . $fileName);
     }
 
     private function resolveThumbUrl(Media $media): string
@@ -188,7 +204,7 @@ class PublicMediaController extends Controller
                 $thumbUrl = $media->getUrl('thumb');
 
                 if ($this->urlLooksUsable($thumbUrl)) {
-                    return $this->toAbsoluteUrl($thumbUrl);
+                    return $this->normalizeUrl($thumbUrl);
                 }
             } catch (\Throwable $e) {
                 // Fall through to main URL.
@@ -201,38 +217,6 @@ class PublicMediaController extends Controller
     private function urlLooksUsable(?string $url): bool
     {
         return is_string($url) && $url !== '' && $url !== '/';
-    }
-
-    private function toAbsoluteUrl(string $url): string
-    {
-        $request = request();
-        $host = $request->getHost();
-        $scheme = $request->getScheme();
-
-        if (Str::startsWith($url, ['http://', 'https://'])) {
-            $parts = parse_url($url);
-
-            if (! $parts) {
-                return $url;
-            }
-
-            $targetHost = $parts['host'] ?? null;
-            $targetScheme = $parts['scheme'] ?? null;
-
-            $path = $parts['path'] ?? '';
-            $query = isset($parts['query']) ? '?' . $parts['query'] : '';
-            $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
-
-            if ($targetHost === $host && $targetScheme === $scheme) {
-                return $url;
-            }
-
-            return sprintf('%s://%s%s%s%s', $scheme, $host, $path, $query, $fragment);
-        }
-
-        $relative = str_starts_with($url, '/') ? $url : '/' . ltrim($url, '/');
-
-        return sprintf('%s://%s%s', $scheme, $host, $relative);
     }
 
     private function buildBreadcrumbs(MediaFolder $folder): array
@@ -260,4 +244,82 @@ class PublicMediaController extends Controller
             default => '%',
         };
     }
+
+    private function preferredDiskPaths(Media $media, string $fileName): array
+    {
+        $paths = [];
+
+        if (! empty($fileName)) {
+            $paths[] = $fileName;
+            $paths[] = 'media/' . $fileName;
+            $paths[] = 'folder_media/' . $fileName;
+            $paths[] = 'uploads/' . $fileName;
+
+            if (! empty($media->collection_name)) {
+                $paths[] = trim($media->collection_name . '/' . $fileName, '/');
+                $paths[] = 'media/' . trim($media->collection_name . '/' . $fileName, '/');
+            }
+        }
+
+        if (method_exists($media, 'getPathRelativeToRoot')) {
+            try {
+                $relative = ltrim((string) $media->getPathRelativeToRoot(), '/');
+                if (! empty($relative)) {
+                    $paths[] = $relative;
+                }
+            } catch (\Throwable $e) {
+                // Ignore failures when resolving the relative path.
+            }
+        }
+
+        return array_values(array_unique(array_filter($paths)));
+    }
+
+    private function buildFallbackRelativePaths(Media $media, string $fileName): array
+    {
+        $relative = [];
+
+        if (! empty($fileName)) {
+            $relative[] = 'storage/' . $fileName;
+            $relative[] = 'storage/media/' . $fileName;
+            $relative[] = 'storage/folder_media/' . $fileName;
+            $relative[] = 'storage/uploads/' . $fileName;
+
+            if (! empty($media->collection_name)) {
+                $relative[] = 'storage/' . trim($media->collection_name . '/' . $fileName, '/');
+                $relative[] = 'storage/media/' . trim($media->collection_name . '/' . $fileName, '/');
+            }
+        }
+
+        return array_values(array_unique($relative));
+    }
+
+    private function resolveDisk(?string $diskName): ?Filesystem
+    {
+        if (blank($diskName)) {
+            return null;
+        }
+
+        try {
+            return Storage::disk($diskName);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function normalizeUrl(string $url): string
+    {
+        if (Str::startsWith($url, ['http://', 'https://'])) {
+            return $url;
+        }
+
+        $base = config('app.asset_url') ?? config('app.url');
+
+        if ($base) {
+            return rtrim($base, '/') . '/' . ltrim($url, '/');
+        }
+
+        return url($url);
+    }
+
 }
