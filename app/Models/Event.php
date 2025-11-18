@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Concerns\HasMedia; // Reuse the same trait as in Post.php
+use App\Observers\EventObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\MediaLibrary\HasMedia as SpatieHasMedia;
-use App\Concerns\HasMedia; // Reuse the same trait as in Post.php
 use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\HasMedia as SpatieHasMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+#[ObservedBy([EventObserver::class])]
 class Event extends Model implements SpatieHasMedia
 {
     use HasFactory;
@@ -84,8 +87,6 @@ class Event extends Model implements SpatieHasMedia
                 'application/x-tar',
                 'application/x-gzip',
 
-                
-
             ]);
     }
 
@@ -152,13 +153,13 @@ class Event extends Model implements SpatieHasMedia
     /**
      * Event workflow states
      */
-    const STATUS_DRAFT = 'draft';
-    const STATUS_UNDER_REVIEW = 'under_review';
-    const STATUS_APPROVED = 'approved';
-    const STATUS_PUBLISHED = 'published';
-    const STATUS_CANCELLED = 'cancelled';
-    const STATUS_COMPLETED = 'completed';
-    const STATUS_ARCHIVED = 'archived';
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_UNDER_REVIEW = 'under_review';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_PUBLISHED = 'published';
+    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_ARCHIVED = 'archived';
 
     /**
      * Available transitions for events with permission requirements
@@ -172,118 +173,118 @@ class Event extends Model implements SpatieHasMedia
                     'label' => __('Send for Review'),
                     'color' => 'yellow',
                     'icon' => 'lucide:send',
-                    'required_permission' => 'event.review'
+                    'required_permission' => 'event.review',
                 ],
                 'publish' => [
                     'target' => self::STATUS_PUBLISHED,
                     'label' => __('Publish Event'),
                     'color' => 'green',
                     'icon' => 'lucide:globe',
-                    'required_permission' => 'event.publish'
-                ]
+                    'required_permission' => 'event.publish',
+                ],
             ],
-            
+
             self::STATUS_UNDER_REVIEW => [
                 'approve' => [
                     'target' => self::STATUS_APPROVED,
                     'label' => __('Approve Event'),
                     'color' => 'green',
                     'icon' => 'lucide:check-circle',
-                    'required_permission' => 'event.approve'
+                    'required_permission' => 'event.approve',
                 ],
                 'reject' => [
                     'target' => self::STATUS_DRAFT,
                     'label' => __('Request Changes'),
                     'color' => 'red',
                     'icon' => 'lucide:arrow-left',
-                    'required_permission' => 'event.reject'
-                ]
+                    'required_permission' => 'event.reject',
+                ],
             ],
-            
+
             self::STATUS_APPROVED => [
                 'publish' => [
                     'target' => self::STATUS_PUBLISHED,
                     'label' => __('Publish Event'),
                     'color' => 'green',
                     'icon' => 'lucide:globe',
-                    'required_permission' => 'event.publish'
+                    'required_permission' => 'event.publish',
                 ],
                 'send_back' => [
                     'target' => self::STATUS_UNDER_REVIEW,
                     'label' => __('Send Back for Review'),
                     'color' => 'yellow',
                     'icon' => 'lucide:arrow-left',
-                    'required_permission' => 'event.review'
-                ]
+                    'required_permission' => 'event.review',
+                ],
             ],
-            
+
             self::STATUS_PUBLISHED => [
                 'complete' => [
                     'target' => self::STATUS_COMPLETED,
                     'label' => __('Mark as Completed'),
                     'color' => 'purple',
                     'icon' => 'lucide:check-square',
-                    'required_permission' => 'event.complete'
+                    'required_permission' => 'event.complete',
                 ],
                 'cancel' => [
                     'target' => self::STATUS_CANCELLED,
                     'label' => __('Cancel Event'),
                     'color' => 'red',
                     'icon' => 'lucide:x-circle',
-                    'required_permission' => 'event.cancel'
+                    'required_permission' => 'event.cancel',
                 ],
                 'unpublish' => [
                     'target' => self::STATUS_DRAFT,
                     'label' => __('Unpublish'),
                     'color' => 'gray',
                     'icon' => 'lucide:eye-off',
-                    'required_permission' => 'event.unpublish'
-                ]
+                    'required_permission' => 'event.unpublish',
+                ],
             ],
-            
+
             self::STATUS_COMPLETED => [
                 'archive' => [
                     'target' => self::STATUS_ARCHIVED,
                     'label' => __('Archive Event'),
                     'color' => 'orange',
                     'icon' => 'lucide:archive',
-                    'required_permission' => 'event.archive'
+                    'required_permission' => 'event.archive',
                 ],
                 'reopen' => [
                     'target' => self::STATUS_PUBLISHED,
                     'label' => __('Reopen Event'),
                     'color' => 'blue',
                     'icon' => 'lucide:refresh-cw',
-                    'required_permission' => 'event.publish'
-                ]
+                    'required_permission' => 'event.publish',
+                ],
             ],
-            
+
             self::STATUS_CANCELLED => [
                 'reopen' => [
                     'target' => self::STATUS_DRAFT,
                     'label' => __('Reopen Draft'),
                     'color' => 'blue',
                     'icon' => 'lucide:refresh-cw',
-                    'required_permission' => 'event.publish'
+                    'required_permission' => 'event.publish',
                 ],
                 'archive' => [
                     'target' => self::STATUS_ARCHIVED,
                     'label' => __('Archive Event'),
                     'color' => 'orange',
                     'icon' => 'lucide:archive',
-                    'required_permission' => 'event.archive'
-                ]
+                    'required_permission' => 'event.archive',
+                ],
             ],
-            
+
             self::STATUS_ARCHIVED => [
                 'restore' => [
                     'target' => self::STATUS_DRAFT,
                     'label' => __('Restore Event'),
                     'color' => 'blue',
                     'icon' => 'lucide:refresh-cw',
-                    'required_permission' => 'event.restore'
-                ]
-            ]
+                    'required_permission' => 'event.restore',
+                ],
+            ],
         ];
 
         return $transitions[$currentStatus] ?? [];
@@ -314,7 +315,7 @@ class Event extends Model implements SpatieHasMedia
     {
         $user = $user ?: auth()->user();
         $availableActions = $this->getAvailableActions($user);
-        
+
         return isset($availableActions[$action]);
     }
 
@@ -330,9 +331,9 @@ class Event extends Model implements SpatieHasMedia
             self::STATUS_PUBLISHED => 'green',
             self::STATUS_CANCELLED => 'red',
             self::STATUS_COMPLETED => 'purple',
-            self::STATUS_ARCHIVED => 'orange'
+            self::STATUS_ARCHIVED => 'orange',
         ];
-        
+
         return $colors[$this->status] ?? 'gray';
     }
 
@@ -348,9 +349,9 @@ class Event extends Model implements SpatieHasMedia
             self::STATUS_PUBLISHED => __('Published'),
             self::STATUS_CANCELLED => __('Cancelled'),
             self::STATUS_COMPLETED => __('Completed'),
-            self::STATUS_ARCHIVED => __('Archived')
+            self::STATUS_ARCHIVED => __('Archived'),
         ];
-        
+
         return $display[$this->status] ?? ucfirst(str_replace('_', ' ', $this->status));
     }
 }

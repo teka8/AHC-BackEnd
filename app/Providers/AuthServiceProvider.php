@@ -9,6 +9,7 @@ use App\Models\Post;
 use App\Models\Setting;
 use App\Models\Term;
 use App\Models\User;
+use App\Models\EmailSubscription;
 use App\Models\Event;
 use App\Models\Venture;
 use App\Models\VentureApplication;
@@ -23,6 +24,7 @@ use App\Policies\RolePolicy;
 use App\Policies\SettingPolicy;
 use App\Policies\TermPolicy;
 use App\Policies\UserPolicy;
+use App\Policies\EmailSubscriptionPolicy;
 use App\Policies\EventPolicy;
 use App\Policies\VenturePolicy;
 use App\Policies\VentureApplicationPolicy;
@@ -57,6 +59,7 @@ class AuthServiceProvider extends ServiceProvider
         Scholarship::class => ScholarshipPolicy::class,
         ScholarshipApplication::class => ScholarshipApplicationPolicy::class,
         Program::class => ProgramPolicy::class,
+        EmailSubscription::class => EmailSubscriptionPolicy::class,
     ];
 
     /**

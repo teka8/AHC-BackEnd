@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\TermController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Backend\Api\TermController as BackendTermController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\EmailSubscriptionController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\PageController;
 use App\Http\Controllers\Api\PublicResourceController;
@@ -118,6 +119,9 @@ Route::middleware(['auth', 'web'])->prefix('admin')->name('admin.api.')->group(f
 });
 
 Route::prefix('v1')->group(function () {
+    Route::post('/subscriptions', [EmailSubscriptionController::class, 'store'])->name('api.subscriptions.store');
+    Route::post('/subscriptions/unsubscribe', [EmailSubscriptionController::class, 'unsubscribe'])->name('api.subscriptions.unsubscribe');
+
     // Public page routes
     Route::get('/pages', [PageController::class, 'index']);
     Route::get('/pages/{id}', [PageController::class, 'show']);

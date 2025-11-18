@@ -1,4 +1,4 @@
-APP_NAME="Lara Dashboard"
+APP_NAME="AHC - AAU"
 APP_ENV=local
 APP_KEY=base64:SEjGcAu686ZZQORkIEodR2WdcPpqBBKjMxfIbEFoTrA=
 APP_DEBUG=true

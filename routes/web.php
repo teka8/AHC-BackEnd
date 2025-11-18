@@ -10,6 +10,7 @@ use App\Http\Controllers\Backend\MediaController;
 use App\Http\Controllers\Backend\MediaManagerController;
 use App\Http\Controllers\Backend\DocumentRepositoryController;
 use App\Http\Controllers\Backend\EducationRepositoryController;
+use App\Http\Controllers\Backend\EmailSubscriptionController;
 use App\Http\Controllers\Backend\ModuleController;
 use App\Http\Controllers\Backend\OthersController;
 use App\Http\Controllers\Backend\PermissionController;
@@ -159,6 +160,15 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/{scholarship}', [\App\Http\Controllers\Backend\ScholarshipController::class, 'show'])->name('show');
         Route::delete('/{scholarship}', [\App\Http\Controllers\Backend\ScholarshipController::class, 'destroy'])->name('destroy');
         Route::delete('/delete/bulk-delete', [\App\Http\Controllers\Backend\ScholarshipController::class, 'bulkDelete'])->name('bulk-delete');
+    });
+
+    Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
+        Route::get('/', [EmailSubscriptionController::class, 'index'])->name('index');
+        Route::patch('/{subscription}/unsubscribe', [EmailSubscriptionController::class, 'unsubscribe'])
+            ->name('unsubscribe');
+        Route::patch('/{subscription}/resubscribe', [EmailSubscriptionController::class, 'resubscribe'])
+            ->name('resubscribe');
+        Route::delete('/{subscription}', [EmailSubscriptionController::class, 'destroy'])->name('destroy');
     });
 
     // Scholarship Applications Routes

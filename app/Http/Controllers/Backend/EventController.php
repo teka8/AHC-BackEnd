@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Enums\Hooks\EventActionHook;
 use App\Enums\Hooks\EventFilterHook;
+use App\Events\NewContentPublished;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Common\BulkDeleteRequest;
 use App\Models\Event;
@@ -117,6 +118,10 @@ class EventController extends Controller
 
 
         $event->save();
+
+        if ($event->status === 'published') {
+            event(new NewContentPublished($event, 'event'));
+        }
         
 
         // Handle featured image removal first.
@@ -240,6 +245,10 @@ class EventController extends Controller
         $event->attachments = array_values($existingAttachments); // reindex
 
         $event->save();
+
+        if ($event->status === 'published' && $event->wasChanged('status')) {
+            event(new NewContentPublished($event, 'event'));
+        }
 
         // Handle Media (if using Spatie media library)
         if (isset($data['remove_featured_image']) && $data['remove_featured_image']) {

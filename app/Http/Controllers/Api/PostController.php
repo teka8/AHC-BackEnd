@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\NewContentPublished;
 use App\Http\Requests\Post\BulkDeletePostRequest;
 use App\Http\Requests\Post\StorePostRequest;
 use App\Http\Requests\Post\UpdatePostRequest;
@@ -81,6 +82,10 @@ class PostController extends ApiController
 
         $post = $this->postService->createPost($data);
 
+        if ($post->status === 'published') {
+            event(new NewContentPublished($post, $postType));
+        }
+
         $this->logAction('Post Created', $post);
 
         return $this->resourceResponse(
@@ -122,6 +127,10 @@ class PostController extends ApiController
 
         $updatedPost = $this->postService->updatePost($post, $request->validated());
 
+        if ($updatedPost->status === 'published' && $updatedPost->wasChanged('status')) {
+            event(new NewContentPublished($updatedPost, $postType));
+        }
+
         $this->logAction('Post Updated', $updatedPost);
 
         return $this->resourceResponse(
@@ -151,7 +160,7 @@ class PostController extends ApiController
      * Bulk Delete Posts.
      *
      * @tags Posts
-     */
+     _     */
     public function bulkDelete(BulkDeletePostRequest $request, string $postType): JsonResponse
     {
         $this->authorize('bulkDelete', Post::class);
@@ -173,3 +182,4 @@ class PostController extends ApiController
         ]);
     }
 }
+

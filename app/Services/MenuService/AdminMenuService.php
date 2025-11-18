@@ -349,6 +349,16 @@ class AdminMenuService
             ],
         ], __('More'));
 
+        $this->addMenuItem([
+            'label' => __('Subscribers'),
+            'icon' => 'lucide:mailbox',
+            'route' => route('admin.subscriptions.index'),
+            'active' => Route::is('admin.subscriptions.*'),
+            'id' => 'subscriptions',
+            'priority' => 45,
+            'permissions' => 'subscription.view',
+        ], __('More'));
+
         $this->addMenuItem(
             [
                 'label' => __('Access Control'),

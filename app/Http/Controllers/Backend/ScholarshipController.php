@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Backend;
 
+use App\Events\NewContentPublished;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Common\BulkDeleteRequest;
 use App\Models\Scholarship;
@@ -91,7 +92,11 @@ class ScholarshipController extends Controller
             $validated['scholarship_image'] = $imagePath;
         }
         
-        Scholarship::create($validated);
+        $scholarship = Scholarship::create($validated);
+
+        if ($scholarship->status === 'open') {
+            event(new NewContentPublished($scholarship, 'scholarship'));
+        }
 
         return redirect()
             ->route('admin.scholarships.index')
@@ -156,6 +161,10 @@ class ScholarshipController extends Controller
         }
 
         $scholarship->update($validated);
+
+        if ($scholarship->status === 'open' && $scholarship->wasChanged('status')) {
+            event(new NewContentPublished($scholarship, 'scholarship'));
+        }
 
         return redirect()
             ->route('admin.scholarships.index')

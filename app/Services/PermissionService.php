@@ -87,6 +87,14 @@ class PermissionService
                 ],
             ],
             [
+                'group_name' => 'subscription',
+                'permissions' => [
+                    'subscription.view',
+                    'subscription.update',
+                    'subscription.delete',
+                ],
+            ],
+            [
                 'group_name' => 'translations',
                 'permissions' => [
                     'translations.view',
@@ -129,7 +137,7 @@ class PermissionService
                     'news.publish',
                     'news.review',
                     'news.archive',
-                    'news.restore'
+                    'news.restore',
                 ],
             ],
 
@@ -305,7 +313,6 @@ class PermissionService
                     'event.update',
                     'event.delete',
                     'event.bulk-delete',
-
 
                     'event.review',       // Send for review, send back for review
                     'event.approve',      // Approve events
