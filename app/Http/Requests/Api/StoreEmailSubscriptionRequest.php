@@ -38,7 +38,7 @@ class StoreEmailSubscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email:rfc,dns', 'max:255'],
+            'email' => ['required', 'string', 'email:rfc', 'max:255'],
             'name' => ['nullable', 'string', 'max:255'],
             'wants_news' => ['sometimes', 'boolean'],
             'wants_events' => ['sometimes', 'boolean'],
