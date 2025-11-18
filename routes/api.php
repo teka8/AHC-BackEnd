@@ -118,7 +118,7 @@ Route::middleware(['auth', 'web'])->prefix('admin')->name('admin.api.')->group(f
     Route::delete('/terms/{taxonomy}/{id}', [BackendTermController::class, 'destroy'])->name('terms.destroy');
 });
 
-Route::prefix('v1')->group(function () {
+Route::middleware('api')->prefix('v1')->group(function () {
     Route::post('/subscriptions', [EmailSubscriptionController::class, 'store'])->name('api.subscriptions.store');
     Route::post('/subscriptions/unsubscribe', [EmailSubscriptionController::class, 'unsubscribe'])->name('api.subscriptions.unsubscribe');
 
