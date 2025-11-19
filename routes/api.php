@@ -41,6 +41,8 @@ Route::get('/translations/{lang}', function (string $lang) {
     return response()->json($translations);
 });
 
+
+
 // Authentication routes
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -177,6 +179,9 @@ Route::middleware('api')->prefix('v1')->group(function () {
 
     // Public posts (news)
     Route::prefix('public')->group(function () {
+        // Chatbot route
+        Route::post('/chat', [App\Http\Controllers\Api\ChatController::class, 'chat']);
+
         Route::get('/posts', [\App\Http\Controllers\Api\PublicPostController::class, 'index']);
         Route::get('/posts/{id}', [\App\Http\Controllers\Api\PublicPostController::class, 'show']);
 
