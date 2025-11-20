@@ -241,14 +241,45 @@
                 </div>
                 <div>
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">GPA</dt>
-                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $application->gpa }}</dd>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $application->gpa ?? 'N/A' }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Graduation Year</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $application->graduation_year ?? 'N/A' }}</dd>
                 </div>
                 <div class="md:col-span-2">
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Academic Achievements</dt>
-                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">{!! nl2br(e($application->academic_achievements)) !!}</dd>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ $application->academic_achievements ? nl2br(e($application->academic_achievements)) : 'N/A' }}</dd>
                 </div>
             </dl>
         </div>
+
+        <!-- Research & Concept -->
+        @if($application->research_area || $application->concept_note || $application->research_proposal)
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Research & Concept</h3>
+            <div class="space-y-4">
+                @if($application->research_area)
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Research Area</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white">{{ $application->research_area }}</dd>
+                </div>
+                @endif
+                @if($application->concept_note)
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Concept Note</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white prose dark:prose-invert max-w-none">{!! nl2br(e($application->concept_note)) !!}</dd>
+                </div>
+                @endif
+                @if($application->research_proposal)
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Research Proposal</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white prose dark:prose-invert max-w-none">{!! nl2br(e($application->research_proposal)) !!}</dd>
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
 
         <!-- Motivation & Goals -->
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
@@ -268,6 +299,140 @@
                 </div>
             </div>
         </div>
+
+        <!-- Financial Need -->
+        @if($application->financial_need_description || $application->current_funding_sources)
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Financial Need</h3>
+            <div class="space-y-4">
+                @if($application->financial_need_description)
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Financial Need Description</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white prose dark:prose-invert max-w-none">{!! nl2br(e($application->financial_need_description)) !!}</dd>
+                </div>
+                @endif
+                @if($application->current_funding_sources)
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Current Funding Sources</dt>
+                    <dd class="text-sm text-gray-900 dark:text-white prose dark:prose-invert max-w-none">{!! nl2br(e($application->current_funding_sources)) !!}</dd>
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
+        <!-- References -->
+        @if($application->reference_1_name || $application->reference_2_name)
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">References</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @if($application->reference_1_name)
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Reference 1</h4>
+                    <dl class="space-y-2">
+                        <div>
+                            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">Name</dt>
+                            <dd class="text-sm text-gray-900 dark:text-white">{{ $application->reference_1_name }}</dd>
+                        </div>
+                        @if($application->reference_1_email)
+                        <div>
+                            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">Email</dt>
+                            <dd class="text-sm text-gray-900 dark:text-white">{{ $application->reference_1_email }}</dd>
+                        </div>
+                        @endif
+                        @if($application->reference_1_relationship)
+                        <div>
+                            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">Relationship</dt>
+                            <dd class="text-sm text-gray-900 dark:text-white">{{ $application->reference_1_relationship }}</dd>
+                        </div>
+                        @endif
+                    </dl>
+                </div>
+                @endif
+
+                @if($application->reference_2_name)
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Reference 2</h4>
+                    <dl class="space-y-2">
+                        <div>
+                            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">Name</dt>
+                            <dd class="text-sm text-gray-900 dark:text-white">{{ $application->reference_2_name }}</dd>
+                        </div>
+                        @if($application->reference_2_email)
+                        <div>
+                            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">Email</dt>
+                            <dd class="text-sm text-gray-900 dark:text-white">{{ $application->reference_2_email }}</dd>
+                        </div>
+                        @endif
+                        @if($application->reference_2_relationship)
+                        <div>
+                            <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">Relationship</dt>
+                            <dd class="text-sm text-gray-900 dark:text-white">{{ $application->reference_2_relationship }}</dd>
+                        </div>
+                        @endif
+                    </dl>
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
+        <!-- Documents -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Documents</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @php
+                    $documents = [
+                        'cv' => 'Curriculum Vitae (CV)',
+                        'transcript' => 'Academic Transcript',
+                        'motivation_letter_file' => 'Motivation Letter',
+                        'recommendation_letter_1' => 'Recommendation Letter 1',
+                        'recommendation_letter_2' => 'Recommendation Letter 2',
+                        'id_document' => 'ID Document',
+                        'proof_of_enrollment' => 'Proof of Enrollment'
+                    ];
+                @endphp
+
+                @foreach($documents as $field => $label)
+                    @php
+                        $filePath = $application->$field;
+                        $fileExists = $filePath && Storage::disk('public')->exists($filePath);
+                        $fileName = $filePath ? basename($filePath) : null;
+                        $fileSize = $fileExists ? Storage::disk('public')->size($filePath) : 0;
+                    @endphp
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 {{ $fileExists ? 'bg-green-50 dark:bg-green-900/10' : 'bg-gray-50 dark:bg-gray-900/10' }}">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h4 class="text-sm font-medium text-gray-900 dark:text-white">{{ $label }}</h4>
+                                @if($fileExists)
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" title="{{ $fileName }}">{{ Str::limit($fileName, 30) }}</p>
+                                    <p class="text-xs text-gray-400 dark:text-gray-500">{{ number_format($fileSize / 1024, 2) }} KB</p>
+                                @else
+                                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Not uploaded</p>
+                                @endif
+                            </div>
+                            @if($fileExists)
+                                <a href="{{ asset('storage/' . $filePath) }}" target="_blank" download class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                    <iconify-icon icon="lucide:download" class="text-lg"></iconify-icon>
+                                </a>
+                            @else
+                                <iconify-icon icon="lucide:file-x" class="text-lg text-gray-400"></iconify-icon>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Additional Information -->
+        @if($application->additional_info)
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Additional Information</h3>
+            <div class="text-sm text-gray-900 dark:text-white prose dark:prose-invert max-w-none">
+                {!! nl2br(e($application->additional_info)) !!}
+            </div>
+        </div>
+        @endif
 
         <!-- Actions -->
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
