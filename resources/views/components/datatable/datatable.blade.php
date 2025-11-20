@@ -83,6 +83,7 @@
     }
 }">
     <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <span x-data x-init="refreshIds({{ json_encode($allIds) }})" class="hidden"></span>
         <div class="px-5 py-4 sm:px-6 sm:py-5 flex flex-col md:flex-row justify-between items-center gap-3">
 
             <div class="flex items-center gap-3">
