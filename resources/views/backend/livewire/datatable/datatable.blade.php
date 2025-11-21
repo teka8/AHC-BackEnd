@@ -12,4 +12,5 @@
     :newResourceLinkRouteName="$newResourceLinkRouteName"
     :newResourceLinkRouteUrl="$this->getCreateRouteUrl()"
     :newResourceLinkLabel="$newResourceLinkLabel"
+    :customBulkActions="$customBulkActions ?? null"
 />
