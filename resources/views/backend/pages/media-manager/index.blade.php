@@ -471,7 +471,7 @@
                                     id="folder-name"
                                     type="text"
                                     name="name"
-                                    class="form-input"
+                                    class="form-input border border-gray-200 dark:border-gray-800 px-2 py-2 rounded"
                                     required
                                     x-model="folderModal.name"
                                 >
@@ -483,7 +483,7 @@
                                     id="folder-description"
                                     name="description"
                                     rows="3"
-                                    class="form-textarea"
+                                    class="form-textarea border border-gray-200 dark:border-gray-800"
                                     x-model="folderModal.description"
                                 ></textarea>
                             </div>
@@ -656,12 +656,12 @@
 
                             <div class="space-y-1">
                                 <label class="text-sm font-medium text-slate-700 dark:text-slate-200">{{ __('Media name') }}</label>
-                                <input type="text" class="form-input" x-model="mediaEditModal.name" readonly>
+                                <input type="text" class="form-input border border-gray-200 dark:border-gray-600 px-2 py-2 rounded" x-model="mediaEditModal.name" readonly>
                             </div>
 
                             <div class="space-y-1">
                                 <label class="text-sm font-medium text-slate-700 dark:text-slate-200">{{ __('Caption') }}</label>
-                                <textarea name="caption" rows="4" class="form-textarea" x-model="mediaEditModal.caption" maxlength="500"></textarea>
+                                <textarea name="caption" rows="4" class="form-textarea border border-gray-200 dark:border-gray-600 px-2 py-2 rounded" x-model="mediaEditModal.caption" maxlength="500"></textarea>
                                 <p class="text-xs text-slate-400" x-text="(mediaEditModal.caption || '').length + '/500'"></p>
                             </div>
 
