@@ -65,13 +65,13 @@ class PublicPostController extends Controller
             });
         }
 
-        // Filter by category (name or slug)
+        // Filter by category (name or slug) - case insensitive
         if (! empty($categoryParam)) {
             $query->whereHas('terms', function ($q) use ($categoryParam) {
                 $q->where('taxonomy', 'category')
                   ->where(function ($inner) use ($categoryParam) {
-                      $inner->where('name', $categoryParam)
-                            ->orWhere('slug', $categoryParam);
+                      $inner->whereRaw('LOWER(name) = ?', [strtolower($categoryParam)])
+                            ->orWhereRaw('LOWER(slug) = ?', [strtolower($categoryParam)]);
                   });
             });
         }
