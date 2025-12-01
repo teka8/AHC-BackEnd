@@ -9,6 +9,7 @@ use App\Models\Media;
 use App\Models\MediaFolder;
 use App\Support\Helper\MediaHelper;
 use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
