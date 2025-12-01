@@ -20,6 +20,7 @@ class PublicPostController extends Controller
         $perPage = (int) ($request->input('per_page') ?? config('settings.default_pagination', 10));
         $search = (string) ($request->input('search') ?? '');
         $pillarParam = $request->input('pillar');
+        $categoryParam = $request->input('category');
 
         $typeParam = $request->input('type', $request->input('post_type', 'news'));
         $typeValues = is_array($typeParam)
@@ -61,6 +62,17 @@ class PublicPostController extends Controller
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('excerpt', 'like', "%{$search}%")
                   ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by category (name or slug)
+        if (! empty($categoryParam)) {
+            $query->whereHas('terms', function ($q) use ($categoryParam) {
+                $q->where('taxonomy', 'category')
+                  ->where(function ($inner) use ($categoryParam) {
+                      $inner->where('name', $categoryParam)
+                            ->orWhere('slug', $categoryParam);
+                  });
             });
         }
 
