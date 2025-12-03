@@ -502,6 +502,16 @@ class PermissionService
                     'scholarship_evaluation.delete.own',
                 ],
             ],
+            // ========== AHC LEADERS PERMISSIONS ==========
+            [
+                'group_name' => 'ahc-leader',
+                'permissions' => [
+                    'ahc-leader.create',
+                    'ahc-leader.view',
+                    'ahc-leader.update',
+                    'ahc-leader.delete',
+                ],
+            ],
         ];
 
         return $permissions;

@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\EmailSubscriptionController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\PageController;
 use App\Http\Controllers\Api\PublicResourceController;
+use App\Http\Controllers\Api\AhcLeaderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -215,5 +216,8 @@ Route::middleware('api')->prefix('v1')->group(function () {
             Route::get('/others/{id}', [PublicResourceController::class, 'othersShow'])->where('id', '[0-9]+');
         });
 
+        // AHC Leaders
+        Route::get('/ahc-leaders', [AhcLeaderController::class, 'index']);
+        Route::get('/ahc-leaders/{ahcLeader}', [AhcLeaderController::class, 'show']);
     });
 });
