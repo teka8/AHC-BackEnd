@@ -128,6 +128,18 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     ]);
     Route::post('programs/{program}/change-status', [\App\Http\Controllers\Backend\ProgramController::class, 'changeStatus'])->name('programs.change-status');
 
+    // AHC Leaders Routes
+    Route::prefix('ahc-leaders')->name('ahc-leaders.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'store'])->name('store');
+        Route::get('/{ahcLeader}/edit', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'edit'])->name('edit');
+        Route::put('/{ahcLeader}', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'update'])->name('update');
+        Route::get('/{ahcLeader}', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'show'])->name('show');
+        Route::delete('/{ahcLeader}', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'destroy'])->name('destroy');
+        Route::delete('/delete/bulk-delete', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'bulkDelete'])->name('bulk-delete');
+    });
+
     // Health Innovation Routes
     Route::prefix('ventures')->name('ventures.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Backend\VentureController::class, 'index'])->name('index');
