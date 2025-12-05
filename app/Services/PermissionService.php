@@ -140,17 +140,6 @@ class PermissionService
                     'news.restore',
                 ],
             ],
-
-            [
-                'group_name' => 'programs',
-                'permissions' => [
-                    'programss.create',
-                    'program.view',
-                    'program.edit',
-                    'program.delete',
-                ],
-            ],
-
             [
                 'group_name' => 'page',
                 'permissions' => [
@@ -177,15 +166,7 @@ class PermissionService
                     'ai_content.generate',
                 ],
             ],
-            [
-                'group_name' => 'program',
-                'permissions' => [
-                    'program.create',
-                    'program.view',
-                    'program.edit',
-                    'program.delete',
-                ],
-            ],
+        
             // ========== DOCUMENT REPOSITORY PERMISSIONS ==========
             [
                 'group_name' => 'document',
@@ -331,175 +312,6 @@ class PermissionService
                     'event.view.own',
                     'event.edit.own',
                     'event.delete.own',
-                ],
-            ],
-            // ========== HEALTH INNOVATION & ENTREPRENEURSHIP PERMISSIONS ==========
-            [
-                'group_name' => 'venture',
-                'permissions' => [
-                    // CRUD Operations
-                    'venture.create',
-                    'venture.view',
-                    'venture.update',
-                    'venture.delete',
-                    'venture.bulk-delete',
-
-                    // Status Management
-                    'venture.publish',
-                    'venture.unpublish',
-                    'venture.feature',
-                    'venture.unfeature',
-
-                    // Workflow
-                    'venture.approve',
-                    'venture.review',
-                    'venture.reject',
-                    'venture.archive',
-                    'venture.restore',
-
-                    // Analytics & Reporting
-                    'venture.view.analytics',
-                    'venture.export',
-
-                    // Ownership-based permissions
-                    'venture.view.own',
-                    'venture.edit.own',
-                    'venture.delete.own',
-                ],
-            ],
-            [
-                'group_name' => 'venture_application',
-                'permissions' => [
-                    // CRUD Operations
-                    'venture_application.create',
-                    'venture_application.view',
-                    'venture_application.update',
-                    'venture_application.delete',
-                    'venture_application.bulk-delete',
-
-                    // Status Management
-                    'venture_application.review',
-                    'venture_application.approve',
-                    'venture_application.reject',
-                    'venture_application.shortlist',
-                    'venture_application.interview',
-                    'venture_application.accept',
-
-                    // Communication
-                    'venture_application.contact',
-                    'venture_application.notify',
-
-                    // Analytics
-                    'venture_application.view.analytics',
-                    'venture_application.export',
-
-                    // Ownership-based permissions
-                    'venture_application.view.own',
-                    'venture_application.edit.own',
-                    'venture_application.delete.own',
-                ],
-            ],
-            [
-                'group_name' => 'venture_update',
-                'permissions' => [
-                    'venture_update.create',
-                    'venture_update.view',
-                    'venture_update.update',
-                    'venture_update.delete',
-                    'venture_update.publish',
-                    'venture_update.unpublish',
-
-                    // Ownership-based permissions
-                    'venture_update.view.own',
-                    'venture_update.edit.own',
-                    'venture_update.delete.own',
-                ],
-            ],
-            // ========== SCHOLARSHIP PORTAL PERMISSIONS ==========
-            [
-                'group_name' => 'scholarship',
-                'permissions' => [
-                    // CRUD Operations
-                    'scholarship.create',
-                    'scholarship.view',
-                    'scholarship.update',
-                    'scholarship.delete',
-                    'scholarship.bulk-delete',
-
-                    // Status Management
-                    'scholarship.publish',
-                    'scholarship.unpublish',
-                    'scholarship.open',
-                    'scholarship.close',
-                    'scholarship.archive',
-                    'scholarship.restore',
-
-                    // Management
-                    'scholarship.approve',
-                    'scholarship.feature',
-                    'scholarship.manage_slots',
-
-                    // Analytics & Reporting
-                    'scholarship.view.analytics',
-                    'scholarship.export',
-
-                    // Ownership-based permissions
-                    'scholarship.view.own',
-                    'scholarship.edit.own',
-                    'scholarship.delete.own',
-                ],
-            ],
-            [
-                'group_name' => 'scholarship_application',
-                'permissions' => [
-                    // CRUD Operations
-                    'scholarship_application.create',
-                    'scholarship_application.view',
-                    'scholarship_application.update',
-                    'scholarship_application.delete',
-                    'scholarship_application.bulk-delete',
-
-                    // Status Management
-                    'scholarship_application.review',
-                    'scholarship_application.evaluate',
-                    'scholarship_application.approve',
-                    'scholarship_application.reject',
-                    'scholarship_application.shortlist',
-                    'scholarship_application.interview',
-                    'scholarship_application.award',
-
-                    // Workflow
-                    'scholarship_application.change_status',
-                    'scholarship_application.add_note',
-                    'scholarship_application.view_history',
-
-                    // Communication
-                    'scholarship_application.contact',
-                    'scholarship_application.notify',
-
-                    // Analytics
-                    'scholarship_application.view.analytics',
-                    'scholarship_application.export',
-
-                    // Ownership-based permissions
-                    'scholarship_application.view.own',
-                    'scholarship_application.edit.own',
-                    'scholarship_application.delete.own',
-                ],
-            ],
-            [
-                'group_name' => 'scholarship_evaluation',
-                'permissions' => [
-                    'scholarship_evaluation.create',
-                    'scholarship_evaluation.view',
-                    'scholarship_evaluation.update',
-                    'scholarship_evaluation.delete',
-                    'scholarship_evaluation.submit',
-
-                    // Ownership-based permissions
-                    'scholarship_evaluation.view.own',
-                    'scholarship_evaluation.edit.own',
-                    'scholarship_evaluation.delete.own',
                 ],
             ],
             // ========== AHC LEADERS PERMISSIONS ==========

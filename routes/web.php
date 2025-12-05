@@ -116,18 +116,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::delete('/events/delete/bulk-delete', [EventController::class, 'bulkDelete'])->name('events.bulk-delete');
     Route::post('events/{id}/change-status', [EventController::class, 'changeStatus'])->name('events.change-status');
 
-    // Program Routes.
-    Route::resource('programs', \App\Http\Controllers\Backend\ProgramController::class)->names([
-        'index' => 'programs.index',
-        'create' => 'programs.create',
-        'store' => 'programs.store',
-        'show' => 'programs.show',
-        'edit' => 'programs.edit',
-        'update' => 'programs.update',
-        'destroy' => 'programs.destroy',
-    ]);
-    Route::post('programs/{program}/change-status', [\App\Http\Controllers\Backend\ProgramController::class, 'changeStatus'])->name('programs.change-status');
-
     // AHC Leaders Routes
     Route::prefix('ahc-leaders')->name('ahc-leaders.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'index'])->name('index');
@@ -140,40 +128,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::delete('/delete/bulk-delete', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'bulkDelete'])->name('bulk-delete');
     });
 
-    // Health Innovation Routes
-    Route::prefix('ventures')->name('ventures.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Backend\VentureController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Backend\VentureController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Backend\VentureController::class, 'store'])->name('store');
-        Route::get('/{venture}/edit', [\App\Http\Controllers\Backend\VentureController::class, 'edit'])->name('edit');
-        Route::put('/{venture}', [\App\Http\Controllers\Backend\VentureController::class, 'update'])->name('update');
-        Route::get('/{venture}', [\App\Http\Controllers\Backend\VentureController::class, 'show'])->name('show');
-        Route::delete('/{venture}', [\App\Http\Controllers\Backend\VentureController::class, 'destroy'])->name('destroy');
-        Route::delete('/delete/bulk-delete', [\App\Http\Controllers\Backend\VentureController::class, 'bulkDelete'])->name('bulk-delete');
-        Route::post('/{id}/toggle-featured', [\App\Http\Controllers\Backend\VentureController::class, 'toggleFeatured'])->name('toggle-featured');
-    });
-
-    // Venture Applications Routes
-    Route::prefix('venture-applications')->name('venture-applications.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Backend\VentureApplicationController::class, 'index'])->name('index');
-        Route::get('/{ventureApplication}', [\App\Http\Controllers\Backend\VentureApplicationController::class, 'show'])->name('show');
-        Route::post('/{ventureApplication}/update-status', [\App\Http\Controllers\Backend\VentureApplicationController::class, 'updateStatus'])->name('update-status');
-        Route::delete('/{ventureApplication}', [\App\Http\Controllers\Backend\VentureApplicationController::class, 'destroy'])->name('destroy');
-        Route::delete('/delete/bulk-delete', [\App\Http\Controllers\Backend\VentureApplicationController::class, 'bulkDelete'])->name('bulk-delete');
-    });
-
-    // Scholarship Routes
-    Route::prefix('scholarships')->name('scholarships.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Backend\ScholarshipController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Backend\ScholarshipController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Backend\ScholarshipController::class, 'store'])->name('store');
-        Route::get('/{scholarship}/edit', [\App\Http\Controllers\Backend\ScholarshipController::class, 'edit'])->name('edit');
-        Route::put('/{scholarship}', [\App\Http\Controllers\Backend\ScholarshipController::class, 'update'])->name('update');
-        Route::get('/{scholarship}', [\App\Http\Controllers\Backend\ScholarshipController::class, 'show'])->name('show');
-        Route::delete('/{scholarship}', [\App\Http\Controllers\Backend\ScholarshipController::class, 'destroy'])->name('destroy');
-        Route::delete('/delete/bulk-delete', [\App\Http\Controllers\Backend\ScholarshipController::class, 'bulkDelete'])->name('bulk-delete');
-    });
-
     Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
         Route::get('/', [EmailSubscriptionController::class, 'index'])->name('index');
         Route::patch('/{subscription}/unsubscribe', [EmailSubscriptionController::class, 'unsubscribe'])
@@ -181,27 +135,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::patch('/{subscription}/resubscribe', [EmailSubscriptionController::class, 'resubscribe'])
             ->name('resubscribe');
         Route::delete('/{subscription}', [EmailSubscriptionController::class, 'destroy'])->name('destroy');
-    });
-
-    // Scholarship Applications Routes
-    Route::prefix('scholarship-applications')->name('scholarship-applications.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Backend\ScholarshipApplicationController::class, 'index'])->name('index');
-        Route::get('/{scholarshipApplication}', [\App\Http\Controllers\Backend\ScholarshipApplicationController::class, 'show'])->name('show');
-        Route::post('/{id}/update-status', [\App\Http\Controllers\Backend\ScholarshipApplicationController::class, 'updateStatus'])->name('update-status');
-        Route::delete('/{scholarshipApplication}', [\App\Http\Controllers\Backend\ScholarshipApplicationController::class, 'destroy'])->name('destroy');
-        Route::delete('/delete/bulk-delete', [\App\Http\Controllers\Backend\ScholarshipApplicationController::class, 'bulkDelete'])->name('bulk-delete');
-    });
-
-    // Scholarship Evaluation Routes
-    Route::prefix('scholarship-evaluation')->name('scholarship-evaluation.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Backend\ScholarshipEvaluationController::class, 'index'])->name('index');
-        Route::get('/application/{application}/create', [\App\Http\Controllers\Backend\ScholarshipEvaluationController::class, 'create'])->name('create');
-        Route::post('/application/{application}', [\App\Http\Controllers\Backend\ScholarshipEvaluationController::class, 'store'])->name('store');
-        Route::get('/{scholarshipEvaluation}', [\App\Http\Controllers\Backend\ScholarshipEvaluationController::class, 'show'])->name('show');
-        Route::get('/{scholarshipEvaluation}/edit', [\App\Http\Controllers\Backend\ScholarshipEvaluationController::class, 'edit'])->name('edit');
-        Route::put('/{scholarshipEvaluation}', [\App\Http\Controllers\Backend\ScholarshipEvaluationController::class, 'update'])->name('update');
-        Route::delete('/{scholarshipEvaluation}', [\App\Http\Controllers\Backend\ScholarshipEvaluationController::class, 'destroy'])->name('destroy');
-        Route::delete('/delete/bulk-delete', [\App\Http\Controllers\Backend\ScholarshipEvaluationController::class, 'bulkDelete'])->name('bulk-delete');
     });
 
     // Terms Routes (Categories, Tags, etc.).
