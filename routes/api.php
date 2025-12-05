@@ -204,6 +204,9 @@ Route::middleware('api')->prefix('v1')->group(function () {
             Route::post('/documents/{id}/download', [PublicResourceController::class, 'documentDownload'])->where('id', '[0-9]+');
             Route::post('/educational/{id}/download', [PublicResourceController::class, 'educationalDownload'])->where('id', '[0-9]+');
             Route::post('/others/{id}/download', [PublicResourceController::class, 'othersDownload'])->where('id', '[0-9]+');
+            
+            // GET download route for direct file download (used in email links)
+            Route::get('/others/{id}/file', [PublicResourceController::class, 'othersFileDownload'])->where('id', '[0-9]+')->name('api.resources.others.file');
 
             // List endpoints (must come before show endpoints)
             Route::get('/documents', [PublicResourceController::class, 'documents']);

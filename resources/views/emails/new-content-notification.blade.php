@@ -1,5 +1,9 @@
 <x-mail::message>
-# A New {{ Str::studly(class_basename($content)) }} has been published!
+@php
+    $isNewsletter = $content instanceof \App\Models\Others && $content->resource_type === \App\Models\Others::TYPE_NEWSLETTER;
+    $contentType = $isNewsletter ? 'Newsletter' : Str::studly(class_basename($content));
+@endphp
+# A New {{ $contentType }} has been published!
 
 Hello {{ $subscriber->name ?? 'Subscriber' }},
 
@@ -13,9 +17,19 @@ We are excited to share some new content with you.
 <p>{{ Str::limit($content->description, 200) }}</p>
 @endif
 
-<x-mail::button :url="url('/' . Str::kebab(class_basename($content)) . '/' . $content->id)">
-View {{ Str::studly(class_basename($content)) }}
+@if($isNewsletter)
+<x-mail::button :url="config('app.frontend_url') . '/resources#others'">
+View Newsletter
 </x-mail::button>
+
+<x-mail::button :url="url('/api/v1/public/resources/others/' . $content->id . '/file')" color="success">
+Download Newsletter
+</x-mail::button>
+@else
+<x-mail::button :url="url('/' . Str::kebab(class_basename($content)) . '/' . $content->id)">
+View {{ $contentType }}
+</x-mail::button>
+@endif
 
 Thanks,<br>
 {{ config('app.name') }}

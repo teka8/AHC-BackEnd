@@ -42,8 +42,14 @@ class NewContentNotification extends Mailable
      */
     public function envelope(): Envelope
     {
+        // Check if content is a newsletter
+        $contentType = $this->content instanceof \App\Models\Others 
+            && $this->content->resource_type === \App\Models\Others::TYPE_NEWSLETTER
+            ? 'Newsletter'
+            : Str::studly(class_basename($this->content));
+
         return new Envelope(
-            subject: 'New ' . Str::studly(class_basename($this->content)) . ': ' . $this->content->title,
+            subject: 'New ' . $contentType . ': ' . $this->content->title,
         );
     }
 
