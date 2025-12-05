@@ -23,6 +23,7 @@ class EmailSubscriptionController extends Controller
             'wants_events' => (clone $activeQuery)->where('wants_events', true)->count(),
             'wants_announcements' => (clone $activeQuery)->where('wants_announcements', true)->count(),
             'wants_scholarships' => (clone $activeQuery)->where('wants_scholarships', true)->count(),
+            'wants_newsletters' => (clone $activeQuery)->where('wants_newsletters', true)->count(),
         ];
 
         $breadcrumbs = [

@@ -69,6 +69,7 @@ class EmailSubscriptionDatatable extends Datatable
                     'events' => __('Events'),
                     'announcements' => __('Announcements'),
                     'scholarships' => __('Scholarships'),
+                    'newsletters' => __('Newsletters'),
                 ],
                 'selected' => $this->preference,
             ],
@@ -147,7 +148,7 @@ class EmailSubscriptionDatatable extends Datatable
             ->when($this->status === 'unsubscribed', fn ($q) => $q->whereNotNull('unsubscribed_at'))
             ->when($this->preference, function ($q) {
                 $column = 'wants_' . $this->preference;
-                if (in_array($column, ['wants_news', 'wants_events', 'wants_announcements', 'wants_scholarships'], true)) {
+                if (in_array($column, ['wants_news', 'wants_events', 'wants_announcements', 'wants_scholarships', 'wants_newsletters'], true)) {
                     $q->where($column, true);
                 }
             });
@@ -162,6 +163,7 @@ class EmailSubscriptionDatatable extends Datatable
             'wants_events' => __('Events'),
             'wants_announcements' => __('Announcements'),
             'wants_scholarships' => __('Scholarships'),
+            'wants_newsletters' => __('Newsletters'),
         ];
 
         $selected = collect($map)
