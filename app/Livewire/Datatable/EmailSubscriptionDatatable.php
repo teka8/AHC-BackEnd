@@ -14,12 +14,19 @@ class EmailSubscriptionDatatable extends Datatable
     public string $status = '';
     public string $preference = '';
     public array $disabledRoutes = ['create', 'view', 'edit'];
+    public string $exportRoute = '';
 
     public array $queryString = [
         ...parent::QUERY_STRING_DEFAULTS,
         'status' => ['except' => ''],
         'preference' => ['except' => ''],
     ];
+
+    public function mount(): void
+    {
+        parent::mount();
+        $this->exportRoute = route('admin.subscriptions.bulk-export');
+    }
 
     public function getSearchbarPlaceholder(): string
     {

@@ -9,14 +9,26 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 
 class SubscribersExport implements FromCollection, WithHeadings, WithMapping
 {
+    protected array $selectedIds;
+
+    public function __construct(array $selectedIds = [])
+    {
+        $this->selectedIds = $selectedIds;
+    }
+
     /**
      * @return \Illuminate\Support\Collection
      */
     public function collection()
     {
-        return EmailSubscription::query()
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = EmailSubscription::query()->orderBy('created_at', 'desc');
+
+        // If specific IDs are provided, filter by them
+        if (!empty($this->selectedIds)) {
+            $query->whereIn('id', $this->selectedIds);
+        }
+
+        return $query->get();
     }
 
     /**

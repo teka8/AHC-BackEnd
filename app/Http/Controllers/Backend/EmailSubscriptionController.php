@@ -65,12 +65,14 @@ class EmailSubscriptionController extends Controller
     }
 
 
-    public function export()
+    public function export(\Illuminate\Http\Request $request)
     {
         $this->authorize('viewAny', EmailSubscription::class);
 
+        $selectedIds = $request->input('selected', []);
+        
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\SubscribersExport,
+            new \App\Exports\SubscribersExport($selectedIds),
             'subscribers-' . now()->format('Y-m-d') . '.xlsx'
         );
     }
