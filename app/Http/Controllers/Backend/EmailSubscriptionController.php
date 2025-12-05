@@ -64,6 +64,17 @@ class EmailSubscriptionController extends Controller
         ]);
     }
 
+
+    public function export()
+    {
+        $this->authorize('viewAny', EmailSubscription::class);
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\SubscribersExport,
+            'subscribers-' . now()->format('Y-m-d') . '.xlsx'
+        );
+    }
+
     public function destroy(EmailSubscription $subscription): RedirectResponse
     {
         $this->authorize('delete', $subscription);

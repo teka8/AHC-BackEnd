@@ -130,6 +130,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
 
     Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
         Route::get('/', [EmailSubscriptionController::class, 'index'])->name('index');
+        Route::get('/export', [EmailSubscriptionController::class, 'export'])->name('export');
         Route::patch('/{subscription}/unsubscribe', [EmailSubscriptionController::class, 'unsubscribe'])
             ->name('unsubscribe');
         Route::patch('/{subscription}/resubscribe', [EmailSubscriptionController::class, 'resubscribe'])
