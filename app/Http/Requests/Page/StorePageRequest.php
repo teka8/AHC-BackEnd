@@ -27,6 +27,8 @@ class StorePageRequest extends FormRequest
                 Rule::unique('pages', 'slug')
             ],
             'content' => 'required|string',
+            'hero_description' => 'nullable|string|max:1000',
+            'hero_image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
             'section' => 'required|string|max:100',
             'is_custom_section' => 'nullable|boolean',
             'custom_section' => 'nullable|string|max:100|required_if:is_custom_section,true',

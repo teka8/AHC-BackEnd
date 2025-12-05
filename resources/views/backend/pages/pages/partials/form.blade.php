@@ -59,13 +59,7 @@
                                     >
                                         <option value="">— {{ __('Select') }} —</option>
                                         <option value="about" {{ old('section', $page->section ?? '') === 'about' ? 'selected' : '' }}>{{ __('About Us') }}</option>
-                                        <option value="terms" {{ old('section', $page->section ?? '') === 'terms' ? 'selected' : '' }}>{{ __('Terms & Conditions') }}</option>
-                                        <option value="privacy" {{ old('section', $page->section ?? '') === 'privacy' ? 'selected' : '' }}>{{ __('Privacy Policy') }}</option>
-                                        <option value="contact" {{ old('section', $page->section ?? '') === 'contact' ? 'selected' : '' }}>{{ __('Contact Information') }}</option>
-                                        <option value="faq" {{ old('section', $page->section ?? '') === 'faq' ? 'selected' : '' }}>{{ __('FAQ') }}</option>
-                                        <option value="shipping" {{ old('section', $page->section ?? '') === 'shipping' ? 'selected' : '' }}>{{ __('Shipping Policy') }}</option>
-                                        <option value="returns" {{ old('section', $page->section ?? '') === 'returns' ? 'selected' : '' }}>{{ __('Return Policy') }}</option>
-                                        <option value="custom" {{ !in_array(old('section', $page->section ?? ''), ['about','terms','privacy','contact','faq','shipping','returns','']) ? 'selected' : '' }}>{{ __('Custom') }}</option>
+                                        <option value="custom" {{ !in_array(old('section', $page->section ?? ''), ['about','']) ? 'selected' : '' }}>{{ __('Custom') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -76,7 +70,7 @@
                                     type="text" 
                                     id="custom_section"
                                     name="custom_section" 
-                                    value="{{ !in_array($page->section ?? '', ['about','terms','privacy','contact','faq','shipping','returns','']) ? ($page->section ?? '') : '' }}" 
+                                    value="{{ !in_array($page->section ?? '', ['about','']) ? ($page->section ?? '') : '' }}" 
                                     placeholder="{{ __('Add your custom section') }}" 
                                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                 >
@@ -120,46 +114,97 @@
 
                     {!! Hook::applyFilters('filter.page.form_after_title', '') !!}
 
-                    <!-- SEO Information -->
+                    <!-- Hero Section -->
                     <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">                            
                             <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
                                 </svg>
-                                {{ __('SEO Optimization') }}
+                                {{ __('Hero Section') }}
                             </h3>
-                            <p class="text-gray-500 text-sm mt-1 dark:text-gray-400">{{ __('Improve search engine visibility') }}</p>
+                            <p class="text-gray-500 text-sm mt-1 dark:text-gray-400">{{ __('Configure the hero banner displayed at the top of the page') }}</p>
                         </div>
                         <div class="p-6 space-y-4">
+                            <!-- Hero Description -->
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Meta Title') }}</label>
-                                <input 
-                                    type="text" 
-                                    name="meta_title" 
-                                    value="{{ old('meta_title', $page->meta_title ?? '') }}" 
-                                    placeholder="{{ __('e.g., About Our Company - Comprehensive Overview') }}" 
-                                    class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                >
-                                <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ __('Recommended: 50-60 characters') }}
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Hero Description') }}</label>
+                                <p class="text-xs text-gray-500 mb-2 dark:text-gray-400">
+                                    {{ __('A brief description displayed in the hero section below the page title.') }}
                                 </p>
+                                <textarea 
+                                    name="hero_description" 
+                                    id="hero_description" 
+                                    rows="4" 
+                                    placeholder="{{ __('Enter the hero description that appears below the page title...') }}"
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                >{{ old('hero_description', $page->hero_description ?? '') }}</textarea>
                             </div>
 
+                            <!-- Hero Image -->
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Meta Description') }}</label>
-                                <textarea 
-                                    name="meta_description" 
-                                    rows="3" 
-                                    placeholder="Brief description of the page content for search engines..."
-                                    class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                >{{ old('meta_description', $page->meta_description ?? '') }}</textarea>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ __('Recommended: 150-160 characters') }}
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Hero Image') }}</label>
+                                <p class="text-xs text-gray-500 mb-2 dark:text-gray-400">
+                                    {{ __('Upload an image for the hero section background. Recommended size: 1320x880 pixels.') }}
                                 </p>
+                                
+                                <!-- Current Image Preview -->
+                                @if(!empty($page->hero_image))
+                                <div class="mb-4">
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ __('Current Image:') }}</p>
+                                    <div class="relative inline-block">
+                                        <img 
+                                            src="{{ asset('storage/' . $page->hero_image) }}" 
+                                            alt="Current Hero Image" 
+                                            class="max-w-xs h-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+                                            id="current-hero-image"
+                                        >
+                                        <button 
+                                            type="button" 
+                                            onclick="removeHeroImage()"
+                                            class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-md"
+                                            title="{{ __('Remove Image') }}"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <input type="hidden" name="remove_hero_image" id="remove_hero_image" value="0">
+                                </div>
+                                @endif
+
+                                <!-- Image Upload -->
+                                <div class="flex items-center justify-center w-full">
+                                    <label for="hero_image" class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 transition-colors">
+                                        <div class="flex flex-col items-center justify-center pt-5 pb-6" id="upload-placeholder">
+                                            <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                            </svg>
+                                            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">{{ __('Click to upload') }}</span> {{ __('or drag and drop') }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, WEBP {{ __('(MAX. 2MB)') }}</p>
+                                        </div>
+                                        <div id="image-preview-container" class="hidden w-full h-full p-2">
+                                            <img id="image-preview" src="" alt="Preview" class="w-full h-full object-contain rounded-lg">
+                                        </div>
+                                        <input 
+                                            id="hero_image" 
+                                            name="hero_image" 
+                                            type="file" 
+                                            class="hidden" 
+                                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                                            onchange="previewHeroImage(this)"
+                                        />
+                                    </label>
+                                </div>
+                                @error('hero_image')
+                                    <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                     </div>
+
+                    
                 </div>
 
                 <!-- Right Column - Settings and Actions -->
@@ -378,6 +423,47 @@
                         </div>
                     </div>
 
+                    <!-- SEO Information -->
+                    <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">                            
+                            <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                                </svg>
+                                {{ __('SEO Optimization') }}
+                            </h3>
+                            <p class="text-gray-500 text-sm mt-1 dark:text-gray-400">{{ __('Improve search engine visibility') }}</p>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Meta Title') }}</label>
+                                <input 
+                                    type="text" 
+                                    name="meta_title" 
+                                    value="{{ old('meta_title', $page->meta_title ?? '') }}" 
+                                    placeholder="{{ __('e.g., About Our Company - Comprehensive Overview') }}" 
+                                    class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                >
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ __('Recommended: 50-60 characters') }}
+                                </p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Meta Description') }}</label>
+                                <textarea 
+                                    name="meta_description" 
+                                    rows="3" 
+                                    placeholder="Brief description of the page content for search engines..."
+                                    class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                >{{ old('meta_description', $page->meta_description ?? '') }}</textarea>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ __('Recommended: 150-160 characters') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Create Page Card -->
                     <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
@@ -559,6 +645,53 @@
             // Reset button state
             button.innerHTML = originalText;
             button.disabled = false;
+        }
+    }
+
+    // Hero image preview function
+    function previewHeroImage(input) {
+        const placeholder = document.getElementById('upload-placeholder');
+        const previewContainer = document.getElementById('image-preview-container');
+        const preview = document.getElementById('image-preview');
+        
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            
+            // Validate file size (2MB max)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('{{ __("File size must be less than 2MB") }}');
+                input.value = '';
+                return;
+            }
+            
+            // Validate file type
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                alert('{{ __("Please upload a valid image file (PNG, JPG, or WEBP)") }}');
+                input.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                placeholder.classList.add('hidden');
+                previewContainer.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Remove hero image function
+    function removeHeroImage() {
+        const currentImage = document.getElementById('current-hero-image');
+        const removeInput = document.getElementById('remove_hero_image');
+        
+        if (currentImage) {
+            currentImage.parentElement.parentElement.style.display = 'none';
+        }
+        if (removeInput) {
+            removeInput.value = '1';
         }
     }
 </script>

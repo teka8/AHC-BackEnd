@@ -21,6 +21,8 @@ class Page extends Model
         'title',
         'slug',
         'content',
+        'hero_description',
+        'hero_image',
         'section',
         'is_custom_section',
         'meta_title',

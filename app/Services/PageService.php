@@ -7,6 +7,8 @@ namespace App\Services;
 use App\Models\Page;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 
 class PageService
 {
@@ -83,11 +85,19 @@ class PageService
                 $section = $data['custom_section'];
             }
 
+            // Handle hero image upload
+            $heroImagePath = null;
+            if (isset($data['hero_image']) && $data['hero_image'] instanceof UploadedFile) {
+                $heroImagePath = $this->uploadHeroImage($data['hero_image']);
+            }
+
             // Create the page safely using null coalescing for optional fields
             $page = Page::create([
                 'title' => $data['title'], // required
                 'slug' => $data['slug'], // required
                 'content' => $data['content'] ?? null,
+                'hero_description' => $data['hero_description'] ?? null,
+                'hero_image' => $heroImagePath,
                 'section' => $section,
                 'is_custom_section' => $isCustomSection,
                 'meta_title' => $data['meta_title'] ?? null,
@@ -116,10 +126,31 @@ class PageService
             $section = $data['custom_section'];
         }
 
+        // Handle hero image upload/removal
+        $heroImagePath = $page->hero_image;
+        
+        // Check if user wants to remove the image
+        if (isset($data['remove_hero_image']) && $data['remove_hero_image'] == '1') {
+            if ($page->hero_image) {
+                $this->deleteHeroImage($page->hero_image);
+            }
+            $heroImagePath = null;
+        }
+        // Check if new image is uploaded
+        elseif (isset($data['hero_image']) && $data['hero_image'] instanceof UploadedFile) {
+            // Delete old image if exists
+            if ($page->hero_image) {
+                $this->deleteHeroImage($page->hero_image);
+            }
+            $heroImagePath = $this->uploadHeroImage($data['hero_image']);
+        }
+
         $page->update([
             'title' => $data['title'] ?? $page->title,
             'slug' => $data['slug'] ?? $page->slug,
             'content' => $data['content'] ?? $page->content,
+            'hero_description' => $data['hero_description'] ?? $page->hero_description,
+            'hero_image' => $heroImagePath,
             'section' => $section,
             'is_custom_section' => $isCustomSection,
             'meta_title' => $data['meta_title'] ?? $page->meta_title,
@@ -131,6 +162,25 @@ class PageService
         ]);
 
         return $page;
+    }
+
+    /**
+     * Upload hero image.
+     */
+    protected function uploadHeroImage(UploadedFile $file): string
+    {
+        $filename = 'hero_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        return $file->storeAs('pages/hero', $filename, 'public');
+    }
+
+    /**
+     * Delete hero image.
+     */
+    protected function deleteHeroImage(string $path): void
+    {
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
     }
 
     /**
