@@ -6,7 +6,7 @@ namespace App\Enums;
 
 enum PostPillar: string
 {
-    case UNKNOWN = 'unknown';
+    case MAINPAGE = 'mainpage';
     case HEALTH_EMPLOYMENT = 'health_employment';
     case HEALTH_ECOSYSTEMS = 'health_ecosystems';
     case HEALTH_ENTREPRENEURSHIP = 'health_entrepreneurship';
@@ -14,7 +14,7 @@ enum PostPillar: string
     public function label(): string
     {
         return match ($this) {
-            self::UNKNOWN => __('Unknown'),
+            self::MAINPAGE => __('Main Page'),
             self::HEALTH_EMPLOYMENT => __('Health Employment'),
             self::HEALTH_ECOSYSTEMS => __('Health Ecosystems'),
             self::HEALTH_ENTREPRENEURSHIP => __('Health Entrepreneurship'),
