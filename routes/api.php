@@ -222,5 +222,8 @@ Route::middleware('api')->prefix('v1')->group(function () {
         // AHC Leaders
         Route::get('/ahc-leaders', [AhcLeaderController::class, 'index']);
         Route::get('/ahc-leaders/{ahcLeader}', [AhcLeaderController::class, 'show']);
+
+        // Company Info
+        Route::get('/company-info', [SettingController::class, 'publicCompanyInfo']);
     });
 });

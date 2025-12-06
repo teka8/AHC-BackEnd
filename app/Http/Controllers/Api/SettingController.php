@@ -81,4 +81,31 @@ class SettingController extends ApiController
             'Settings updated successfully'
         );
     }
+    /**
+     * Get public company information.
+     *
+     * @tags Settings
+     */
+    public function publicCompanyInfo(): JsonResponse
+    {
+        $keys = [
+            'company_name',
+            'company_email',
+            'company_phone',
+            'company_address',
+            'social_facebook',
+            'social_twitter',
+            'social_linkedin',
+            'social_instagram',
+            'social_youtube',
+        ];
+
+        $settings = Setting::whereIn('option_name', $keys)
+            ->pluck('option_value', 'option_name');
+
+        return $this->resourceResponse(
+            $settings,
+            'Company info retrieved successfully'
+        );
+    }
 }

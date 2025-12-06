@@ -17,6 +17,10 @@
                                 'title' => __('General Settings'),
                                 'view' => 'backend.pages.settings.general-tab',
                             ],
+                            'company-info' => [
+                                'title' => __('Company Info'),
+                                'view' => 'backend.pages.settings.company-info-tab',
+                            ],
                             'appearance' => [
                                 'title' => __('Site Appearance'),
                                 'view' => 'backend.pages.settings.appearance-tab',
