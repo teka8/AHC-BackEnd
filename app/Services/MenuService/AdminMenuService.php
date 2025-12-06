@@ -385,6 +385,16 @@ class AdminMenuService
             'permissions' => 'subscription.view',
         ], __('More'));
 
+        $this->addMenuItem([
+            'label' => __('Contact Messages'),
+            'icon' => 'lucide:mail',
+            'route' => route('admin.contact-messages.index'),
+            'active' => Route::is('admin.contact-messages.*'),
+            'id' => 'contact-messages',
+            'priority' => 46,
+            'permissions' => 'contact_message.view',
+        ], __('More'));
+
         $this->addMenuItem(
             [
                 'label' => __('Access Control'),

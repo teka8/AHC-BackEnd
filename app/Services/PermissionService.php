@@ -512,6 +512,15 @@ class PermissionService
                     'ahc-leader.delete',
                 ],
             ],
+            // ========== CONTACT MESSAGES PERMISSIONS ==========
+            [
+                'group_name' => 'contact_message',
+                'permissions' => [
+                    'contact_message.view',
+                    'contact_message.update',
+                    'contact_message.delete',
+                ],
+            ],
         ];
 
         return $permissions;
