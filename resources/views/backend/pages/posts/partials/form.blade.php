@@ -276,7 +276,79 @@
     </div>
 @endif
 
-        <!-- Status and Visibility -->
+       
+
+        @if ($postTypeModel->hierarchical)
+            <!-- Parent -->
+            <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+                <div class="px-4 py-3 sm:px-6 sm:py-3 border-b border-gray-100 dark:border-gray-800">
+                    <h3 class="text-base font-medium text-gray-700 dark:text-white">{{ __('Parent') }}</h3>
+                </div>
+                <div class="p-3 space-y-2 sm:p-4">
+                    @php
+                        $parentOptions = [['value' => '', 'label' => __('None')]];
+                        foreach ($parentPosts as $id => $title) {
+                            $parentOptions[] = [
+                                'value' => $id,
+                                'label' => $title,
+                            ];
+                        }
+                    @endphp
+
+                    <x-inputs.combobox name="parent_id" :label="__('Parent ' . $postTypeModel->label_singular)" :placeholder="__('Select Parent')" :options="$parentOptions"
+                        :selected="old('parent_id', $post->parent_id ?? '')" :searchable="true" />
+                </div>
+            </div>
+        @endif
+        {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_CONTENT_PARENT, '') !!}
+
+        @php
+            $availablePillars = \App\Enums\PostPillar::options();
+            $selectedPillars = old('pillars', optional($post)->pillars ?? [\App\Enums\PostPillar::MAINPAGE->value]);
+        @endphp
+
+        <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Pillars') }}</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {{ __('Select the collaborative pillars this post aligns with.') }}
+                </p>
+            </div>
+            <div class="p-6 space-y-3">
+                <div class="space-y-2">
+                    @foreach ($availablePillars as $pillarValue => $pillarLabel)
+                        <label class="flex items-start gap-3">
+                            <input
+                                type="checkbox"
+                                name="pillars[]"
+                                value="{{ $pillarValue }}"
+                                class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800"
+                                @checked(in_array($pillarValue, (array) $selectedPillars, true))
+                            >
+                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $pillarLabel }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('pillars')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                @error('pillars.*')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <!-- Taxonomies -->
+        @if (!empty($taxonomies))
+            @foreach ($taxonomies as $taxonomy)
+                @include('backend.pages.posts.partials.post-taxonomy-chooser', [
+                    'taxonomy' => $taxonomy,
+                    'post_type' => $postType,
+                ])
+            @endforeach
+        @endif
+
+         <!-- Status and Visibility -->
         <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Publish') }}</h3>
@@ -381,75 +453,6 @@
                 {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_SUBMIT_BUTTONS, '') !!}
             </div>
         </div>
-
-        @if ($postTypeModel->hierarchical)
-            <!-- Parent -->
-            <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-                <div class="px-4 py-3 sm:px-6 sm:py-3 border-b border-gray-100 dark:border-gray-800">
-                    <h3 class="text-base font-medium text-gray-700 dark:text-white">{{ __('Parent') }}</h3>
-                </div>
-                <div class="p-3 space-y-2 sm:p-4">
-                    @php
-                        $parentOptions = [['value' => '', 'label' => __('None')]];
-                        foreach ($parentPosts as $id => $title) {
-                            $parentOptions[] = [
-                                'value' => $id,
-                                'label' => $title,
-                            ];
-                        }
-                    @endphp
-
-                    <x-inputs.combobox name="parent_id" :label="__('Parent ' . $postTypeModel->label_singular)" :placeholder="__('Select Parent')" :options="$parentOptions"
-                        :selected="old('parent_id', $post->parent_id ?? '')" :searchable="true" />
-                </div>
-            </div>
-        @endif
-        {!! Hook::applyFilters(PostFilterHook::POST_FORM_AFTER_CONTENT_PARENT, '') !!}
-
-        @php
-            $availablePillars = \App\Enums\PostPillar::options();
-            $selectedPillars = old('pillars', optional($post)->pillars ?? [\App\Enums\PostPillar::UNKNOWN->value]);
-        @endphp
-
-        <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Pillars') }}</h3>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {{ __('Select the collaborative pillars this post aligns with.') }}
-                </p>
-            </div>
-            <div class="p-6 space-y-3">
-                <div class="space-y-2">
-                    @foreach ($availablePillars as $pillarValue => $pillarLabel)
-                        <label class="flex items-start gap-3">
-                            <input
-                                type="checkbox"
-                                name="pillars[]"
-                                value="{{ $pillarValue }}"
-                                class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800"
-                                @checked(in_array($pillarValue, (array) $selectedPillars, true))
-                            >
-                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $pillarLabel }}</span>
-                        </label>
-                    @endforeach
-                </div>
-                @error('pillars')
-                    <p class="text-sm text-red-600">{{ $message }}</p>
-                @enderror
-                @error('pillars.*')
-                    <p class="text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-        </div>
-
-        <!-- Taxonomies -->
-        @if (!empty($taxonomies))
-            @foreach ($taxonomies as $taxonomy)
-                @include('backend.pages.posts.partials.post-taxonomy-chooser', [
-                    'taxonomy' => $taxonomy,
-                    'post_type' => $postType,
-                ])
-            @endforeach
-        @endif
     </div>
+
 </div>

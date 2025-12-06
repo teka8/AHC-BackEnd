@@ -101,7 +101,7 @@ class Post extends Model implements SpatieHasMedia
             ->all();
 
         if (empty($normalized)) {
-            $normalized = [PostPillar::UNKNOWN->value];
+            $normalized = [PostPillar::MAINPAGE->value];
         }
 
         return $normalized;
@@ -122,7 +122,7 @@ class Post extends Model implements SpatieHasMedia
             }
 
             if (empty($post->getAttributes()['pillars'] ?? null)) {
-                $post->pillars = [PostPillar::UNKNOWN->value];
+                $post->pillars = [PostPillar::MAINPAGE->value];
             }
         });
     }
