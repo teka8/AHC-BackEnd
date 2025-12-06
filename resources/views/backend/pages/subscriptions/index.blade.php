@@ -14,7 +14,7 @@
         </div>
         <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:col-span-2 xl:col-span-3">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-300">{{ __('Interest breakdown') }}</p>
-            <dl class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <dl class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                 <div>
                     <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ __('News') }}</dt>
                     <dd class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{{ number_format($stats['wants_news']) }}</dd>
@@ -30,6 +30,10 @@
                 <div>
                     <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ __('Scholarships') }}</dt>
                     <dd class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{{ number_format($stats['wants_scholarships']) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ __('Newsletters') }}</dt>
+                    <dd class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{{ number_format($stats['wants_newsletters']) }}</dd>
                 </div>
             </dl>
         </div>

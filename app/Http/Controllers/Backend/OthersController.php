@@ -15,6 +15,7 @@ use App\Services\MediaLibraryService;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Notifications\OthersStatusChanged;
+use App\Events\NewContentPublished;
 
 class OthersController extends Controller
 {
@@ -962,6 +963,11 @@ class OthersController extends Controller
         $usersToNotify = $this->getUsersToNotify($action, $document);
         foreach ($usersToNotify as $user) {
             $user->notify($notification);
+        }
+
+        // Send newsletter notification to subscribers when a newsletter is published
+        if ($newStatus === Others::STATUS_PUBLISHED && $document->resource_type === Others::TYPE_NEWSLETTER) {
+            event(new NewContentPublished($document, 'newsletters'));
         }
     }
 

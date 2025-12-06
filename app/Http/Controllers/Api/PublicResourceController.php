@@ -301,4 +301,29 @@ class PublicResourceController extends Controller
             'download_count' => $resource->download_count
         ]);
     }
+
+    /**
+     * GET /api/v1/public/resources/others/{id}/file
+     * Download the actual file for an others resource (used in email links)
+     */
+    public function othersFileDownload(int $id)
+    {
+        $resource = Others::whereIn('access_level', ['public', 'Public'])
+            ->whereIn('status', ['published', 'Published'])
+            ->findOrFail($id);
+        
+        // Check if file exists
+        if (!$resource->file_path || !\Storage::disk('public')->exists($resource->file_path)) {
+            abort(404, 'File not found');
+        }
+        
+        // Increment download count
+        $resource->increment('download_count');
+        
+        // Return file download
+        $filePath = \Storage::disk('public')->path($resource->file_path);
+        $fileName = $resource->file_name ?: basename($filePath);
+        
+        return response()->download($filePath, $fileName);
+    }
 }

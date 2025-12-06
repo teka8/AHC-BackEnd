@@ -13,6 +13,7 @@ class StoreEmailSubscriptionRequest extends FormRequest
             'wants_events',
             'wants_announcements',
             'wants_scholarships',
+            'wants_newsletters',
         ];
 
         foreach ($preferences as $key) {
@@ -44,6 +45,7 @@ class StoreEmailSubscriptionRequest extends FormRequest
             'wants_events' => ['sometimes', 'boolean'],
             'wants_announcements' => ['sometimes', 'boolean'],
             'wants_scholarships' => ['sometimes', 'boolean'],
+            'wants_newsletters' => ['sometimes', 'boolean'],
         ];
     }
 }

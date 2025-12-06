@@ -14,12 +14,19 @@ class EmailSubscriptionDatatable extends Datatable
     public string $status = '';
     public string $preference = '';
     public array $disabledRoutes = ['create', 'view', 'edit'];
+    public string $exportRoute = '';
 
     public array $queryString = [
         ...parent::QUERY_STRING_DEFAULTS,
         'status' => ['except' => ''],
         'preference' => ['except' => ''],
     ];
+
+    public function mount(): void
+    {
+        parent::mount();
+        $this->exportRoute = route('admin.subscriptions.bulk-export');
+    }
 
     public function getSearchbarPlaceholder(): string
     {
@@ -62,6 +69,7 @@ class EmailSubscriptionDatatable extends Datatable
                     'events' => __('Events'),
                     'announcements' => __('Announcements'),
                     'scholarships' => __('Scholarships'),
+                    'newsletters' => __('Newsletters'),
                 ],
                 'selected' => $this->preference,
             ],
@@ -140,7 +148,7 @@ class EmailSubscriptionDatatable extends Datatable
             ->when($this->status === 'unsubscribed', fn ($q) => $q->whereNotNull('unsubscribed_at'))
             ->when($this->preference, function ($q) {
                 $column = 'wants_' . $this->preference;
-                if (in_array($column, ['wants_news', 'wants_events', 'wants_announcements', 'wants_scholarships'], true)) {
+                if (in_array($column, ['wants_news', 'wants_events', 'wants_announcements', 'wants_scholarships', 'wants_newsletters'], true)) {
                     $q->where($column, true);
                 }
             });
@@ -155,6 +163,7 @@ class EmailSubscriptionDatatable extends Datatable
             'wants_events' => __('Events'),
             'wants_announcements' => __('Announcements'),
             'wants_scholarships' => __('Scholarships'),
+            'wants_newsletters' => __('Newsletters'),
         ];
 
         $selected = collect($map)

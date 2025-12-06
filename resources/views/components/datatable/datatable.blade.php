@@ -187,6 +187,21 @@
                         <div x-show="open" @click.outside="open = false" x-transition
                             class="absolute right-0 top-10 mt-2 w-48 rounded-md shadow bg-white dark:bg-gray-700 z-10 p-2">
                             <ul class="space-y-2">
+                                @if ($enableLivewire && isset($this->exportRoute) && $this->exportRoute)
+                                    <li>
+                                        <form action="{{ $this->exportRoute }}" method="POST" class="m-0">
+                                            @csrf
+                                            <template x-for="id in selectedItems" :key="id">
+                                                <input type="hidden" name="selected[]" :value="id">
+                                            </template>
+                                            <button type="submit"
+                                                class="w-full cursor-pointer flex items-center gap-2 text-sm text-green-600 dark:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/30 dark:hover:text-green-400 px-2 py-1.5 rounded transition-colors duration-300">
+                                                <iconify-icon icon="lucide:download"></iconify-icon>
+                                                {{ __('Export to Excel') }}
+                                            </button>
+                                        </form>
+                                    </li>
+                                @endif
                                 <li class="cursor-pointer flex items-center gap-1 text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500 dark:hover:text-red-50 px-2 py-1.5 rounded transition-colors duration-300"
                                     @click="open = false; bulkDeleteModalOpen = true">
                                     <iconify-icon icon="lucide:trash"></iconify-icon> {{ __('Delete Selected') }}

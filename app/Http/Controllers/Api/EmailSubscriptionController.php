@@ -19,10 +19,11 @@ class EmailSubscriptionController extends Controller
             'wants_events',
             'wants_announcements',
             'wants_scholarships',
+            'wants_newsletters',
         ]);
 
         $preferences = collect($data)
-            ->only(['wants_news', 'wants_events', 'wants_announcements', 'wants_scholarships'])
+            ->only(['wants_news', 'wants_events', 'wants_announcements', 'wants_scholarships', 'wants_newsletters'])
             ->map(fn ($value) => (bool) $value)
             ->all();
 
@@ -67,6 +68,7 @@ class EmailSubscriptionController extends Controller
                 'wants_events' => $subscription->wants_events,
                 'wants_announcements' => $subscription->wants_announcements,
                 'wants_scholarships' => $subscription->wants_scholarships,
+                'wants_newsletters' => $subscription->wants_newsletters,
             ],
         ], $status);
     }

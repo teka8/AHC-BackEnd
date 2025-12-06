@@ -23,6 +23,7 @@ class EmailSubscriptionController extends Controller
             'wants_events' => (clone $activeQuery)->where('wants_events', true)->count(),
             'wants_announcements' => (clone $activeQuery)->where('wants_announcements', true)->count(),
             'wants_scholarships' => (clone $activeQuery)->where('wants_scholarships', true)->count(),
+            'wants_newsletters' => (clone $activeQuery)->where('wants_newsletters', true)->count(),
         ];
 
         $breadcrumbs = [
@@ -62,6 +63,19 @@ class EmailSubscriptionController extends Controller
             'title' => __('Subscriber updated'),
             'message' => __('The subscriber has been marked as active.'),
         ]);
+    }
+
+
+    public function export(\Illuminate\Http\Request $request)
+    {
+        $this->authorize('viewAny', EmailSubscription::class);
+
+        $selectedIds = $request->input('selected', []);
+        
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\SubscribersExport($selectedIds),
+            'subscribers-' . now()->format('Y-m-d') . '.xlsx'
+        );
     }
 
     public function destroy(EmailSubscription $subscription): RedirectResponse
