@@ -9,10 +9,12 @@ use Illuminate\Support\Facades\URL;
 class AhcLeader extends Model
 {
     protected $fillable = [
+        'type',
         'name',
         'position',
         'image',
         'description',
+        'linkedin_url',
         'sort_order',
         'is_active',
     ];
@@ -51,5 +53,15 @@ class AhcLeader extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function scopeLeaders($query)
+    {
+        return $query->where('type', 'leader');
+    }
+
+    public function scopeTeam($query)
+    {
+        return $query->where('type', 'team');
     }
 }

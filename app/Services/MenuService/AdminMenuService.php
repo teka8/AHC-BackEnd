@@ -181,9 +181,9 @@ class AdminMenuService
             'permissions' => 'media.view',
         ]);
 
-        // AHC Leaders
+        // AHC Leaders & Teams
         $this->addMenuItem([
-            'label' => __('AHC Leaders'),
+            'label' => __('AHC Leaders & Teams'),
             'icon' => 'lucide:users',
             'id' => 'ahc-leaders-submenu',
             'active' => Route::is('admin.ahc-leaders.*'),
@@ -191,14 +191,14 @@ class AdminMenuService
             'permissions' => 'ahc-leader.view',
             'children' => [
                 [
-                    'label' => __('All Leaders'),
+                    'label' => __('All Leaders & Teams'),
                     'route' => route('admin.ahc-leaders.index'),
                     'active' => Route::is('admin.ahc-leaders.index') || Route::is('admin.ahc-leaders.show') || Route::is('admin.ahc-leaders.edit'),
                     'priority' => 10,
                     'permissions' => 'ahc-leader.view',
                 ],
                 [
-                    'label' => __('Add New Leader'),
+                    'label' => __('Add New'),
                     'route' => route('admin.ahc-leaders.create'),
                     'active' => Route::is('admin.ahc-leaders.create'),
                     'priority' => 20,
