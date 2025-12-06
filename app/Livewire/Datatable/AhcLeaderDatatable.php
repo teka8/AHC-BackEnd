@@ -13,16 +13,19 @@ class AhcLeaderDatatable extends Datatable
 {
     public string $status = '';
 
+    public string $type = '';
+
     public array $queryString = [
         ...parent::QUERY_STRING_DEFAULTS,
         'status' => [],
+        'type' => [],
     ];
 
     public string $model = AhcLeader::class;
 
     public function getSearchbarPlaceholder(): string
     {
-        return __('Search by leader name or position...');
+        return __('Search by name or position...');
     }
 
     public function updatingStatus()
@@ -30,9 +33,26 @@ class AhcLeaderDatatable extends Datatable
         $this->resetPage();
     }
 
+    public function updatingType()
+    {
+        $this->resetPage();
+    }
+
     public function getFilters(): array
     {
         return [
+            [
+                'id' => 'type',
+                'label' => __('Type'),
+                'filterLabel' => __('Type'),
+                'icon' => 'lucide:users',
+                'allLabel' => __('All Types'),
+                'options' => [
+                    'leader' => __('Leaders'),
+                    'team' => __('Team Members'),
+                ],
+                'selected' => $this->type,
+            ],
             [
                 'id' => 'status',
                 'label' => __('Status'),
@@ -99,6 +119,12 @@ class AhcLeaderDatatable extends Datatable
                 'sortBy' => 'position',
             ],
             [
+                'id' => 'type',
+                'title' => __('Type'),
+                'sortable' => true,
+                'sortBy' => 'type',
+            ],
+            [
                 'id' => 'sort_order',
                 'title' => __('Order'),
                 'sortable' => true,
@@ -127,6 +153,9 @@ class AhcLeaderDatatable extends Datatable
                     $q->where('name', 'like', "%{$this->search}%")
                         ->orWhere('position', 'like', "%{$this->search}%");
                 });
+            })
+            ->when($this->type !== '', function ($q) {
+                $q->where('type', $this->type);
             })
             ->when($this->status !== '', function ($q) {
                 $q->where('is_active', (bool) $this->status);
@@ -158,6 +187,15 @@ class AhcLeaderDatatable extends Datatable
     public function renderPositionColumn(AhcLeader $leader): string|Renderable
     {
         return e($leader->position);
+    }
+
+    public function renderTypeColumn(AhcLeader $leader): string|Renderable
+    {
+        $isLeader = $leader->type === 'leader';
+        $class = $isLeader ? 'badge badge-primary' : 'badge badge-info';
+        $text = $isLeader ? __('Leader') : __('Team');
+
+        return "<span class='{$class}'>{$text}</span>";
     }
 
     public function renderSortOrderColumn(AhcLeader $leader): string|Renderable

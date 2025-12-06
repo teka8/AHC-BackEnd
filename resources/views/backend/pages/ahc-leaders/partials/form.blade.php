@@ -2,12 +2,13 @@
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="mb-6">
-            <p class="text-gray-600 dark:text-gray-300">{{ __('Fill in the details to') }} {{ isset($leader) ? __('update') : __('create') }} {{ __('the leader profile') }}</p>
+            <p class="text-gray-600 dark:text-gray-300">{{ __('Fill in the details to') }} {{ isset($leader) ? __('update') : __('create') }} {{ __('the leader or team member profile') }}</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Left Column - Main Form Content -->
             <div class="lg:col-span-2 space-y-6">
+
                 <!-- Basic Information -->
                 <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
@@ -17,7 +18,7 @@
                             </svg>
                             {{ __('Basic Information') }}
                         </h3>
-                        <p class="text-gray-500 text-sm mt-1 dark:text-gray-400">{{ __('Essential details about the leader') }}</p>
+                        <p class="text-gray-500 text-sm mt-1 dark:text-gray-400">{{ __('Essential details about the person') }}</p>
                     </div>
                     <div class="p-6 space-y-4">
                         <!-- Name -->
@@ -60,7 +61,7 @@
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Biography / Description') }}</label>
                             <p class="text-xs text-gray-500 mb-2 dark:text-gray-400">
-                                {{ __('Provide a detailed biography or description of the leader.') }}
+                                {{ __('Provide a detailed biography or description.') }}
                             </p>
                             <textarea 
                                 name="description" 
@@ -72,6 +73,29 @@
                                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <!-- LinkedIn URL -->
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <span class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#0A66C2]" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                                    </svg>
+                                    {{ __('LinkedIn URL') }}
+                                </span>
+                            </label>
+                            <input 
+                                type="url" 
+                                name="linkedin_url" 
+                                value="{{ old('linkedin_url', $leader->linkedin_url ?? '') }}" 
+                                placeholder="https://www.linkedin.com/in/username" 
+                                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('linkedin_url') border-red-500 @enderror"
+                            >
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Optional - Enter the full LinkedIn profile URL') }}</p>
+                            @error('linkedin_url')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
                 </div>
 
@@ -80,6 +104,38 @@
 
             <!-- Right Column - Settings -->
             <div class="space-y-6">
+
+                <!-- Type Selection -->
+                <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+                        <h3 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                            </svg>
+                            {{ __('Type') }}
+                        </h3>
+                        <p class="text-gray-500 text-sm mt-1 dark:text-gray-400">{{ __('Select whether this is a leader or team member') }}</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {{ __('Type') }} <span class="text-red-500">*</span>
+                            </label>
+                            <select 
+                                name="type" 
+                                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('type') border-red-500 @enderror"
+                                required
+                            >
+                                <option value="leader" {{ old('type', $leader->type ?? 'leader') === 'leader' ? 'selected' : '' }}>{{ __('AHC Leader') }}</option>
+                                <option value="team" {{ old('type', $leader->type ?? '') === 'team' ? 'selected' : '' }}>{{ __('AHC Team Member') }}</option>
+                            </select>
+                            @error('type')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Settings Card -->
                 <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-md overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
@@ -122,7 +178,7 @@
                                 >
                                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Active') }}</span>
                             </label>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Only active leaders are displayed on the website') }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Only active entries are displayed on the website') }}</p>
                         </div>
                     </div>
                 </div>
@@ -203,7 +259,7 @@
                     <div class="p-6 space-y-3">
                         <button type="submit" class="w-full btn btn-primary">
                             <iconify-icon icon="lucide:save" class="mr-2"></iconify-icon>
-                            {{ isset($leader) ? __('Update Leader') : __('Create Leader') }}
+                            {{ isset($leader) ? __('Update') : __('Create') }}
                         </button>
                         <a href="{{ route('admin.ahc-leaders.index') }}" class="w-full btn btn-secondary block text-center">
                             <iconify-icon icon="lucide:x" class="mr-2"></iconify-icon>

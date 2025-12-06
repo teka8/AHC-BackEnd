@@ -18,14 +18,14 @@ class AhcLeaderController extends Controller
         $this->authorize('viewAny', AhcLeader::class);
 
         $breadcrumbs = [
-            'title' => __('AHC Leaders'),
+            'title' => __('AHC Leaders & Teams'),
             'links' => [
                 [
                     'name' => __('Home'),
                     'url' => route('admin.dashboard'),
                 ],
                 [
-                    'name' => __('AHC Leaders'),
+                    'name' => __('AHC Leaders & Teams'),
                     'url' => '#',
                 ],
             ],
@@ -39,14 +39,14 @@ class AhcLeaderController extends Controller
         $this->authorize('create', AhcLeader::class);
 
         $breadcrumbs = [
-            'title' => __('Create New Leader'),
+            'title' => __('Create New Leader or Team Member'),
             'links' => [
                 [
                     'name' => __('Home'),
                     'url' => route('admin.dashboard'),
                 ],
                 [
-                    'name' => __('AHC Leaders'),
+                    'name' => __('AHC Leaders & Teams'),
                     'url' => route('admin.ahc-leaders.index'),
                 ],
                 [
@@ -64,9 +64,11 @@ class AhcLeaderController extends Controller
         $this->authorize('create', AhcLeader::class);
 
         $validated = $request->validate([
+            'type' => 'required|in:leader,team',
             'name' => 'required|string|max:255',
             'position' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'linkedin_url' => 'nullable|url|max:500',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
@@ -82,24 +84,28 @@ class AhcLeaderController extends Controller
 
         AhcLeader::create($validated);
 
+        $typeLabel = $validated['type'] === 'leader' ? __('Leader') : __('Team member');
+
         return redirect()
             ->route('admin.ahc-leaders.index')
-            ->with('success', __('Leader created successfully.'));
+            ->with('success', __(':type created successfully.', ['type' => $typeLabel]));
     }
 
     public function show(AhcLeader $ahcLeader): Renderable
     {
         $this->authorize('view', $ahcLeader);
 
+        $typeLabel = $ahcLeader->type === 'leader' ? __('Leader') : __('Team Member');
+
         $breadcrumbs = [
-            'title' => __('Leader: :name', ['name' => $ahcLeader->name]),
+            'title' => __(':type: :name', ['type' => $typeLabel, 'name' => $ahcLeader->name]),
             'links' => [
                 [
                     'name' => __('Home'),
                     'url' => route('admin.dashboard'),
                 ],
                 [
-                    'name' => __('AHC Leaders'),
+                    'name' => __('AHC Leaders & Teams'),
                     'url' => route('admin.ahc-leaders.index'),
                 ],
                 [
@@ -116,15 +122,17 @@ class AhcLeaderController extends Controller
     {
         $this->authorize('update', $ahcLeader);
 
+        $typeLabel = $ahcLeader->type === 'leader' ? __('Leader') : __('Team Member');
+
         $breadcrumbs = [
-            'title' => __('Edit Leader: :name', ['name' => $ahcLeader->name]),
+            'title' => __('Edit :type: :name', ['type' => $typeLabel, 'name' => $ahcLeader->name]),
             'links' => [
                 [
                     'name' => __('Home'),
                     'url' => route('admin.dashboard'),
                 ],
                 [
-                    'name' => __('AHC Leaders'),
+                    'name' => __('AHC Leaders & Teams'),
                     'url' => route('admin.ahc-leaders.index'),
                 ],
                 [
@@ -142,9 +150,11 @@ class AhcLeaderController extends Controller
         $this->authorize('update', $ahcLeader);
 
         $validated = $request->validate([
+            'type' => 'required|in:leader,team',
             'name' => 'required|string|max:255',
             'position' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'linkedin_url' => 'nullable|url|max:500',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
@@ -170,9 +180,11 @@ class AhcLeaderController extends Controller
 
         $ahcLeader->update($validated);
 
+        $typeLabel = $validated['type'] === 'leader' ? __('Leader') : __('Team member');
+
         return redirect()
             ->route('admin.ahc-leaders.index')
-            ->with('success', __('Leader updated successfully.'));
+            ->with('success', __(':type updated successfully.', ['type' => $typeLabel]));
     }
 
     public function destroy(AhcLeader $ahcLeader): RedirectResponse

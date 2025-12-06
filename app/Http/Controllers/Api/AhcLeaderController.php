@@ -12,12 +12,18 @@ class AhcLeaderController extends Controller
 {
     public function index(): AnonymousResourceCollection
     {
-        $leaders = AhcLeader::query()
+        $query = AhcLeader::query()
             ->active()
-            ->ordered()
-            ->get();
+            ->ordered();
 
-        return AhcLeaderResource::collection($leaders);
+        $type = request()->query('type');
+        if ($type === 'leader') {
+            $query->leaders();
+        } elseif ($type === 'team') {
+            $query->team();
+        }
+
+        return AhcLeaderResource::collection($query->get());
     }
 
     public function show(AhcLeader $ahcLeader): JsonResource
