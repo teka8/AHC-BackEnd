@@ -128,7 +128,7 @@ class PostController extends Controller
         $post->post_type = $postType;
         $post->user_id = Auth::id();
         $post->parent_id = $data['parent_id'] ?? null;
-        $post->pillars = $data['pillars'] ?? [PostPillar::UNKNOWN->value];
+        $post->pillars = $data['pillars'] ?? [PostPillar::MAINPAGE->value];
 
         $post->save();
 
@@ -252,7 +252,7 @@ class PostController extends Controller
         $post->content = $data['content'];
         $post->excerpt = $data['excerpt'];
         $post->parent_id = $data['parent_id'] ?? null;
-        $post->pillars = $data['pillars'] ?? [PostPillar::UNKNOWN->value];
+        $post->pillars = $data['pillars'] ?? [PostPillar::MAINPAGE->value];
 
         // Handle publish date.
         if (isset($data['schedule_post']) && $data['schedule_post'] && ! empty($data['published_at'])) {

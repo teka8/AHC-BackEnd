@@ -11,6 +11,7 @@ use App\Http\Controllers\Backend\MediaManagerController;
 use App\Http\Controllers\Backend\DocumentRepositoryController;
 use App\Http\Controllers\Backend\EducationRepositoryController;
 use App\Http\Controllers\Backend\EmailSubscriptionController;
+use App\Http\Controllers\Backend\ContactMessageController;
 use App\Http\Controllers\Backend\ModuleController;
 use App\Http\Controllers\Backend\OthersController;
 use App\Http\Controllers\Backend\PermissionController;
@@ -126,6 +127,14 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::get('/{ahcLeader}', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'show'])->name('show');
         Route::delete('/{ahcLeader}', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'destroy'])->name('destroy');
         Route::delete('/delete/bulk-delete', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'bulkDelete'])->name('bulk-delete');
+    });
+
+    // Contact Messages Routes
+    Route::prefix('contact-messages')->name('contact-messages.')->group(function () {
+        Route::get('/', [ContactMessageController::class, 'index'])->name('index');
+        Route::get('/{contactMessage}', [ContactMessageController::class, 'show'])->name('show');
+        Route::patch('/{contactMessage}/toggle-replied', [ContactMessageController::class, 'toggleReplied'])->name('toggle-replied');
+        Route::delete('/{contactMessage}', [ContactMessageController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('subscriptions')->name('subscriptions.')->group(function () {

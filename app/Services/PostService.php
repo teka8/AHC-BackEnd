@@ -109,7 +109,7 @@ class PostService
             'status' => $data['status'] ?? PostStatus::CREATED->value,
             'published_at' => $data['published_at'] ?? null,
             'author_id' => $data['author_id'],
-            'pillars' => $data['pillars'] ?? [PostPillar::UNKNOWN->value],
+            'pillars' => $data['pillars'] ?? [PostPillar::MAINPAGE->value],
         ]);
 
         // Handle featured image upload to media library.
