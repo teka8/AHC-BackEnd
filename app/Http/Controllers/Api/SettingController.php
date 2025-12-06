@@ -103,7 +103,7 @@ class SettingController extends ApiController
         $settings = Setting::whereIn('option_name', $keys)
             ->pluck('option_value', 'option_name');
 
-        return $this->resourceResponse(
+        return $this->successResponse(
             $settings,
             'Company info retrieved successfully'
         );

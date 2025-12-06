@@ -1,3 +1,4 @@
+
 <div class="space-y-6">
     <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
         <div class="sm:col-span-6">
@@ -14,7 +15,7 @@
             </label>
             <div class="mt-1">
                 <input type="text" name="company_name" id="company_name"
-                    value="{{ old('company_name', config('company_name')) }}"
+                    value="{{ old('company_name', config('settings.company_name')) }}"
                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             </div>
         </div>
@@ -26,7 +27,7 @@
             </label>
             <div class="mt-1">
                 <input type="email" name="company_email" id="company_email"
-                    value="{{ old('company_email', config('company_email')) }}"
+                    value="{{ old('company_email', config('settings.company_email')) }}"
                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             </div>
         </div>
@@ -38,7 +39,7 @@
             </label>
             <div class="mt-1">
                 <input type="text" name="company_phone" id="company_phone"
-                    value="{{ old('company_phone', config('company_phone')) }}"
+                    value="{{ old('company_phone', config('settings.company_phone')) }}"
                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             </div>
         </div>
@@ -50,7 +51,7 @@
             </label>
             <div class="mt-1">
                 <textarea name="company_address" id="company_address" rows="3"
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">{{ old('company_address', config('company_address')) }}</textarea>
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">{{ old('company_address', config('settings.company_address')) }}</textarea>
             </div>
         </div>
 
@@ -75,7 +76,7 @@
                     </span>
                 </div>
                 <input type="url" name="social_facebook" id="social_facebook"
-                    value="{{ old('social_facebook', config('social_facebook')) }}"
+                    value="{{ old('social_facebook', config('settings.social_facebook')) }}"
                     class="block w-full rounded-md border-gray-300 pl-10 focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     placeholder="https://facebook.com/yourpage">
             </div>
@@ -95,7 +96,7 @@
                     </span>
                 </div>
                 <input type="url" name="social_twitter" id="social_twitter"
-                    value="{{ old('social_twitter', config('social_twitter')) }}"
+                    value="{{ old('social_twitter', config('settings.social_twitter')) }}"
                     class="block w-full rounded-md border-gray-300 pl-10 focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     placeholder="https://twitter.com/yourhandle">
             </div>
@@ -115,7 +116,7 @@
                     </span>
                 </div>
                 <input type="url" name="social_linkedin" id="social_linkedin"
-                    value="{{ old('social_linkedin', config('social_linkedin')) }}"
+                    value="{{ old('social_linkedin', config('settings.social_linkedin')) }}"
                     class="block w-full rounded-md border-gray-300 pl-10 focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     placeholder="https://linkedin.com/company/yourcompany">
             </div>
@@ -135,7 +136,7 @@
                     </span>
                 </div>
                 <input type="url" name="social_instagram" id="social_instagram"
-                    value="{{ old('social_instagram', config('social_instagram')) }}"
+                    value="{{ old('social_instagram', config('settings.social_instagram')) }}"
                     class="block w-full rounded-md border-gray-300 pl-10 focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     placeholder="https://instagram.com/yourprofile">
             </div>
@@ -155,7 +156,7 @@
                     </span>
                 </div>
                 <input type="url" name="social_youtube" id="social_youtube"
-                    value="{{ old('social_youtube', config('social_youtube')) }}"
+                    value="{{ old('social_youtube', config('settings.social_youtube')) }}"
                     class="block w-full rounded-md border-gray-300 pl-10 focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     placeholder="https://youtube.com/yourchannel">
             </div>
