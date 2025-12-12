@@ -93,10 +93,22 @@ class SettingController extends Controller
             }
         }
 
+        // Handle frontend GA property ID format normalization
+        if (isset($fields['frontend_ga_property_id']) && ! empty($fields['frontend_ga_property_id'])) {
+            $propertyId = trim($fields['frontend_ga_property_id']);
+
+            // If property ID doesn't start with "properties/", add it
+            if (! str_starts_with($propertyId, 'properties/')) {
+                // Remove any existing "properties/" prefix variations
+                $propertyId = preg_replace('/^properties\//i', '', $propertyId);
+                $fields['frontend_ga_property_id'] = 'properties/' . $propertyId;
+            }
+        }
+
         // Handle frontend GA service account JSON file upload
         if ($request->hasFile('frontend_ga_service_account')) {
             $file = $request->file('frontend_ga_service_account');
-            
+
             // Validate JSON file
             $request->validate([
                 'frontend_ga_service_account' => 'required|file|mimes:json|max:10240', // Max 10MB
@@ -104,20 +116,20 @@ class SettingController extends Controller
 
             // Create directory if it doesn't exist
             $directory = storage_path('app/google');
-            if (!file_exists($directory)) {
+            if (! file_exists($directory)) {
                 mkdir($directory, 0755, true);
             }
 
             // Store the file
             $filename = 'ahc-ga-service-account.json';
             $filePath = $file->storeAs('google', $filename);
-            
+
             // Set proper permissions
             chmod(storage_path('app/' . $filePath), 0600);
-            
+
             // Save the path in settings
             $fields['frontend_ga_service_account_path'] = $filePath;
-            
+
             // Remove the file from fields to prevent it from being processed again
             unset($fields['frontend_ga_service_account']);
         }

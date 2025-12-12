@@ -86,11 +86,11 @@
                 <span class="text-red-500">*</span>
             </label>
             <input type="text" name="frontend_ga_property_id" 
-                placeholder="properties/123456789"
+                placeholder="123456789 or properties/123456789"
                 value="{{ config('settings.frontend_ga_property_id') ?? '' }}"
                 class="form-control">
             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                {{ __('Find this in Google Analytics: Admin → Property Settings → Property Detail → Property ID') }}
+                {{ __('Enter the numeric Property ID from Google Analytics. You can enter it with or without "properties/" prefix.') }}
             </p>
         </div>
 

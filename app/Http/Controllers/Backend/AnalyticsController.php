@@ -25,7 +25,10 @@ class AnalyticsController extends Controller
         $this->authorize('viewAny', 'analytics');
 
         // Check if GA is configured
-        if (!config('settings.frontend_ga_enabled') || !$this->analyticsService->isConfigured()) {
+        // Cast to bool since database stores "0" or "1" as strings
+        $isEnabled = filter_var(config('settings.frontend_ga_enabled'), FILTER_VALIDATE_BOOLEAN);
+
+        if (! $isEnabled || ! $this->analyticsService->isConfigured()) {
             return view('backend.pages.analytics.not-configured')
                 ->with([
                     'breadcrumbs' => [

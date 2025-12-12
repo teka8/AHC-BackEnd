@@ -32,15 +32,18 @@ class GoogleAnalyticsService
             $serviceAccountPath = config('settings.frontend_ga_service_account_path');
             $this->propertyId = config('settings.frontend_ga_property_id');
 
-            if (!$serviceAccountPath || !$this->propertyId) {
+            if (! $serviceAccountPath || ! $this->propertyId) {
                 return;
             }
 
+            // Normalize property ID format - ensure it has "properties/" prefix
+            $this->propertyId = $this->normalizePropertyId($this->propertyId);
+
             $credentialsPath = storage_path('app/' . $serviceAccountPath);
 
-            if (!file_exists($credentialsPath)) {
+            if (! file_exists($credentialsPath)) {
                 Log::error('Google Analytics service account file not found', [
-                    'path' => $credentialsPath
+                    'path' => $credentialsPath,
                 ]);
                 return;
             }
@@ -50,9 +53,25 @@ class GoogleAnalyticsService
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to initialize Google Analytics client', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Normalize property ID to ensure it has the "properties/" prefix
+     */
+    private function normalizePropertyId(string $propertyId): string
+    {
+        $propertyId = trim($propertyId);
+
+        // If it already starts with "properties/", return as-is
+        if (str_starts_with($propertyId, 'properties/')) {
+            return $propertyId;
+        }
+
+        // Otherwise, add the prefix
+        return 'properties/' . $propertyId;
     }
 
     /**
@@ -68,7 +87,7 @@ class GoogleAnalyticsService
      */
     public function getRealTimeUsers(): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return ['active_users' => 0];
         }
 
@@ -94,7 +113,7 @@ class GoogleAnalyticsService
      */
     public function getOverviewData(int $days = 30): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return $this->getEmptyOverviewData();
         }
 
@@ -153,7 +172,7 @@ class GoogleAnalyticsService
      */
     public function getUsersTrend(int $days = 30): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return [];
         }
 
@@ -217,7 +236,7 @@ class GoogleAnalyticsService
      */
     public function getTopPages(int $limit = 10): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return [];
         }
 
@@ -276,7 +295,7 @@ class GoogleAnalyticsService
      */
     public function getTopEvents(int $limit = 10): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return [];
         }
 
@@ -307,9 +326,9 @@ class GoogleAnalyticsService
                 $data = [];
                 foreach ($response->getRows() as $row) {
                     $eventName = $row->getDimensionValues()[0]->getValue();
-                    
+
                     // Skip default GA4 events, show only custom events
-                    if (!in_array($eventName, ['session_start', 'first_visit', 'page_view', 'user_engagement'])) {
+                    if (! in_array($eventName, ['session_start', 'first_visit', 'page_view', 'user_engagement'])) {
                         $data[] = [
                             'event_name' => $eventName,
                             'count' => (int) $row->getMetricValues()[0]->getValue(),
@@ -330,7 +349,7 @@ class GoogleAnalyticsService
      */
     public function getTrafficSources(): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return [];
         }
 
@@ -402,7 +421,7 @@ class GoogleAnalyticsService
      */
     public function getTopCountries(int $limit = 10): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return [];
         }
 
@@ -465,7 +484,7 @@ class GoogleAnalyticsService
      */
     public function getDeviceCategories(): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return [];
         }
 
@@ -527,7 +546,7 @@ class GoogleAnalyticsService
      */
     public function getBrowsers(int $limit = 10): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return [];
         }
 
@@ -576,7 +595,7 @@ class GoogleAnalyticsService
      */
     public function getOperatingSystems(int $limit = 10): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return [];
         }
 
@@ -625,7 +644,7 @@ class GoogleAnalyticsService
      */
     public function getLandingPages(int $limit = 10): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return [];
         }
 
