@@ -166,7 +166,11 @@
         ]
     },
     "conflict": {
-    "symfony/*": ">=8.0"
+    "symfony/clock": ">=8.0",
+    "symfony/css-selector": ">=8.0",
+    "symfony/event-dispatcher": ">=8.0",
+    "symfony/string": ">=8.0",
+    "symfony/translation": ">=8.0"
 },
     "minimum-stability": "beta",
     "prefer-stable": true
