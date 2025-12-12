@@ -165,6 +165,9 @@
             "@php artisan module:seed"
         ]
     },
+    "conflict": {
+    "symfony/*": ">=8.0"
+},
     "minimum-stability": "beta",
     "prefer-stable": true
 }
