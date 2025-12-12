@@ -108,4 +108,36 @@ class SettingController extends ApiController
             'Company info retrieved successfully'
         );
     }
+
+    /**
+     * Get Frontend Google Analytics configuration.
+     * Public endpoint for frontend to initialize GA4 tracking.
+     *
+     * @tags Settings
+     */
+    public function frontendGoogleAnalyticsConfig(): JsonResponse
+    {
+        $keys = [
+            'frontend_ga_enabled',
+            'frontend_ga_measurement_id',
+            'frontend_ga_anonymize_ip',
+            'frontend_ga_cookie_consent_required',
+        ];
+
+        $settings = Setting::whereIn('option_name', $keys)
+            ->pluck('option_value', 'option_name');
+
+        // Convert string boolean values to actual booleans
+        $config = [
+            'enabled' => (bool) ($settings['frontend_ga_enabled'] ?? false),
+            'measurement_id' => $settings['frontend_ga_measurement_id'] ?? '',
+            'anonymize_ip' => (bool) ($settings['frontend_ga_anonymize_ip'] ?? true),
+            'cookie_consent_required' => (bool) ($settings['frontend_ga_cookie_consent_required'] ?? true),
+        ];
+
+        return $this->successResponse(
+            $config,
+            'Google Analytics configuration retrieved successfully'
+        );
+    }
 }

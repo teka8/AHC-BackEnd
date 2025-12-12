@@ -75,7 +75,12 @@ class SettingController extends Controller
         $uploadPath = 'uploads/settings';
 
         // Handle checkbox fields that might not be present when unchecked
-        $checkboxFields = ['disable_default_admin_redirect'];
+        $checkboxFields = [
+            'disable_default_admin_redirect',
+            'frontend_ga_enabled',
+            'frontend_ga_anonymize_ip',
+            'frontend_ga_cookie_consent_required',
+        ];
         foreach ($checkboxFields as $checkboxField) {
             // Skip restricted fields in demo mode
             if (config('app.demo_mode', false) && in_array($checkboxField, $restrictedFields ?? [])) {
@@ -86,6 +91,35 @@ class SettingController extends Controller
                 // If the form was submitted but checkbox wasn't checked, set to 0
                 $fields[$checkboxField] = '0';
             }
+        }
+
+        // Handle frontend GA service account JSON file upload
+        if ($request->hasFile('frontend_ga_service_account')) {
+            $file = $request->file('frontend_ga_service_account');
+            
+            // Validate JSON file
+            $request->validate([
+                'frontend_ga_service_account' => 'required|file|mimes:json|max:10240', // Max 10MB
+            ]);
+
+            // Create directory if it doesn't exist
+            $directory = storage_path('app/google');
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            // Store the file
+            $filename = 'ahc-ga-service-account.json';
+            $filePath = $file->storeAs('google', $filename);
+            
+            // Set proper permissions
+            chmod(storage_path('app/' . $filePath), 0600);
+            
+            // Save the path in settings
+            $fields['frontend_ga_service_account_path'] = $filePath;
+            
+            // Remove the file from fields to prevent it from being processed again
+            unset($fields['frontend_ga_service_account']);
         }
 
         foreach ($fields as $fieldName => $fieldValue) {

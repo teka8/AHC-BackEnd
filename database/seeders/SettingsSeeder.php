@@ -59,6 +59,14 @@ class SettingsSeeder extends Seeder
             ['option_name' => 'ai_default_provider', 'option_value' => 'openai'],
             ['option_name' => 'ai_openai_api_key', 'option_value' => ''],
             ['option_name' => 'ai_claude_api_key', 'option_value' => ''],
+
+            // Frontend Google Analytics settings.
+            ['option_name' => 'frontend_ga_measurement_id', 'option_value' => ''],
+            ['option_name' => 'frontend_ga_property_id', 'option_value' => ''],
+            ['option_name' => 'frontend_ga_enabled', 'option_value' => '0'],
+            ['option_name' => 'frontend_ga_anonymize_ip', 'option_value' => '1'],
+            ['option_name' => 'frontend_ga_cookie_consent_required', 'option_value' => '1'],
+            ['option_name' => 'frontend_ga_service_account_path', 'option_value' => ''],
         ];
 
         // Add created_at and updated_at.

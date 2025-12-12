@@ -333,6 +333,13 @@ class PermissionService
                     'contact_message.delete',
                 ],
             ],
+            // ========== FRONTEND ANALYTICS PERMISSIONS ==========
+            [
+                'group_name' => 'analytics',
+                'permissions' => [
+                    'view_frontend_analytics',
+                ],
+            ],
         ];
 
         return $permissions;

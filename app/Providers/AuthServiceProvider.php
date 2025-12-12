@@ -36,6 +36,7 @@ use App\Policies\AhcLeaderPolicy;
 use App\Models\AhcLeader;
 use App\Policies\ContactMessagePolicy;
 use App\Models\ContactMessage;
+use App\Policies\AnalyticsPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -66,6 +67,7 @@ class AuthServiceProvider extends ServiceProvider
         EmailSubscription::class => EmailSubscriptionPolicy::class,
         AhcLeader::class => AhcLeaderPolicy::class,
         ContactMessage::class => ContactMessagePolicy::class,
+        'analytics' => AnalyticsPolicy::class,
     ];
 
     /**

@@ -137,6 +137,22 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::delete('/{contactMessage}', [ContactMessageController::class, 'destroy'])->name('destroy');
     });
 
+    // Frontend Analytics Routes
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Backend\AnalyticsController::class, 'index'])->name('index');
+        Route::get('/realtime', [\App\Http\Controllers\Backend\AnalyticsController::class, 'getRealTime'])->name('realtime');
+        Route::get('/overview', [\App\Http\Controllers\Backend\AnalyticsController::class, 'getOverview'])->name('overview');
+        Route::get('/users-trend', [\App\Http\Controllers\Backend\AnalyticsController::class, 'getUsersTrend'])->name('users-trend');
+        Route::get('/top-pages', [\App\Http\Controllers\Backend\AnalyticsController::class, 'getTopPages'])->name('top-pages');
+        Route::get('/top-events', [\App\Http\Controllers\Backend\AnalyticsController::class, 'getTopEvents'])->name('top-events');
+        Route::get('/traffic-sources', [\App\Http\Controllers\Backend\AnalyticsController::class, 'getTrafficSources'])->name('traffic-sources');
+        Route::get('/geography', [\App\Http\Controllers\Backend\AnalyticsController::class, 'getGeography'])->name('geography');
+        Route::get('/devices', [\App\Http\Controllers\Backend\AnalyticsController::class, 'getDevices'])->name('devices');
+        Route::get('/browsers', [\App\Http\Controllers\Backend\AnalyticsController::class, 'getBrowsers'])->name('browsers');
+        Route::get('/operating-systems', [\App\Http\Controllers\Backend\AnalyticsController::class, 'getOperatingSystems'])->name('operating-systems');
+        Route::get('/landing-pages', [\App\Http\Controllers\Backend\AnalyticsController::class, 'getLandingPages'])->name('landing-pages');
+    });
+
     Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
         Route::get('/', [EmailSubscriptionController::class, 'index'])->name('index');
         Route::post('/bulk-export', [EmailSubscriptionController::class, 'export'])->name('bulk-export');

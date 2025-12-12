@@ -252,6 +252,20 @@ class AdminMenuService
         // ], __('More'));
 
         $this->addMenuItem([
+            'label' => __('AHC Google Analytics'),
+            'icon' => 'lucide:bar-chart-2',
+            'route' => route('admin.analytics.index'),
+            'active' => Route::is('admin.analytics.*'),
+            'id' => 'analytics',
+            'priority' => 47,
+            'permissions' => 'view_frontend_analytics',
+            'badge' => [
+                'text' => __('Live'),
+                'class' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+            ],
+        ], __('More'));
+
+        $this->addMenuItem([
             'label' => __('Monitoring'),
             'icon' => 'lucide:monitor',
             'id' => 'monitoring-submenu',
