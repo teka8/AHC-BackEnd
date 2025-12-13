@@ -16,6 +16,8 @@ use App\Services\SettingService;
 use App\Support\Facades\Hook;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class SettingController extends Controller
 {
@@ -134,6 +136,12 @@ class SettingController extends Controller
             unset($fields['frontend_ga_service_account']);
         }
 
+        // Track if Google Analytics settings were changed
+        $gaSettingsChanged = isset($fields['frontend_ga_property_id']) 
+            || isset($fields['frontend_ga_measurement_id'])
+            || isset($fields['frontend_ga_service_account_path'])
+            || isset($fields['frontend_ga_enabled']);
+
         foreach ($fields as $fieldName => $fieldValue) {
             if ($request->hasFile($fieldName)) {
                 $this->imageService->deleteImageFromPublic((string) config($fieldName));
@@ -150,6 +158,12 @@ class SettingController extends Controller
             }
         }
 
+        // Clear Google Analytics cache if settings changed
+        if ($gaSettingsChanged) {
+            $this->clearGoogleAnalyticsCache();
+            Log::info('Google Analytics settings updated, cache cleared');
+        }
+
         $this->envWriter->batchWriteKeysToEnvFile($fields);
 
         $this->storeActionLog(ActionType::UPDATED, [
@@ -157,5 +171,36 @@ class SettingController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Settings saved successfully.');
+    }
+
+    /**
+     * Clear Google Analytics cache
+     * Called automatically when GA settings are updated
+     */
+    private function clearGoogleAnalyticsCache(): void
+    {
+        // List of all GA cache keys
+        $cacheKeys = [
+            'ga_realtime',
+            'ga_top_pages',
+            'ga_top_events',
+            'ga_traffic_sources',
+            'ga_top_countries',
+            'ga_devices',
+            'ga_browsers',
+            'ga_operating_systems',
+            'ga_landing_pages',
+        ];
+        
+        // Clear static cache keys
+        foreach ($cacheKeys as $key) {
+            Cache::forget($key);
+        }
+        
+        // Clear dynamic cache keys with days parameter
+        foreach ([7, 30, 90] as $days) {
+            Cache::forget("ga_overview_{$days}");
+            Cache::forget("ga_users_trend_{$days}");
+        }
     }
 }

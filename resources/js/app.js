@@ -96,23 +96,12 @@ Alpine.data("advancedFields", (initialMeta = {}) => {
     };
 });
 
-// Alpine plugins.
+// Alpine plugins - MUST register BEFORE Livewire.start()
 Alpine.plugin(focus);
-window.Alpine = Alpine;
-Alpine.start();
 
-// Prevent registering the persist plugin multiple times
-if (!window.__alpinePersistRegistered) {
-    try {
-        Alpine.plugin(persist);
-        window.__alpinePersistRegistered = true;
-    } catch (e) {
-        // If something goes wrong registering the plugin, log and continue
-        // so the page doesn't crash with "Cannot redefine property: $persist".
-        // (You can remove the console.warn in production.)
-        console.warn("Alpine persist plugin registration failed:", e);
-    }
-}
+// Note: Alpine is already started by Livewire.start() above
+// Do NOT call Alpine.start() again - it causes double initialization
+window.Alpine = Alpine;
 
 // Global drawers.
 window.openDrawer = function (drawerId) {
