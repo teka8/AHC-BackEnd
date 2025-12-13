@@ -262,6 +262,7 @@
     </div>
 
     @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
         @include('backend.pages.analytics.partials.scripts')
     @endpush
 </x-layouts.backend-layout>
