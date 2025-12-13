@@ -1,5 +1,33 @@
 <x-layouts.backend-layout :breadcrumbs="$breadcrumbs">
     
+    {{-- Google Analytics Official Link Banner --}}
+    <div class="mb-6 rounded-md border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
+        <div class="px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <div class="flex-shrink-0">
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-1">
+                        {{ __('Need More Detailed Analytics?') }}
+                    </h4>
+                    <p class="text-sm text-blue-800 dark:text-blue-400">
+                        {{ __('This dashboard shows key metrics. For advanced reports, custom segments, and detailed analysis, visit the official Google Analytics platform.') }}
+                    </p>
+                </div>
+            </div>
+            <a href="https://analytics.google.com/" target="_blank" rel="noopener noreferrer"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors shadow-sm whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                {{ __('Open Google Analytics') }}
+            </a>
+        </div>
+    </div>
+
     {{-- Real-time Active Users Bar --}}
     <div class="mb-6 rounded-md border border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 dark:border-green-800">
         <div class="px-5 py-4 flex items-center justify-between">
