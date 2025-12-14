@@ -15564,6 +15564,2723 @@ Response:
 
 ---
 
+## Chapter 31: Google Analytics Integration
+
+The **Google Analytics 4 (GA4) Integration** provides comprehensive website analytics, tracking user behavior, content performance, and visitor insights to help AHC make data-driven decisions.
+
+### 31.1 What is Google Analytics 4?
+
+**Google Analytics 4** is Google's latest analytics platform that tracks and reports website traffic, user interactions, and content performance.
+
+**Why AHC Uses GA4:**
+
+**Understand Your Audience:**
+- Who visits the AHC website?
+- Where are they located?
+- What devices do they use?
+- What content interests them most?
+
+**Measure Content Performance:**
+- Which pages get the most visits?
+- Which news articles are most popular?
+- Which events generate the most interest?
+- What resources are downloaded most?
+
+**Track User Journeys:**
+- How do users navigate the site?
+- What's their entry point?
+- Where do they spend the most time?
+- What actions do they take (registrations, downloads, contacts)?
+
+**Improve Decision-Making:**
+- Data-driven content strategy
+- Evidence for program impact
+- Resource allocation guidance
+- Partnership reporting
+
+**Privacy & GDPR Compliance:**
+
+AHC's GA4 implementation respects user privacy:
+- Cookie consent required before tracking
+- IP anonymization option
+- Data retention controls
+- User can opt-out anytime
+- Transparent privacy policy
+
+ℹ️ **Note:** Analytics data helps AHC improve services while respecting visitor privacy.
+
+---
+
+### 31.2 For Website Visitors: Cookie Consent
+
+#### Understanding Cookie Consent
+
+When you first visit the AHC website, you'll see a **cookie consent banner** at the bottom of the page.
+
+**[Screenshot: Cookie consent banner showing at bottom of homepage]**
+
+**What You'll See:**
+
+**Banner Components:**
+- **Heading:** "We Value Your Privacy"
+- **Message:** Brief explanation of cookie usage
+- **Three Buttons:**
+  - **"Manage"** → Opens detailed preferences page
+  - **"Reject All"** → Only essential cookies (site won't track you)
+  - **Accept All** → Enable all cookies (help us improve)
+
+**Why We Ask:**
+
+**Legal Compliance:**
+- GDPR (European regulation)
+- Data protection laws
+- User privacy rights
+
+**Transparency:**
+- You control your data
+- Clear explanation of what we track
+- Easy to change your mind
+
+**Your Choices:**
+
+**Option 1: Accept All**
+- Analytical cookies enabled
+- Helps AHC understand website usage
+- Improves user experience
+- Your choice lasts 12 months
+
+**Option 2: Reject All**
+- Only strictly necessary cookies
+- Site functions normally
+- No analytics tracking
+- Privacy-focused
+
+**Option 3: Manage (Customize)**
+- Choose specific cookie categories
+- Granular control
+- Opens Cookie Preferences page
+
+💡 **Tip:** If you're not sure, click "Manage" to see exactly what each cookie type does.
+
+#### Cookie Categories Explained
+
+**Strictly Necessary Cookies** (Always Enabled)
+- **Purpose:** Essential for website operation
+- **Examples:** 
+  - Login sessions
+  - Security tokens
+  - Language preferences
+  - Shopping cart (if applicable)
+- **Can You Disable?** No (site won't work without them)
+- **Privacy Impact:** Minimal (only functional data)
+
+**Analytical Cookies** (Your Choice)
+- **Purpose:** Understand how visitors use the site
+- **What They Track:**
+  - Pages visited
+  - Time spent on pages
+  - Links clicked
+  - Device type (desktop/mobile)
+  - Browser used
+  - Country/region
+  - Navigation paths
+- **What They DON'T Track:**
+  - Personal information
+  - Names or email addresses
+  - Passwords
+  - Private content
+- **Data Used For:**
+  - Improving website design
+  - Identifying popular content
+  - Fixing navigation issues
+  - Measuring program impact
+- **Can You Disable?** Yes
+- **Privacy Impact:** Low (anonymized data)
+
+**Preference Cookies** (Future - Your Choice)
+- **Purpose:** Remember your settings
+- **Examples:**
+  - Dark/light mode preference
+  - Language selection
+  - Layout preferences
+- **Can You Disable?** Yes (but you'll need to reset preferences each visit)
+
+**Marketing Cookies** (Future - Your Choice)
+- **Purpose:** Show relevant advertisements (if AHC uses ads in future)
+- **Can You Disable?** Yes
+
+ℹ️ **Note:** Currently, AHC only uses Analytical cookies beyond strictly necessary ones.
+
+#### Managing Your Cookie Preferences
+
+You can change your cookie preferences anytime.
+
+**How to Access Cookie Preferences:**
+
+**Method 1: From Footer**
+1. Scroll to bottom of any page
+2. Click **"Cookie Preferences"** link in footer
+3. Preferences page opens
+
+**Method 2: Direct URL**
+Navigate to: `https://yourdomain.com/cookie-preferences`
+
+**[Screenshot: Cookie Preferences page with toggle switches]**
+
+**Cookie Preferences Page Layout:**
+
+**Page Header:**
+- Title: "Cookie Preferences"
+- Description of cookie usage
+
+**Cookie Category Cards:**
+
+Each category shows:
+- **Category Name:** (e.g., "Analytical Cookies")
+- **Description:** What these cookies do
+- **Toggle Switch:** 
+  - **ON (Blue):** Category enabled
+  - **OFF (Gray):** Category disabled
+- **Always On (Lock Icon):** For strictly necessary cookies
+
+**Example Card:**
+
+```
+[Toggle Switch - ON]  Analytical Cookies
+
+These cookies help us understand how visitors interact with our website 
+by collecting and reporting information anonymously. This data helps us 
+improve the website and provide better content.
+
+Cookies used: Google Analytics (_ga, _gid, _gat)
+```
+
+**How to Change Preferences:**
+
+**Step 1:** Review each cookie category
+
+**Step 2:** Toggle switches to your preference
+- Click/tap toggle to turn ON or OFF
+- Switch changes color immediately
+
+**Step 3:** Click **"Save Preferences"** button (bottom of page)
+- Green button
+- Saves your choices
+- Confirmation message appears
+
+**Step 4:** Continue browsing
+- Your preferences take effect immediately
+- Saved for 12 months
+
+**Current Consent Status:**
+
+At the bottom of the page, you'll see:
+
+```
+Current Consent Status:
+✅ Analytical Cookies: Enabled
+⏱️ Consent Expires: December 14, 2025
+```
+
+**Consent Expiration:**
+
+Your cookie consent lasts **12 months**. After that:
+- Banner appears again
+- You'll be asked to renew consent
+- Previous preferences shown as default
+- Re-consent with one click
+
+**Why 12 months?**
+- GDPR compliance
+- Ensures continued informed consent
+- Allows you to reconsider
+- Reflects any policy changes
+
+💡 **Tip:** Bookmark the Cookie Preferences page if you frequently change your settings.
+
+#### Privacy Policy
+
+The **Privacy Policy** explains in detail how AHC collects, uses, and protects your data.
+
+**How to Access:**
+- Footer → **"Privacy Policy"** link
+- Or visit: `https://yourdomain.com/privacy-policy`
+
+**[Screenshot: Privacy Policy page]**
+
+**Privacy Policy Sections:**
+
+**1. Introduction**
+- Who we are (Africa Health Collaborative)
+- Purpose of policy
+- Scope of policy
+
+**2. Data We Collect**
+- Information you provide (contact forms, event registrations)
+- Automatic data (cookies, analytics)
+- Third-party data (LinkedIn profiles)
+
+**3. How We Use Your Data**
+- Service provision
+- Communication
+- Analytics and improvement
+- Legal compliance
+
+**4. Cookie Usage**
+- Types of cookies
+- Purpose of each
+- How to control cookies
+- Third-party cookies (Google Analytics)
+
+**5. Your Rights (GDPR)**
+- **Right to Access:** Request your data
+- **Right to Rectification:** Correct inaccurate data
+- **Right to Erasure:** "Right to be forgotten"
+- **Right to Restrict Processing:** Limit how we use data
+- **Right to Data Portability:** Get your data in portable format
+- **Right to Object:** Object to processing
+- **Right to Withdraw Consent:** Opt-out anytime
+
+**6. Data Security**
+- Encryption measures
+- Access controls
+- Regular security audits
+- Data breach procedures
+
+**7. Contact Information**
+- Data Protection Officer email
+- Physical address
+- Phone number
+
+**Exercising Your Rights:**
+
+To request data access, deletion, or other rights:
+
+**Step 1:** Email data protection officer
+Email address provided in Privacy Policy
+
+**Step 2:** Specify your request
+- State which right you're exercising
+- Provide identifying information
+- Explain your request clearly
+
+**Step 3:** Await response
+- Response within 30 days (per GDPR)
+- May request identity verification
+- Action taken or explanation provided
+
+---
+
+### 31.3 For Administrators: Initial Setup
+
+This section guides administrators through the complete setup of Google Analytics for the AHC platform.
+
+#### Prerequisites
+
+Before you begin:
+- [x] Admin access to AHC backend (`/admin`)
+- [x] Permission: `manage_settings`
+- [x] Google account (Gmail)
+- [x] Basic understanding of Google services
+- [x] 30-60 minutes to complete setup
+
+⚠️ **Important:** Setup involves creating external accounts and uploading sensitive files. Handle credentials securely.
+
+---
+
+#### Step 1: Create Google Analytics 4 Property
+
+**Navigate to Google Analytics:**
+
+1. Open web browser
+2. Go to: **https://analytics.google.com/**
+3. Sign in with your Google account (use organizational account if available)
+
+**[Screenshot: Google Analytics homepage]**
+
+**Create GA4 Property:**
+
+**Step 1.1:** Click **"Admin"** (gear icon, bottom-left)
+
+**Step 1.2:** In the "Account" column:
+- If you have an existing account → Select it
+- If no account → Click **"Create Account"**
+  - Account name: `Africa Health Collaborative`
+  - Check all data sharing settings (recommended)
+  - Click "Next"
+
+**[Screenshot: Create Account screen]**
+
+**Step 1.3:** In the "Property" column:
+- Click **"Create Property"**
+- Property name: `AHC Website`
+- Reporting time zone: `(GMT+03:00) Addis Ababa`
+- Currency: `USD` or `ETB` (Ethiopian Birr)
+- Click "Next"
+
+**[Screenshot: Property creation screen]**
+
+**Step 1.4:** Business information:
+- Industry category: `Health & Fitness` or `Education`
+- Business size: Select appropriate size
+- How you plan to use GA4: Check relevant options
+  - Examine user behavior
+  - Measure advertising ROI
+  - Get to know your customers
+- Click "Create"
+
+**Step 1.5:** Accept Terms of Service
+- Read terms
+- Check acceptance box
+- Click "I Accept"
+
+**Get Measurement ID:**
+
+**Step 1.6:** On the next screen, you'll see:
+- "Web" stream already created OR
+- Option to "Add data stream"
+
+**Step 1.7:** If not created, click **"Add stream" → "Web"**
+
+**Step 1.8:** Enter website details:
+- Website URL: `https://yourdomain.com` (your actual AHC domain)
+- Stream name: `AHC Main Website`
+- Click "Create stream"
+
+**[Screenshot: Web stream creation]**
+
+**Step 1.9:** On Stream Details page, note:
+- **Measurement ID:** Format `G-XXXXXXXXXX` (e.g., `G-ABC123DEF4`)
+  - **COPY THIS!** You'll need it later
+  - Looks like: `G-` followed by 10 alphanumeric characters
+
+**[Screenshot: Measurement ID display - highlight the ID]**
+
+**Step 1.10:** Also note **Property ID** (numeric):
+- In the Admin panel, "Property" column
+- Below property name, see: `Properties/123456789`
+- **COPY the numeric ID** (e.g., `123456789`)
+  - Just the numbers, not "Properties/" part
+
+**[Screenshot: Property ID location in Admin panel]**
+
+💡 **Tip:** Save both IDs in a secure note temporarily. You'll enter them in AHC backend settings shortly.
+
+✅ **Checkpoint:** You should now have:
+- Measurement ID (G-XXXXXXXXXX)
+- Property ID (123456789)
+
+---
+
+#### Step 2: Setup Google Cloud Console
+
+To access analytics data in the AHC admin dashboard, you need to create a **Service Account** with API access.
+
+**What is a Service Account?**
+A service account is like a "robot user" that allows the AHC backend to fetch analytics data from Google on behalf of your organization, without requiring manual login each time.
+
+**Navigate to Google Cloud Console:**
+
+1. Open new browser tab
+2. Go to: **https://console.cloud.google.com/**
+3. Sign in with the same Google account
+
+**[Screenshot: Google Cloud Console homepage]**
+
+**Create or Select Project:**
+
+**Step 2.1:** At the top of the page, click the **project dropdown**
+- Shows current project or "Select a project"
+
+**Step 2.2:** Click **"NEW PROJECT"**
+- Project name: `AHC Analytics`
+- Organization: Select your organization (if applicable)
+- Location: Leave as is
+- Click "CREATE"
+
+**[Screenshot: Create project screen]**
+
+**Step 2.3:** Wait for project creation (10-30 seconds)
+- Notification appears when ready
+- Click notification or select project from dropdown
+
+**Enable Google Analytics Data API:**
+
+**Step 2.4:** In left sidebar, navigate to:
+**APIs & Services** → **Library**
+- Or use search box: "API Library"
+
+**[Screenshot: API Library page]**
+
+**Step 2.5:** In search bar, type: `Google Analytics Data API`
+
+**Step 2.6:** Click on **"Google Analytics Data API"** result
+
+**[Screenshot: Google Analytics Data API page]**
+
+**Step 2.7:** Click **"ENABLE"** button
+- API enables (takes a few seconds)
+- You'll see "API enabled" confirmation
+
+✅ **Checkpoint:** Google Analytics Data API is now enabled for your project.
+
+**Create Service Account:**
+
+**Step 2.8:** In left sidebar, go to:
+**APIs & Services** → **Credentials**
+
+**[Screenshot: Credentials page]**
+
+**Step 2.9:** Click **"+ CREATE CREDENTIALS"** (top of page)
+
+**Step 2.10:** Select **"Service account"**
+
+**[Screenshot: Create credentials dropdown]**
+
+**Step 2.11:** Fill Service Account Details:
+- **Service account name:** `ahc-backend-api`
+- **Service account ID:** Auto-generates (e.g., `ahc-backend-api@...`)
+- **Description:** `Service account for AHC Backend to access Google Analytics data`
+- Click "CREATE AND CONTINUE"
+
+**[Screenshot: Service account details form]**
+
+**Step 2.12:** Grant Service Account Access (Optional):
+- This step can be skipped
+- Click "CONTINUE"
+
+**Step 2.13:** Grant Users Access (Optional):
+- This step can be skipped
+- Click "DONE"
+
+**Download JSON Key File:**
+
+**Step 2.14:** On Credentials page, find your new service account in the list:
+- Under "Service Accounts" section
+- Name: `ahc-backend-api@...`
+
+**[Screenshot: Service accounts list highlighting the new account]**
+
+**Step 2.15:** Click on the **service account email** (the blue link)
+
+**Step 2.16:** Navigate to **"KEYS"** tab (top of page)
+
+**[Screenshot: Service account details page, Keys tab]**
+
+**Step 2.17:** Click **"ADD KEY"** dropdown → **"Create new key"**
+
+**Step 2.18:** Select key type:
+- Choose **"JSON"** (default)
+- Click "CREATE"
+
+**[Screenshot: Key type selection dialog]**
+
+**Step 2.19:** JSON file automatically downloads:
+- File name like: `ahc-analytics-123abc456def.json`
+- **IMPORTANT:** This file contains sensitive credentials!
+- Save securely
+- Do NOT commit to GitHub
+- Do NOT email openly
+- Do NOT share publicly
+
+⚠️ **Security Warning:** Treat this JSON file like a password. Anyone with this file can access your analytics data.
+
+**Step 2.20:** Copy the service account email:
+- Still on the service account page
+- **Email format:** `ahc-backend-api@ahc-analytics-123456.iam.gserviceaccount.com`
+- **COPY THIS EMAIL** (you'll need it in next step)
+
+**[Screenshot: Service account email highlighted]**
+
+✅ **Checkpoint:** You should now have:
+- JSON key file downloaded
+- Service account email copied
+
+---
+
+#### Step 3: Grant Analytics Access to Service Account
+
+The service account needs permission to read data from your GA4 property.
+
+**Return to Google Analytics:**
+
+1. Go back to: **https://analytics.google.com/**
+2. Make sure you're viewing your AHC property
+
+**Add Service Account as User:**
+
+**Step 3.1:** Click **"Admin"** (gear icon, bottom-left)
+
+**Step 3.2:** In the "Property" column (middle), click:
+**"Property Access Management"**
+
+**[Screenshot: Admin panel with Property Access Management highlighted]**
+
+**Step 3.3:** Click **"+"** (plus icon, top-right) → **"Add users"**
+
+**[Screenshot: Property access management page]**
+
+**Step 3.4:** Enter service account email:
+- Paste the email you copied earlier
+- Example: `ahc-backend-api@ahc-analytics-123456.iam.gserviceaccount.com`
+
+**[Screenshot: Add users dialog with email field]**
+
+**Step 3.5:** Select role:
+- Click the **"Viewer"** radio button
+  - **Viewer** is sufficient (read-only access)
+  - Do NOT select Administrator or Editor
+- Leave other options unchecked:
+  - "Notify new users by email" - Not needed (service account has no inbox)
+
+**[Screenshot: Role selection showing Viewer selected]**
+
+**Step 3.6:** Click **"Add"** button
+
+**Step 3.7:** Verify access granted:
+- Service account email appears in users list
+- Role: "Viewer"
+- Status: Active
+
+**[Screenshot: Users list showing service account with Viewer role]**
+
+✅ **Checkpoint:** Service account now has read access to your Google Analytics data.
+
+💡 **Tip:** If you need to revoke access later, return to this page and remove the service account user.
+
+---
+
+#### Step 4: Configure AHC Backend Settings
+
+Now you'll enter all the information gathered above into the AHC admin panel.
+
+**Login to AHC Admin:**
+
+1. Navigate to: `https://yourdomain.com/admin`
+2. Enter admin credentials
+3. Login
+
+**Navigate to Settings:**
+
+**Step 4.1:** In admin sidebar, click **"Settings"**
+- Or go directly to: `/admin/settings`
+
+**[Screenshot: Admin dashboard with Settings highlighted in sidebar]**
+
+**Step 4.2:** Click **"Integrations"** tab
+- Tabs near top of page: General | Email | Integrations | Advanced
+- Click "Integrations"
+
+**[Screenshot: Settings page with Integrations tab highlighted]**
+
+**Google Analytics 4 Configuration Section:**
+
+You'll see a section titled **"Google Analytics 4 Configuration"** with several fields.
+
+**[Screenshot: GA4 configuration form - full view]**
+
+**Enable Frontend Tracking:**
+
+**Step 4.3:** Locate the **"Enable Frontend Tracking"** toggle
+- Switch ON (blue) if you want to start tracking immediately
+- Switch OFF (gray) if you want to test backend first
+
+**[Screenshot: Toggle switch in ON position]**
+
+💡 **Tip:** You can leave this OFF during initial setup and enable later after verifying backend dashboard works.
+
+**Enter Measurement ID:**
+
+**Step 4.4:** Find the **"Measurement ID"** field
+- Label: "GA4 Measurement ID"
+- Placeholder text: `G-XXXXXXXXXX`
+
+**Step 4.5:** Paste the Measurement ID you copied in Step 1:
+- Example: `G-ABC123DEF4`
+- Format must start with `G-` followed by 10 characters
+- Validation error shows if format is wrong
+
+**[Screenshot: Measurement ID field with example ID]**
+
+**Enter Property ID:**
+
+**Step 4.6:** Find the **"Property ID"** field
+- Label: "GA4 Property ID (for API)"
+- Help text: "Numeric ID (e.g., 123456789) or full format (properties/123456789)"
+
+**Step 4.7:** Paste the Property ID:
+- Enter JUST the numbers: `123456789`
+- OR full format: `properties/123456789` (either works)
+
+**[Screenshot: Property ID field with example ID]**
+
+**Upload Service Account JSON:**
+
+**Step 4.8:** Find the **"Service Account JSON Key"** file upload field
+- Label: "Service Account JSON"
+- Includes a file selector button
+
+**Step 4.9:** Click **"Choose File"** or "Browse"
+
+**Step 4.10:** Navigate to where you downloaded the JSON file
+- File name like: `ahc-analytics-123abc456def.json`
+- Select the file
+- Click "Open"
+
+**[Screenshot: File upload field with file selected]**
+
+**Step 4.11:** Verify file selected:
+- File name should appear next to button
+- File size shown (usually 2-3 KB)
+
+⚠️ **Security Note:** The JSON file is stored securely in `storage/app/google/` directory (NOT publicly accessible).
+
+**Cookie Consent Required:**
+
+**Step 4.12:** Locate **"Require Cookie Consent"** toggle
+- Recommended: **ON** (GDPR compliance)
+- When ON: Cookie banner appears for first-time visitors
+- When OFF: Tracking starts immediately (not recommended for EU visitors)
+
+**[Screenshot: Cookie consent toggle in ON position]**
+
+💡 **Recommendation:** Keep this ON to respect user privacy and comply with data protection laws.
+
+**Anonymize IP Addresses:**
+
+**Step 4.13:** Locate **"Anonymize IP"** toggle (if available)
+- When ON: User IP addresses are anonymized before being sent to Google
+- Provides extra privacy protection
+- Recommended: **ON**
+
+**Save Settings:**
+
+**Step 4.14:** Review all entered information:
+- ✅ Measurement ID: `G-XXXXXXXXXX`
+- ✅ Property ID: `123456789`
+- ✅ JSON file: Selected
+- ✅ Toggles: Set according to preference
+
+**Step 4.15:** Scroll to bottom of page
+
+**Step 4.16:** Click **"Save Settings"** button
+- Green button
+- Located at bottom-right or bottom-center
+
+**[Screenshot: Save Settings button]**
+
+**Step 4.17:** Wait for confirmation:
+- Success message appears: "Settings saved successfully"
+- Page may reload
+- Green notification banner at top
+
+**[Screenshot: Success notification]**
+
+**Behind the Scenes:**
+When you clicked "Save Settings", the system automatically:
+- Uploaded JSON file to secure storage
+- Saved Measurement ID and Property ID to database
+- **Cleared all analytics cache** (17 cache keys deleted)
+- Logged the action in system logs
+
+✅ **Checkpoint:** Google Analytics is now configured in AHC backend!
+
+---
+
+#### Step 5: Verify Configuration
+
+Let's confirm everything is working correctly.
+
+**Check System Logs:**
+
+**Step 5.1:** In admin sidebar, navigate to:
+**"Monitoring"** → **"Action Logs"** (or similar)
+- Or: `/admin/logs`
+
+**Step 5.2:** Look for recent log entry:
+- Action: "UPDATED"
+- Module: "Settings"
+- Description: "Settings saved successfully"
+- Details may include: "Google Analytics settings updated, cache cleared"
+
+**[Screenshot: Action log showing settings update with cache clear message]**
+
+💡 **Tip:** If you see the cache clear message, configuration was saved successfully.
+
+**Test Analytics Dashboard Access:**
+
+**Step 5.3:** In admin sidebar, click **"Analytics"**
+- Located in main navigation menu
+- May have a "Live" badge
+- Or navigate to: `/admin/analytics`
+
+**[Screenshot: Admin sidebar with Analytics menu item highlighted]**
+
+**What You Should See:**
+
+**Success Indicators:**
+- ✅ Dashboard loads (no error page)
+- ✅ 8 stat cards display
+- ✅ Numbers appear (may be zero if no data yet)
+- ✅ Charts render
+- ✅ No error messages
+
+**[Screenshot: Analytics dashboard successfully loaded with stat cards and charts]**
+
+**If You See "Not Configured" Page:**
+- Red warning icon
+- Message: "Google Analytics is not configured"
+- Button: "Go to Settings"
+
+**Troubleshooting:**
+- Check Property ID is correct
+- Check JSON file uploaded successfully
+- Check service account has "Viewer" role in GA4
+- Check Google Analytics Data API is enabled
+- View error logs for specific error messages
+
+**Expected Initial Data:**
+
+**New Property (No Data Yet):**
+If you just created the GA4 property:
+- Most metrics will be 0 or "No data"
+- Real-time users: 0
+- This is normal!
+- Data will appear within 24-48 hours after tracking starts
+
+**Existing Property (With Historical Data):**
+If you're connecting to an existing GA4 property:
+- Should see historical data immediately
+- Users, page views, sessions populated
+- Charts show trends
+- Top pages list populated
+
+**Test Real-Time Tracking:**
+
+**Step 5.4:** Keep admin dashboard open
+
+**Step 5.5:** Open new browser tab (or use phone/different device)
+
+**Step 5.6:** Navigate to AHC public website:
+`https://yourdomain.com`
+
+**Step 5.7:** Accept cookies in banner (if appears)
+
+**Step 5.8:** Navigate to 2-3 different pages
+
+**Step 5.9:** Return to admin dashboard
+
+**Step 5.10:** Click **"Real-Time Users"** card or refresh page
+
+**Expected Result:**
+- Real-time count should show 1 or more
+- May take 30-60 seconds to update
+
+**[Screenshot: Real-Time Users card showing "1 Active User"]**
+
+**Verify in Google Analytics:**
+
+**Step 5.11:** Open Google Analytics: https://analytics.google.com/
+
+**Step 5.12:** Select your AHC property
+
+**Step 5.13:** Navigate to:
+**Reports** → **Realtime**
+
+**Step 5.14:** Check for active users:
+- Should match or be close to AHC dashboard
+- See recent events
+- See page paths
+
+**[Screenshot: Google Analytics Realtime report]**
+
+✅ **Setup Complete!** If real-time tracking works, your configuration is successful.
+
+---
+
+#### Troubleshooting Setup Issues
+
+**Issue 1: "API Error: Permission Denied"**
+
+**Symptoms:**
+- Dashboard shows error message
+- Logs show "403 Forbidden" or "Permission Denied"
+
+**Solution:**
+1. Check service account email added to GA4 Property Access Management
+2. Verify role is "Viewer" (not "No role")
+3. Wait 5-10 minutes (permissions can take time to propagate)
+4. Try refreshing dashboard
+
+**Issue 2: "Invalid Property ID"**
+
+**Symptoms:**
+- Dashboard shows error
+- "Property not found" message
+
+**Solution:**
+1. Verify Property ID is correct numeric ID
+2. Check for typos or extra spaces
+3. Try full format: `properties/123456789`
+4. Ensure you copied from correct property in GA4
+
+**Issue 3: "JSON Key File Error"**
+
+**Symptoms:**
+- Error during file upload
+- "Invalid JSON" message
+- Dashboard can't connect
+
+**Solution:**
+1. Re-download JSON file from Google Cloud Console
+2. Ensure file is not corrupted (open in text editor - should see JSON structure)
+3. Check file size (should be 2-3 KB)
+4. Try uploading again
+5. Check file permissions in server storage
+
+**Issue 4: "Analytics Data API Not Enabled"**
+
+**Symptoms:**
+- Error: "API has not been used in project"
+- 403 error in logs
+
+**Solution:**
+1. Return to Google Cloud Console
+2. Verify "Google Analytics Data API" is enabled
+3. Check you're in the correct project
+4. Wait 5 minutes after enabling
+5. Try dashboard again
+
+**Issue 5: Dashboard Loads but Shows No Data**
+
+**Symptoms:**
+- Dashboard renders correctly
+- All cards show 0 or "No data"
+- Charts are empty
+
+**Possible Causes & Solutions:**
+
+**Cause A: New Property (No Historical Data)**
+- **Solution:** Wait 24-48 hours after enabling frontend tracking
+- Enable frontend tracking if still OFF
+- Visit website and accept cookies to generate first data
+
+**Cause B: Wrong Property ID**
+- **Solution:** Verify Property ID matches property with data
+- Check you didn't mix up test/production properties
+
+**Cause C: Date Range Issue**
+- **Solution:** Some metrics default to last 7 days
+- If site was inactive, may show no data
+- Try 30 or 90-day view
+
+**Cause D: Caching**
+- **Solution:** Cache may be empty on first load
+- Refresh page
+- Wait 30 seconds, refresh again
+- Data fetched from Google and cached
+
+**Issue 6: Real-Time Tracking Not Working**
+
+**Symptoms:**
+- Dashboard shows 0 real-time users
+- You're actively on the website
+- Cookies accepted
+
+**Solution:**
+1. Check "Enable Frontend Tracking" is ON in settings
+2. Check Measurement ID is correct
+3. Open browser console (F12) on public website
+4. Look for GA4 requests to `www.google-analytics.com`
+5. If no requests, check JavaScript errors
+6. Verify cookie consent is accepted (localStorage check)
+7. Try different browser/incognito mode
+
+**Getting Help:**
+
+If issues persist:
+1. Check Laravel logs: `storage/logs/laravel.log`
+2. Copy exact error message
+3. Note what step failed
+4. Contact system administrator or technical support
+5. Include:
+   - Error message
+   - Screenshot of issue
+   - Steps you followed
+   - Browser/device used
+
+💡 **Tip:** Most issues are due to incorrect IDs or missing permissions. Double-check Step 1-3 configurations.
+
+---
+
+### 31.4 Using the Analytics Dashboard
+
+Once configured, the **Analytics Dashboard** provides comprehensive insights into website performance.
+
+#### Accessing the Dashboard
+
+**Navigate to Analytics:**
+
+**Step 1:** Login to AHC admin panel
+`https://yourdomain.com/admin`
+
+**Step 2:** In sidebar navigation, click **"Analytics"**
+- Icon: 📊 Chart/graph icon
+- Text: "Analytics"
+- Badge: "Live" (indicating real-time data)
+
+**Step 3:** Dashboard loads
+- URL: `/admin/analytics`
+- Page title: "Frontend Analytics"
+
+**[Screenshot: Full analytics dashboard view]**
+
+**Permission Required:**
+- Permission: `view_frontend_analytics`
+- Role: Admin or higher
+- If you can't access, contact your system administrator
+
+---
+
+#### Dashboard Overview
+
+The dashboard is organized into sections for easy navigation:
+
+**Header Section:**
+- Page title: "Frontend Analytics"
+- Date range selector (for some charts)
+- Last updated timestamp
+- Refresh button
+
+**8 Stat Cards (Top Section):**
+Key metrics at a glance
+
+**Charts Section (Below Cards):**
+- Users Trend Chart
+- Top Pages Chart
+- Top Events Chart
+- Traffic Sources Chart
+- Device Breakdown Chart
+- Browser Statistics Chart
+- Operating Systems Chart
+- Top Countries Chart
+- Landing Pages Chart
+
+**Auto-Refresh:**
+- Real-Time Users card updates every 60 seconds
+- Other metrics cached for 30 minutes
+- Manual refresh available
+
+---
+
+#### Understanding the 8 Stat Cards
+
+**Card 1: Real-Time Users**
+
+**[Screenshot: Real-Time Users card showing number]**
+
+**What It Shows:**
+- Number of visitors currently active on the website
+- Updates every 60 seconds
+- "👥 Active now" label
+
+**Example:**
+```
+Real-Time Users
+    5
+👥 Active now
+```
+
+**Interpretation:**
+- **0-5:** Low traffic (normal for small sites or off-hours)
+- **5-20:** Moderate traffic
+- **20+:** High traffic (event, campaign, or peak hours)
+
+**Use Cases:**
+- Check if website is live
+- Monitor event/launch traffic
+- Verify tracking is working
+- See immediate impact of social media posts
+
+**Refreshing:**
+- Auto-refreshes every 60 seconds
+- Or click refresh icon
+- No page reload needed
+
+💡 **Tip:** Keep this card open during events or campaigns to monitor live attendance/interest.
+
+---
+
+**Card 2: Total Users**
+
+**[Screenshot: Total Users card with trend indicator]**
+
+**What It Shows:**
+- Total unique users who visited the site in selected period
+- Default: Last 7 days
+- Includes trend indicator (↑ increase, ↓ decrease, → no change)
+- Percentage change vs. previous period
+
+**Example:**
+```
+Total Users
+  1,234
+↑ +15.3% vs last period
+```
+
+**Interpretation:**
+- **User:** Unique visitor (counted once even if they visit multiple times)
+- **vs last period:** Compares to previous 7 days
+- **Green ↑:** Growing audience (good!)
+- **Red ↓:** Declining traffic (investigate why)
+
+**Date Range:**
+- Card shows last 7 days by default
+- Can change via date selector (some themes)
+- Or view detailed chart below for 7/30/90-day options
+
+**Use Cases:**
+- Track audience growth over time
+- Measure marketing campaign impact
+- Assess content strategy effectiveness
+- Report to stakeholders
+
+---
+
+**Card 3: Total Page Views**
+
+**[Screenshot: Total Page Views card]**
+
+**What It Shows:**
+- Total number of pages viewed in selected period
+- One user can generate multiple page views
+- Default: Last 7 days
+
+**Example:**
+```
+Total Page Views
+  4,567
+↑ +22.1% vs last period
+```
+
+**Interpretation:**
+- **Page View:** Each time a page loads
+- Same user viewing 3 pages = 3 page views
+- **Higher page views:** Users exploring more content
+- **Page Views / Users ratio:** Shows engagement depth
+
+**Calculating Engagement:**
+```
+Pages per User = Total Page Views / Total Users
+Example: 4,567 / 1,234 = 3.7 pages per user
+```
+
+**Benchmarks:**
+- **1-2 pages/user:** Low engagement (bounce)
+- **3-5 pages/user:** Moderate engagement
+- **5+ pages/user:** High engagement
+
+**Use Cases:**
+- Measure content engagement
+- Identify if users explore beyond landing page
+- Compare before/after site redesign
+- Assess navigation effectiveness
+
+---
+
+**Card 4: Total Sessions**
+
+**[Screenshot: Total Sessions card]**
+
+**What It Shows:**
+- Total number of sessions (visits) to the website
+- Default: Last 7 days
+
+**Example:**
+```
+Total Sessions
+  1,456
+↑ +18.5% vs last period
+```
+
+**Understanding Sessions:**
+
+**What is a Session?**
+- A group of interactions (page views, events) within a time frame
+- One user can have multiple sessions
+
+**Session Duration:**
+- Session ends after 30 minutes of inactivity
+- Or at midnight
+- Or if user returns from different campaign source
+
+**Example:**
+```
+John visits website at 9:00 AM (Session 1)
+- Views 3 pages
+- Leaves at 9:15 AM
+
+John returns at 2:00 PM (Session 2 - new session)
+- Views 2 more pages
+
+Total: 2 sessions, 5 page views
+```
+
+**Sessions vs. Users:**
+- **Users:** Unique individuals
+- **Sessions:** Number of visits
+- **Ratio:** Shows visit frequency
+
+**Calculating Visit Frequency:**
+```
+Sessions per User = Total Sessions / Total Users
+Example: 1,456 / 1,234 = 1.18 sessions per user
+```
+
+**Interpretation:**
+- **~1.0:** Most users visit once
+- **1.2-1.5:** Some return visitors
+- **1.5+:** Strong return visitor base
+
+**Use Cases:**
+- Measure return visitor rate
+- Assess content stickiness
+- Track loyalty and repeat engagement
+- Compare acquisition vs. retention
+
+---
+
+**Card 5: Bounce Rate**
+
+**[Screenshot: Bounce Rate card]**
+
+**What It Shows:**
+- Percentage of single-page sessions
+- Default: Last 7 days
+- Lower is generally better
+
+**Example:**
+```
+Bounce Rate
+  45.2%
+↓ -5.3% vs last period  (Good - decreasing)
+```
+
+**Understanding Bounce Rate:**
+
+**What is a Bounce?**
+- User visits one page only
+- Doesn't navigate to any other page
+- Leaves without interaction
+
+**Example Bounce:**
+```
+User arrives → Views homepage → Leaves immediately
+Result: Bounce
+```
+
+**Example Non-Bounce:**
+```
+User arrives → Views homepage → Clicks "About" → Reads About page
+Result: Not a bounce (engaged session)
+```
+
+**Bounce Rate Calculation:**
+```
+Bounce Rate = (Single-page sessions / Total sessions) × 100
+Example: (658 / 1,456) × 100 = 45.2%
+```
+
+**Interpreting Bounce Rate:**
+
+**General Benchmarks:**
+- **26-40%:** Excellent
+- **41-55%:** Average
+- **56-70%:** Higher than average (needs improvement)
+- **70%+:** Poor (investigate issues)
+
+**Context Matters:**
+
+**Higher Bounce OK for:**
+- Blog posts (user reads, leaves satisfied)
+- Contact page (user got info, called instead)
+- Event registration page (accomplished goal)
+
+**Lower Bounce Expected for:**
+- Homepage (should lead to navigation)
+- Resource library (should explore documents)
+- News section (should read multiple articles)
+
+**Bounce Rate by Page Type:**
+- Landing pages: 70-90% (normal)
+- Content pages: 40-60%
+- Homepage: 30-50%
+- E-commerce: 20-40%
+
+**Factors Affecting Bounce Rate:**
+
+**Good (Lower Bounce):**
+- Clear navigation
+- Engaging content
+- Fast page load
+- Good mobile experience
+- Relevant traffic
+- Internal linking
+
+**Bad (Higher Bounce):**
+- Slow loading
+- Poor mobile design
+- Misleading titles
+- Irrelevant traffic
+- No clear next action
+- Technical errors
+
+**Improving Bounce Rate:**
+- Add related content links
+- Improve page load speed
+- Enhance mobile responsiveness
+- Create clear call-to-actions
+- Improve content relevance
+- Fix broken links
+
+💡 **Tip:** Don't obsess over bounce rate. Focus on whether users achieve their goals.
+
+---
+
+**Card 6: Top Page**
+
+**[Screenshot: Top Page card showing most visited page]**
+
+**What It Shows:**
+- Single most-visited page on the website
+- Page path (URL)
+- Number of views
+
+**Example:**
+```
+Top Page
+/events/health-conference-2024
+2,345 views
+```
+
+**Interpretation:**
+- This is your most popular content
+- Likely attracting most traffic
+- Potential focus for optimization
+- Good content to promote
+
+**Common Top Pages:**
+- **Homepage:** `/` - Natural entry point
+- **Event detail:** `/events/xxx` - High interest in specific event
+- **Blog post:** `/news/xxx` - Viral or highly relevant article
+- **Resource:** `/resources/xxx` - Popular download
+- **About:** `/about` - Users learning about AHC
+
+**Using This Data:**
+
+**If an Event Page is Top:**
+- Promote related events
+- Add registration CTAs
+- Create follow-up content
+- Prepare for high attendance
+
+**If a Resource is Top:**
+- Create similar resources
+- Add related downloads
+- Build out that topic area
+- Consider paid promotion
+
+**If Homepage is Top:**
+- Optimize homepage navigation
+- Feature key content prominently
+- Clear value proposition
+- Strong CTAs
+
+**Click for Details:**
+- Clicking the card may link to full "Top Pages" chart
+- See top 10 pages with detailed metrics
+
+---
+
+**Card 7: Top Event**
+
+**[Screenshot: Top Event card showing most triggered event]**
+
+**What It Shows:**
+- Most frequently triggered custom business event
+- Event name
+- Number of times triggered
+
+**Example:**
+```
+Top Event
+event_registration_started
+89 occurrences
+```
+
+**Understanding Custom Events:**
+
+Custom events track specific user actions beyond page views:
+- **event_registration_started:** User clicked "Register" on event
+- **contact_form_submitted:** User sent contact message
+- **media_downloaded:** User downloaded document
+- **leader_profile_viewed:** User viewed leader profile
+- **linkedin_clicked:** User clicked LinkedIn link
+
+**Full Event List:** See Section 31.5 for complete reference
+
+**Interpretation:**
+
+**Example:** `event_registration_started` is top event
+- **Meaning:** Event registrations are popular
+- **Action:** Ensure registration process is smooth
+- **Follow-up:** Track conversion to `event_registration_completed`
+
+**Example:** `media_downloaded` is top event
+- **Meaning:** Resources are highly valued
+- **Action:** Add more quality resources
+- **Follow-up:** Survey what topics users want
+
+**Example:** `contact_form_submitted` is top event
+- **Meaning:** Users seeking more information
+- **Action:** Ensure fast response times
+- **Follow-up:** Create FAQ to address common inquiries
+
+**Using This Data:**
+- Understand primary user actions
+- Identify successful features
+- Prioritize improvements
+- Guide content strategy
+
+**Click for Details:**
+- Links to full "Top Events" chart
+- See top 10 events with counts
+- Analyze event parameters
+
+---
+
+**Card 8: Primary Traffic Source**
+
+**[Screenshot: Primary Traffic Source card showing top source]**
+
+**What It Shows:**
+- Main channel bringing visitors to the site
+- Traffic source category
+- Percentage or count
+
+**Example:**
+```
+Primary Traffic Source
+Organic Search
+45% of traffic
+```
+
+**Traffic Source Categories:**
+
+**1. Organic Search**
+- Users found site via Google, Bing, Yahoo
+- Typed keywords, clicked search results
+- **Good:** Strong SEO, discoverable content
+- **Example:** User searches "health collaboration Africa" → Finds AHC
+
+**2. Direct**
+- Users typed URL directly
+- Bookmarks
+- Email links (without tracking)
+- Unknown sources
+- **Good:** Brand awareness, repeat visitors
+- **Example:** User types `ahc.edu.et` in browser
+
+**3. Referral**
+- Clicked link from another website
+- Partner websites
+- News mentions
+- Blog posts referencing AHC
+- **Good:** Strong partnerships, mentions
+- **Example:** Partner university links to AHC
+
+**4. Social**
+- Came from social media platforms
+- Facebook, Twitter/X, LinkedIn, Instagram
+- **Good:** Engaged social community
+- **Example:** User clicks AHC LinkedIn post
+
+**5. Email**
+- Clicked link in email (if tracked)
+- Newsletters
+- Announcements
+- **Good:** Effective email campaigns
+- **Example:** User clicks event link in newsletter
+
+**6. Paid Search**
+- Clicked paid advertisement (Google Ads, etc.)
+- Only if AHC runs ads
+- **Example:** Google Ad click
+
+**Interpreting Primary Source:**
+
+**If Organic Search is Primary:**
+- ✅ Good SEO
+- ✅ Content is discoverable
+- **Action:** Invest more in content marketing, blog, keywords
+
+**If Direct is Primary:**
+- ✅ Strong brand recognition
+- ✅ Loyal audience
+- **Action:** Maintain quality, encourage sharing
+
+**If Referral is Primary:**
+- ✅ Strong partnerships
+- ✅ Good backlink strategy
+- **Action:** Nurture partner relationships, guest posting
+
+**If Social is Primary:**
+- ✅ Engaged social following
+- **Action:** Increase social media posting frequency, engagement
+
+**Balanced Traffic is Ideal:**
+```
+Good distribution example:
+- Organic: 30-40%
+- Direct: 20-30%
+- Referral: 15-25%
+- Social: 10-20%
+- Email: 5-10%
+```
+
+**Using This Data:**
+- Allocate marketing resources
+- Identify successful channels
+- Diversify traffic sources (reduce dependence on one)
+- Guide marketing strategy
+
+**Click for Details:**
+- Links to full "Traffic Sources" chart
+- See all sources with percentages
+- Analyze specific referrers
+
+---
+
+### 31.5 Understanding Charts & Visualizations
+
+Below the 8 stat cards, you'll find detailed charts providing deeper insights.
+
+#### Users Trend Chart
+
+**[Screenshot: Users Trend line chart with 7/30/90 day tabs]**
+
+**What It Shows:**
+- Line graph of daily user counts
+- Date range options: 7 days, 30 days, 90 days
+- X-axis: Dates
+- Y-axis: Number of users
+- Smooth curve connecting data points
+
+**How to Use:**
+
+**Step 1:** Select date range
+- Click tab: **7 Days**, **30 Days**, or **90 Days**
+- Chart updates automatically
+
+**Step 2:** Analyze trend:
+- **Upward trend:** Growing audience ✅
+- **Downward trend:** Declining traffic ⚠️
+- **Flat trend:** Stable audience
+- **Spikes:** Specific events or campaigns
+
+**Step 3:** Identify patterns:
+- Weekly patterns (weekday vs. weekend)
+- Monthly patterns (beginning vs. end of month)
+- Event-related spikes
+
+**Example Interpretation:**
+
+**Scenario:** 30-day view shows:
+- Days 1-10: Steady ~100 users/day
+- Day 11: Spike to 500 users
+- Days 12-30: Gradual decline to 150 users/day
+
+**Analysis:**
+- Day 11: Likely event announcement or social media post
+- Post-spike decline: Normal after campaign
+- New baseline (150): Higher than before (growth!)
+
+**Use Cases:**
+- Track growth over time
+- Measure campaign impact
+- Identify seasonal patterns
+- Set realistic goals
+- Report to stakeholders
+
+**Hovering Over Chart:**
+- Hover mouse over any point
+- Tooltip shows:
+  - Exact date
+  - User count
+  - Percentage change
+
+💡 **Tip:** Compare 7-day for recent performance, 90-day for long-term trends.
+
+---
+
+#### Top Pages Chart
+
+**[Screenshot: Top Pages horizontal bar chart]**
+
+**What It Shows:**
+- Top 10 most-visited pages
+- Horizontal bar chart
+- Page path (URL) on left
+- Bar length indicates views
+- View count on right
+
+**Example:**
+```
+/events/annual-conference        ████████████████ 2,345
+/about/leadership                ████████████ 1,567
+/resources/toolkit               ██████████ 1,234
+/news/partnership-announcement   █████████ 1,123
+...
+```
+
+**Chart Features:**
+
+**Color Coding:**
+- Blue bars (standard)
+- Hover: Bar highlights
+- Click: May navigate to page (if implemented)
+
+**Metrics Shown:**
+- Page path
+- Page views (total)
+- Users (unique viewers) - may be in tooltip
+
+**How to Interpret:**
+
+**Homepage Dominates:**
+- Normal (main entry point)
+- Ensure clear navigation from homepage
+
+**Event Page Top:**
+- High interest in that event
+- Promote heavily
+- Prepare for high attendance
+
+**Resource Page Top:**
+- Indicates demand for that topic
+- Create more resources in that area
+
+**Unexpected Page Top:**
+- Investigate traffic source
+- May be external link or viral content
+- Capitalize on momentum
+
+**Using This Data:**
+
+**Content Strategy:**
+- Double down on popular topics
+- Update top pages regularly
+- Add related content links
+- Improve SEO for top pages
+
+**Navigation:**
+- Feature top content prominently
+- Create easier paths to popular pages
+- Add to main navigation
+
+**Performance:**
+- Ensure top pages load fast
+- Optimize for mobile
+- A/B test improvements
+
+**Conversion:**
+- Add CTAs to top pages
+- Guide users to desired actions
+- Track conversion rates
+
+**Benchmarking:**
+- Compare page performance
+- Set targets for new content
+- Identify underperforming pages
+
+💡 **Tip:** If a page gets high traffic but low engagement (high bounce), improve content or add navigation options.
+
+---
+
+#### Top Events Chart
+
+**[Screenshot: Top Events bar chart]**
+
+**What It Shows:**
+- Top 10 most-triggered custom business events
+- Bar chart (vertical or horizontal)
+- Event name
+- Count of occurrences
+
+**Example:**
+```
+event_registration_started         ████████████ 245
+leader_profile_viewed             ██████████ 189
+media_downloaded                  █████████ 156
+contact_form_submitted            ████████ 134
+linkedin_clicked                  ██████ 98
+newsletter_signup                 █████ 76
+event_registration_completed      ████ 65
+...
+```
+
+**Understanding Events:**
+
+Events track specific user actions. See full event reference in Section 31.6.
+
+**Key Event Categories:**
+
+**1. Event Registration Events**
+- `event_registration_started`: User clicked "Register"
+- `event_registration_completed`: Form submitted
+- `event_registration_failed`: Error occurred
+
+**Analysis:**
+```
+Started: 245
+Completed: 65
+Completion Rate: 65/245 = 26.5%
+```
+**Interpretation:** 73.5% of users who started registration didn't complete. Investigate form issues!
+
+**2. Content Engagement Events**
+- `leader_profile_viewed`: Interest in leadership
+- `media_downloaded`: Resource usage
+- `partner_profile_viewed`: Partnership interest
+
+**3. Contact & Communication Events**
+- `contact_form_submitted`: Inquiries
+- `newsletter_signup`: Email list growth
+- `linkedin_clicked`: Professional networking
+
+**Using This Data:**
+
+**Funnel Analysis:**
+Track progression through steps:
+```
+event_registration_started → event_registration_completed
+Identify drop-off points
+Improve conversion
+```
+
+**Feature Popularity:**
+If `media_downloaded` is high:
+- Resources are valuable
+- Invest in more content
+- Promote library
+
+**Issue Detection:**
+If `event_registration_failed` appears:
+- Technical issues
+- Form validation problems
+- Fix immediately
+
+**Engagement Metrics:**
+High `leader_profile_viewed`:
+- Leadership section popular
+- Keep profiles updated
+- Add more content
+
+**Click for Details:**
+- May show event parameters
+- Drill down into specific events
+- Export event data
+
+💡 **Tip:** Compare related events to find conversion bottlenecks (started vs. completed).
+
+---
+
+#### Traffic Sources Chart
+
+**[Screenshot: Traffic Sources pie chart or donut chart]**
+
+**What It Shows:**
+- Distribution of traffic across source categories
+- Pie chart or donut chart
+- Each slice represents a source
+- Percentage of total traffic
+- Color-coded segments
+
+**Example:**
+```
+Pie Chart:
+- Organic Search (Blue): 42%
+- Direct (Green): 28%
+- Referral (Yellow): 18%
+- Social (Purple): 10%
+- Email (Orange): 2%
+```
+
+**Interactive Features:**
+
+**Hover Over Slice:**
+- Shows source name
+- Exact percentage
+- User count
+
+**Click Slice:**
+- May filter to show details
+- Specific referrers
+- Landing pages for that source
+
+**Chart Legend:**
+- Color key below/beside chart
+- Click legend to toggle slices on/off
+
+**Interpreting Distribution:**
+
+**Healthy Distribution:**
+Diverse traffic sources (not over-reliant on one):
+```
+✅ Good:
+Organic: 35%
+Direct: 25%
+Referral: 20%
+Social: 15%
+Email: 5%
+```
+
+**Risky Distribution:**
+Over-dependent on single source:
+```
+⚠️ Risky:
+Organic: 85%  (If Google changes algorithm, huge impact!)
+Direct: 10%
+Other: 5%
+```
+
+**Source-Specific Insights:**
+
+**High Organic (40%+):**
+- **Pros:** Good SEO, discoverable content
+- **Cons:** Vulnerable to algorithm changes
+- **Action:** Diversify, grow other channels
+
+**High Direct (40%+):**
+- **Pros:** Strong brand, loyal audience
+- **Cons:** Limited new audience growth
+- **Action:** Increase marketing, partnerships
+
+**High Referral (30%+):**
+- **Pros:** Strong partnerships, quality backlinks
+- **Cons:** Dependent on other sites
+- **Action:** Own your audience, build email list
+
+**High Social (40%+):**
+- **Pros:** Engaged social community
+- **Cons:** Platform algorithm changes
+- **Action:** Drive social traffic to email signups
+
+**Low Email (<5%):**
+- Underutilized channel
+- Build email list
+- Send regular newsletters
+
+**Using This Data:**
+
+**Marketing Budget Allocation:**
+- Invest in successful channels
+- Experiment with underutilized channels
+
+**Risk Management:**
+- Reduce dependence on single source
+- Build diversified traffic
+
+**Partnership Strategy:**
+- If referral is low, seek more partnerships
+- If high, nurture existing partnerships
+
+**Content Strategy:**
+- Tailor content to source audiences
+- Create social-friendly content for social traffic
+- Create search-optimized content for organic
+
+**Benchmarking:**
+Compare month-over-month:
+- Is organic growing?
+- Is direct increasing (brand awareness)?
+- Are partnerships driving more referrals?
+
+---
+
+#### Device Breakdown Chart
+
+**[Screenshot: Device breakdown pie chart]**
+
+**What It Shows:**
+- Distribution of visitors by device type
+- Pie chart
+- Three categories: Desktop, Mobile, Tablet
+- Percentage of total users
+
+**Example:**
+```
+Desktop (Blue): 55%
+Mobile (Green): 40%
+Tablet (Yellow): 5%
+```
+
+**Interpreting Device Distribution:**
+
+**Desktop-Heavy (60%+):**
+- Audience likely researchers, professionals
+- Using devices at work/office
+- Reading in-depth content
+
+**Mobile-Heavy (60%+):**
+- Audience browsing on-the-go
+- Quick information lookups
+- Sharing via social media
+
+**Balanced:**
+```
+Desktop: 50%
+Mobile: 45%
+Tablet: 5%
+```
+- Diverse audience
+- Multiple use cases
+
+**Using This Data:**
+
+**Design Priorities:**
+
+**If Mobile is 40%+:**
+- ✅ Must optimize for mobile
+- Responsive design critical
+- Touch-friendly buttons
+- Fast mobile load times
+- Simplified mobile navigation
+
+**If Desktop Dominates (70%+):**
+- Focus on desktop experience
+- But don't neglect mobile
+- Users may switch devices
+
+**Content Strategy:**
+
+**Mobile Users:**
+- Prefer shorter content
+- Scannable formatting
+- Quick-loading images
+- Clear CTAs
+
+**Desktop Users:**
+- Can handle longer content
+- Detailed resources
+- Complex navigation OK
+
+**Testing Priority:**
+
+**High Mobile Traffic:**
+- Test on multiple mobile devices
+- Various screen sizes
+- iOS and Android
+- Slow connections
+
+**Performance Optimization:**
+
+**Mobile:**
+- Compress images more
+- Minimize JavaScript
+- Lazy loading
+- AMP pages (if needed)
+
+**Device-Specific Issues:**
+
+Check bounce rate by device:
+- Is mobile bounce higher? → Mobile experience needs work
+- Is desktop bounce higher? → Desktop experience issues
+
+**Trend Monitoring:**
+
+Watch mobile percentage over time:
+- **Growing:** Mobile-first design increasingly important
+- **Stable:** Maintain current strategy
+- **Declining:** Investigate (maybe mobile experience is poor!)
+
+💡 **Tip:** Always test on actual devices, not just emulators. Real-world performance matters.
+
+---
+
+#### Browser Statistics Chart
+
+**[Screenshot: Browser statistics bar chart]**
+
+**What It Shows:**
+- Distribution of visitors by web browser
+- Bar chart (horizontal or vertical)
+- Common browsers: Chrome, Safari, Firefox, Edge, Samsung Internet, etc.
+- Percentage or count
+
+**Example:**
+```
+Chrome        ████████████████ 62%
+Safari        ████████ 23%
+Firefox       ████ 8%
+Edge          ██ 4%
+Samsung       █ 2%
+Other         █ 1%
+```
+
+**Interpreting Browser Data:**
+
+**Chrome Dominance (60%+):**
+- Most common (typical)
+- Prioritize Chrome testing
+- But test others too
+
+**Safari Significant (20%+):**
+- Many macOS/iOS users
+- Important to test on Safari
+- Sometimes has unique bugs
+
+**Firefox, Edge Lower (5-10% each):**
+- Still significant user base
+- Test on these browsers
+- Check for compatibility
+
+**Old Browsers (<1% each):**
+- Internet Explorer (hopefully 0%!)
+- Very old versions
+- May not need to support
+
+**Using This Data:**
+
+**Testing Strategy:**
+
+**Priority Testing:**
+1. Chrome (highest percentage)
+2. Safari (second highest)
+3. Firefox
+4. Edge
+5. Others (if significant)
+
+**Browser-Specific Issues:**
+
+**Safari:**
+- Sometimes has video playback issues
+- Form input differences
+- Animation inconsistencies
+
+**Firefox:**
+- Privacy settings can block tracking
+- Different rendering sometimes
+
+**Edge:**
+- Modern Edge (Chromium-based) similar to Chrome
+- Old Edge (pre-2020) had many issues
+
+**Mobile Browsers:**
+- Safari iOS (iPhone/iPad)
+- Chrome Android
+- Samsung Internet (Samsung phones)
+
+**Development Decisions:**
+
+**High Safari Percentage:**
+- Test on macOS Safari
+- Test on iOS Safari
+- Check vendor prefixes for CSS
+
+**Low Old Browser Percentage:**
+- Can use modern JavaScript
+- Don't need extensive polyfills
+- Adopt new CSS features
+
+**Performance Testing:**
+
+Different browsers have different performance:
+- Measure page load on each
+- Optimize for top browsers
+- Ensure acceptable on all
+
+**Known Browser Issues:**
+
+If users report issues:
+1. Check "Browser Statistics"
+2. Identify affected browser
+3. Test in that specific browser
+4. Reproduce and fix
+
+**Trend Monitoring:**
+
+Watch browser percentages over time:
+- **Chrome growing:** Typical
+- **Safari growing:** More Apple users
+- **Old browsers declining:** Good (less legacy support)
+
+💡 **Tip:** Use Brows erStack or similar services to test on multiple browsers without installing them all.
+
+---
+
+#### Operating Systems Chart
+
+**[Screenshot: Operating Systems bar chart]**
+
+**What It Shows:**
+- Distribution of visitors by operating system
+- Bar chart
+- Common OSes: Windows, macOS, Android, iOS, Linux, Chrome OS
+- Percentage of users
+
+**Example:**
+```
+Windows   ████████████ 48%
+Android   ███████ 22%
+iOS       ██████ 18%
+macOS     ███ 8%
+Linux     █ 3%
+Other     █ 1%
+```
+
+**Interpreting OS Data:**
+
+**Windows Dominance (40-50%):**
+- Desktop users
+- Office/work environment
+- Professional audience
+
+**Android Significant (20-30%):**
+- Mobile users
+- Wide device variety
+- Various Android versions
+
+**iOS Significant (15-25%):**
+- iPhone/iPad users
+- Generally consistent experience
+- Latest OS versions
+
+**macOS (5-10%):**
+- Desktop Mac users
+- Often creative professionals
+- Consistent environment
+
+**Linux (1-5%):**
+- Technical users
+- Developers
+- Usually not primary audience
+
+**Using This Data:**
+
+**Device Testing:**
+
+**Windows:**
+- Test on Windows 10/11
+- Multiple screen resolutions
+- Various browsers on Windows
+
+**macOS:**
+- Test on latest macOS
+- Safari-specific testing
+- Retina display considerations
+
+**Android:**
+- Test on multiple Android versions
+- Different screen sizes
+- Various manufacturers (Samsung, Google, etc.)
+
+**iOS:**
+- Test on iPhone (various sizes)
+- Test on iPad
+- Latest and one version back
+
+**Design Decisions:**
+
+**High Windows + macOS (60%+):**
+- Desktop-focused design OK
+- More complex interfaces acceptable
+
+**High Android + iOS (60%+):**
+- Mobile-first design essential
+- Simplified navigation
+- Touch-focused
+
+**Development Considerations:**
+
+**Android Variety:**
+- Many Android versions in use
+- Test on older versions
+- Polyfills for older browsers
+
+**iOS Consistency:**
+- Users update quickly
+- Can use newer features
+- Consistent Safari version
+
+**Known OS Issues:**
+
+**iOS-Specific:**
+- Date picker differences
+- File upload limitations
+- Video autoplay policies
+
+**Android-Specific:**
+- Browser fragmentation
+- Performance varies widely
+- Different default browsers
+
+**Audience Insights:**
+
+**High Windows:**
+- Professional/work audience
+- Accessing during business hours
+- Likely researching, not casual browsing
+
+**High iOS:**
+- Higher-income demographic (typically)
+- Latest devices
+- Good connectivity
+
+**High Android:**
+- Diverse socioeconomic range
+- Various device qualities
+- Connection speeds vary
+
+**Using for Personalization:**
+
+Could tailor content based on OS:
+- Detect OS
+- Show OS-specific instructions
+- Optimize media delivery
+
+Example: Show different app download links:
+- iOS users → App Store
+- Android users → Google Play
+
+💡 **Tip:** Don't ignore smaller percentages. Even 5% represents real users who deserve good experience.
+
+---
+
+#### Top Countries Chart
+
+**[Screenshot: Top Countries horizontal bar chart]**
+
+**What It Shows:**
+- Geographic distribution of visitors
+- Top 10 countries by user count
+- Bar chart
+- Country names
+- User counts or percentages
+
+**Example:**
+```
+Ethiopia      ████████████████ 1,245 users (55%)
+United States ███████ 456 users (20%)
+Kenya         ████ 234 users (10%)
+Uganda        ██ 123 users (5%)
+Nigeria       ██ 98 users (4%)
+...
+```
+
+**Interpreting Geographic Data:**
+
+**Domestic Dominance (Ethiopia 50%+):**
+- Strong local presence
+- Achieving local impact
+- Local content relevant
+
+**International Presence (40%+):**
+- Growing global reach
+- International partnerships working
+- Appeal beyond borders
+
+**Targeted Countries High:**
+- If targeting specific African countries, check they appear
+- Partnership countries should show traffic
+- Program countries should be represented
+
+**Using This Data:**
+
+**Content Strategy:**
+
+**Ethiopia Dominant:**
+- Continue local content
+- Amharic content (if not already)
+- Local event focus
+- Ethiopian partnerships
+
+**International Significant:**
+- English content priority
+- Pan-African content
+- International partnership content
+- Cross-border collaboration stories
+
+**Language Strategy:**
+
+If seeing significant traffic from:
+- **Francophone Africa** (DRC, Senegal, Côte d'Ivoire) → Consider French content
+- **Anglophone Africa** (Nigeria, Kenya, Ghana) → English sufficient
+- **Multiple regions** → Multilingual approach
+
+**Event Planning:**
+
+If planning events:
+- Check where your audience is
+- Virtual events for international audience
+- In-person events in top countries
+- Regional events if clustered
+
+**Partnership Opportunities:**
+
+High traffic from a country:
+- Potential partnership interest
+- Target for new partnerships
+- Existing partnerships may be driving traffic
+
+**Timezone Considerations:**
+
+For publishing content:
+- Check when top countries are awake
+- Schedule posts for peak hours
+- Consider multiple timezones for global reach
+
+**Resource Allocation:**
+
+Focus resources on:
+- Top 3-5 countries
+- Countries with strategic importance
+- Countries showing growth
+
+**Unexpected Countries:**
+
+If seeing traffic from unexpected locations:
+- Investigate referral source
+- May be academic interest
+- Could indicate partnership opportunity
+- Might be spam (check bounce rate for that segment)
+
+**Trend Monitoring:**
+
+Watch country distribution over time:
+- **Ethiopia growing:** Strong local reach
+- **International growing:** Global presence expanding
+- **New countries appearing:** Expanding reach
+
+💡 **Tip:** Cross-reference with "Traffic Sources" - are international visitors from partnerships (referral) or search (organic)?
+
+---
+
+#### Landing Pages Chart
+
+**[Screenshot: Landing Pages bar chart]**
+
+**What It Shows:**
+- Top entry pages (first page users see)
+- Bar chart
+- Page paths
+- Session count
+- Bounce rate for each
+
+**Example:**
+```
+/                        ████████████ 1,234 sessions (42% bounce)
+/events/conference-2024  ████████ 567 sessions (35% bounce)
+/about/leadership        █████ 345 sessions (55% bounce)
+/news/new-partnership    ███ 234 sessions (48% bounce)
+...
+```
+
+**Understanding Landing Pages:**
+
+**What is a Landing Page?**
+- First page user sees when arriving at site
+- Entry point to website
+- Not necessarily homepage
+
+**Why Important:**
+- First impression matters
+- Sets tone for entire visit
+- Determines if user continues browsing
+
+**Interpreting Landing Page Data:**
+
+**Homepage Top Landing Page (40%+):**
+- **Normal:** Homepage is natural entry
+- **Action:** Optimize homepage navigation
+- **Focus:** Clear value proposition, multiple pathways
+
+**Event Page Top Landing Page:**
+- **Interpretation:** Direct traffic from event promotion
+- **Action:** Ensure clear event details, easy registration
+- **Check:** Is bounce rate low? (users registering)
+
+**Blog/News Post Top Landing Page:**
+- **Interpretation:** SEO working, shared on social, or external link
+- **Action:** Add related content links, CTAs
+- **Check:** Are users exploring beyond single post?
+
+**Resource Page Top Landing Page:**
+- **Interpretation:** Users searching for specific resource
+- **Action:** Easy download, related resources, email signup
+- **Check:** Are users downloading?
+
+**Bounce Rate by Landing Page:**
+
+**Low Bounce (20-40%):**
+- ✅ Page engages users
+- ✅ Clear next steps
+- ✅ Relevant content
+- ✅ Good navigation
+
+**High Bounce (60%+):**
+- ⚠️ Users leaving immediately
+- **Possible Causes:**
+  - Slow loading
+  - Misleading title/description
+  - Poor mobile experience
+  - Content doesn't match expectations
+  - No clear next action
+
+**Using This Data:**
+
+**Optimization Priority:**
+
+**Focus on:**
+1. High-traffic landing pages (most impact)
+2. High-bounce landing pages (biggest problems)
+3. Strategic pages (conversions, registrations)
+
+**Landing Page Best Practices:**
+
+**Homepage as Landing Page:**
+- Clear value proposition above fold
+- Multiple navigation options
+- Featured content/CTAs
+- Fast load time
+- Mobile-optimized
+
+**Event Page as Landing Page:**
+- Event details immediately visible
+- Prominent registration button
+- Social proof (attendee count, testimonials)
+- Related events
+- Share buttons
+
+**Blog Post as Landing Page:**
+- Related articles
+- Author bio with links
+- Email signup CTA
+- Navigation to main sections
+- Comments/engagement
+
+**Resource Page as Landing Page:**
+- Clear download button
+- Resource description
+- Related resources
+- Email gate (optional)
+- Explore library CTA
+
+**A/B Testing Candidates:**
+
+Top landing pages are perfect for testing:
+- Headline variations
+- CTA button text/color
+- Layout changes
+- Image choices
+- Navigation options
+
+**Traffic Source Analysis:**
+
+Cross-reference with traffic sources:
+- **Organic landing pages:** SEO optimized?
+- **Social landing pages:** Social-sharing friendly?
+- **Referral landing pages:** Expectations aligned?
+
+**Content Strategy:**
+
+**If non-homepage pages are top landing pages:**
+- ✅ Good! Content is discoverable
+- Ensure pages can stand alone
+- Provide context (don't assume users saw homepage)
+- Add navigation prompts
+
+**Conversion Tracking:**
+
+For strategic landing pages:
+- Track form submissions
+- Track downloads
+- Track registrations
+- Calculate conversion rate per landing page
+
+💡 **Tip:** Treat every page as a potential landing page. Ensure each page provides value and clear navigation.
+
+---
+
+### 31.6 Custom Events Reference
+
+AHC tracks **custom business events** that go beyond basic page views to capture meaningful user actions.
+
+**Full Event Catalog:**
+
+#### Event Registration Events
+
+**1. event_registration_started**
+- **When:** User clicks "Register" button on an event page
+- **Purpose:** Track interest in events
+- **Parameters:**
+  - `event_id`: Numeric ID of event
+  - `event_title`: Name of event
+- **Business Value:** Measure event appeal, track drop-off in registration funnel
+- **Example:** User clicks "Register" on "Health Conference 2024" event page
+
+**2. event_registration_completed**
+- **When:** Registration form successfully submitted
+- **Purpose:** Track confirmed registrations
+- **Parameters:**
+  - `event_id`: Numeric ID of event
+  - `event_title`: Name of event
+- **Business Value:** Measure conversions, count attendees
+- **Conversion Rate:**
+  ```
+  Completion Rate = (completed / started) × 100
+  Example: (65 / 245) × 100 = 26.5%
+  ```
+
+**3. event_registration_failed**
+- **When:** Registration form submission fails (validation error, server error)
+- **Purpose:** Identify technical issues
+- **Parameters:**
+  - `event_id`: Numeric ID of event
+  - `error_type`: Type of error (validation, server, network)
+- **Business Value:** Quickly identify and fix form issues affecting registrations
+
+---
+
+#### Content Engagement Events
+
+**4. leader_profile_viewed**
+- **When:** User views an AHC leader's detail page
+- **Purpose:** Track interest in leadership
+- **Parameters:**
+  - `leader_id`: Numeric ID of leader
+  - `leader_name`: Full name
+- **Business Value:** Understand which leaders attract most interest, popular profiles
+
+**5. leader_email_clicked**
+- **When:** User clicks email address on leader profile
+- **Purpose:** Track contact attempts
+- **Parameters:**
+  - `leader_id`: Numeric ID
+  - `leader_name`: Full name
+- **Business Value:** Measure direct contact interest
+
+**6. team_member_viewed**
+- **When:** User views team member profile
+- **Purpose:** Track team page engagement
+- **Parameters:**
+  - `member_id`: Numeric ID
+  - `member_name`: Full name
+- **Business Value:** Similar to leader profiles
+
+**7. partner_profile_viewed**
+- **When:** User views partner organization detail page
+- **Purpose:** Track partnership interest
+- **Parameters:**
+  - `partner_id`: Numeric ID
+  - `partner_name`: Organization name
+  - `partner_type`: "international" or "local"
+- **Business Value:** Understand which partnerships resonate with audience
+
+**8. ahc_leader_detail_viewed**
+- **When:** Detailed view of leader page loaded
+- **Purpose:** Deep engagement with leadership content
+- **Parameters:**
+  - `leader_id`: Numeric ID
+- **Business Value:** Indicates serious interest, potential recruitment/partnership
+
+---
+
+#### Document & Resource Events
+
+**9. media_downloaded**
+- **When:** User downloads a document, PDF, or media file
+- **Purpose:** Track resource usage
+- **Parameters:**
+  - `file_type`: Extension (pdf, docx, xlsx, mp4)
+  - `file_name`: Name of downloaded file
+  - `category`: Resource category (if available)
+- **Business Value:** Identify most valuable resources, guide content creation
+- **Example:** User downloads "Health Systems Toolkit.pdf"
+
+**10. resource_viewed**
+- **When:** User views resource detail page (before downloading)
+- **Purpose:** Track browsing before download
+- **Parameters:**
+  - `resource_id`: Numeric ID
+  - `resource_title`: Title
+- **Business Value:** Measure browse-to-download conversion
+
+---
+
+#### Social & External Events
+
+**11. linkedin_clicked**
+- **When:** User clicks LinkedIn icon/link on profile pages
+- **Purpose:** Track professional networking interest
+- **Parameters:**
+  - `profile_type`: "leader" or "team_member"
+  - `profile_id`: Numeric ID
+  - `profile_name`: Person's name
+- **Business Value:** Measure LinkedIn integration effectiveness, networking engagement
+- **Example:** User clicks LinkedIn icon on leader profile
+
+**12. external_link_clicked**
+- **When:** User clicks any external link (non-AHC domain)
+- **Purpose:** Track outbound navigation
+- **Parameters:**
+  - `link_url`: Destination URL
+  - `link_text`: Anchor text
+  - `source_page`: Where link was clicked
+- **Business Value:** Understand referral patterns, partnership value
+
+---
+
+#### Communication Events
+
+**13. contact_form_submitted**
+- **When:** Contact form successfully submitted
+- **Purpose:** Track inquiries
+- **Parameters:**
+  - `subject`: Form subject/category (if available)
+  - `source_page`: Page where form was submitted
+- **Business Value:** Measure inquiry volume, track communication needs
+- **Note:** Does NOT send PII (names, emails, messages) to GA4
+
+**14. newsletter_signup**
+- **When:** User subscribes to AHC newsletter
+- **Purpose:** Track email list growth
+- **Parameters:**
+  - `source`: Where signup occurred (footer, popup, page)
+- **Business Value:** Measure email marketing reach, track subscription sources
+
+**15. newsletter_signup_failed**
+- **When:** Newsletter signup fails (validation, already subscribed)
+- **Purpose:** Identify subscription issues
+- **Parameters:**
+  - `error_reason`: Why it failed
+- **Business Value:** Fix technical issues, improve UX
+
+---
+
+#### Navigation & Engagement Events
+
+**16. search_performed**
+- **When:** User uses site search (if tracked)
+- **Purpose:** Understand user intent
+- **Parameters:**
+  - `search_term`: What user searched for
+  - `results_count`: Number of results
+- **Business Value:** Content gap analysis, SEO insights
+
+**17. video_played**
+- **When:** User plays embedded video
+- **Purpose:** Track video engagement
+- **Parameters:**
+  - `video_title`: Name of video
+  - `video_duration`: Length in seconds
+- **Business Value:** Measure video content effectiveness
+
+**18. button_clicked**
+- **When:** Important CTA button clicked
+- **Purpose:** Track specific interactions
+- **Parameters:**
+  - `button_text`: Button label
+  - `button_location`: Where on page
+  - `destination`: Where button leads
+- **Business Value:** Measure CTA effectiveness
+
+---
+
+#### Form Interaction Events
+
+**19. form_started**
+- **When:** User focuses on first form field
+- **Purpose:** Track form engagement
+- **Parameters:**
+  - `form_name`: Which form (contact, registration, etc.)
+- **Business Value:** Measure form abandonment rate
+
+**20. form_submitted**
+- **When:** Any form submitted (general)
+- **Purpose:** Track all form completions
+- **Parameters:**
+  - `form_name`: Which form
+  - `form_success`: true/false
+- **Business Value:** Overall form performance
+
+---
+
+**Using Event Data:**
+
+**Funnel Analysis:**
+Track complete user journeys:
+```
+Example: Event Registration Funnel
+1. land on event page (page_view)
+2. event_registration_started (245 users)
+3. form_started (200 users)
+4. event_registration_completed (65 users)
+
+Drop-off Points:
+- 45 users (18%) didn't start form after clicking Register
+- 135 users (67.5%) started but didn't complete
+
+Action: Investigate form UX, reduce fields, clarify requirements
+```
+
+**Conversion Rate Calculation:**
+```
+Formula: (Completed Events / Started Events) × 100
+
+Example:
+newsletter_signup: 89 completions
+newsletter_signup_failed: 12 failures
+Total attempts: 101
+Success rate: (89/101) × 100 = 88.1%
+Failure rate: 11.9% (investigate why)
+```
+
+**Segmentation:**
+Analyze events by:
+- Device type (mobile vs. desktop)
+- Traffic source (organic vs. social)
+- Country (domestic vs. international)
+- Time period (weekday vs. weekend)
+
+**Event Tracking Best Practices:**
+
+**Privacy:**
+- ✅ Track actions, not identities
+- ❌ Never send PII (email, name, phone) in event parameters
+- ✅ Use IDs, not personal data
+- ✅ Respect cookie consent
+
+**Data Quality:**
+- Validate tracking is firing correctly
+- Use Google Analytics DebugView
+- Test in staging environment first
+- Monitor for duplicate events
+
+**Business Alignment:**
+- Track events that matter to goals
+- Don't track everything (noise)
+- Focus on actionable metrics
+- Tie events to KPIs
+
+💡 **Tip:** In Google Analytics, go to Reports → Events to see all tracked events with detailed parameters.
+
+---
+
+*End of Chapter 31 - Google Analytics Integration*
+
+---
+
 *End of Part 4 - Advanced Features & Workflows*
 
 ---
