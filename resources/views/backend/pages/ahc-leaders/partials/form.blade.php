@@ -198,7 +198,7 @@
                         @if(isset($leader) && $leader->image)
                             <div class="relative mb-4">
                                 <img 
-                                    src="{{ asset('storage/' . $leader->image) }}" 
+                                    src="{{ $leader->image_url }}" 
                                     alt="{{ $leader->name }}" 
                                     class="w-full h-48 object-cover rounded-lg border border-gray-300"
                                 >

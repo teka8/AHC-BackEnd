@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
 
 class AhcLeader extends Model
 {
@@ -35,14 +34,21 @@ class AhcLeader extends Model
         }
 
         if (Storage::disk('public')->exists($this->image)) {
-            return URL::to(Storage::disk('public')->url($this->image));
+            $publicStoragePath = public_path('storage');
+            if (is_link($publicStoragePath) || is_dir($publicStoragePath)) {
+                return Storage::disk('public')->url($this->image);
+            }
+
+            $relative = ltrim(preg_replace('/^ahc-leaders\//', '', $this->image), '/');
+
+            return route('media.ahc-leaders', ['path' => $relative]);
         }
 
         if (str_starts_with($this->image, '/')) {
-            return URL::to($this->image);
+            return $this->image;
         }
 
-        return URL::to('/' . ltrim($this->image, '/'));
+        return '/' . ltrim($this->image, '/');
     }
 
     public function scopeActive($query)

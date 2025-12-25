@@ -28,6 +28,7 @@ use App\Http\Controllers\Backend\EventController;
 use App\Http\Controllers\Backend\PageController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -368,3 +369,17 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth'
 Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch');
 Route::get('/screenshot-login/{email}', [ScreenshotGeneratorLoginController::class, 'login'])->middleware('web')->name('screenshot.login');
 Route::get('/demo-preview', fn () => view('demo.preview'))->name('demo.preview');
+
+Route::get('/media/ahc-leaders/{path}', function (string $path) {
+    if (str_contains($path, '..')) {
+        abort(404);
+    }
+
+    $storagePath = 'ahc-leaders/' . ltrim($path, '/');
+
+    if (! Storage::disk('public')->exists($storagePath)) {
+        abort(404);
+    }
+
+    return response()->file(Storage::disk('public')->path($storagePath));
+})->where('path', '.*')->name('media.ahc-leaders');
