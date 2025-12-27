@@ -412,6 +412,15 @@ class AdminMenuService
         ], __('More'));
 
         $this->addMenuItem([
+            'label' => __('User Guide'),
+            'icon' => 'lucide:book-open',
+            'route' => route('admin.user-guide.index'),
+            'active' => Route::is('admin.user-guide.*'),
+            'id' => 'user-guide',
+            'priority' => 9999,
+        ], __('More'));
+
+        $this->addMenuItem([
             'label' => __('Logout'),
             'icon' => 'lucide:log-out',
             'route' => route('admin.dashboard'),

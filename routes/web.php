@@ -23,6 +23,7 @@ use App\Http\Controllers\Backend\TermController;
 use App\Http\Controllers\Backend\TranslationController;
 use App\Http\Controllers\Backend\UserLoginAsController;
 use App\Http\Controllers\Backend\UserController;
+use App\Http\Controllers\Backend\UserGuideController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Backend\EventController;
 use App\Http\Controllers\Backend\PageController;
@@ -129,6 +130,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::delete('/{ahcLeader}', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'destroy'])->name('destroy');
         Route::delete('/delete/bulk-delete', [\App\Http\Controllers\Backend\AhcLeaderController::class, 'bulkDelete'])->name('bulk-delete');
     });
+
+    // User Guide (available for any authenticated user)
+    Route::get('/user-guide', [UserGuideController::class, 'index'])->name('user-guide.index');
+    Route::get('/user-guide/download', [UserGuideController::class, 'download'])->name('user-guide.download');
 
     // Contact Messages Routes
     Route::prefix('contact-messages')->name('contact-messages.')->group(function () {
