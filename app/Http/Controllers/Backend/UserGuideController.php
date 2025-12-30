@@ -9,6 +9,8 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Str;
 use Spatie\Browsershot\Browsershot;
 use Symfony\Component\HttpFoundation\Response;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class UserGuideController extends Controller
 {
@@ -50,20 +52,78 @@ class UserGuideController extends Controller
         $documentHtml = view('backend.pages.user-guide.pdf', compact('html'))->render();
 
         try {
-            $pdf = Browsershot::html($documentHtml)
+            // First try Browsershot (Chrome-based) for better quality
+            $chromePaths = [
+                'C:\Program Files\Google\Chrome\Application\chrome.exe',
+                'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
+                'C:\Users\\' . get_current_user() . '\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe',
+                'C:\Program Files\Chromium\Application\chromium.exe',
+                'C:\Program Files (x86)\Chromium\Application\chromium.exe',
+            ];
+            
+            $browsershot = Browsershot::html($documentHtml)
                 ->format('A4')
                 ->margins(12, 12, 12, 12)
                 ->showBackground()
-                ->pdf();
+                ->timeout(30);
+            
+            // Set Chrome path if found
+            foreach ($chromePaths as $chromePath) {
+                if (file_exists($chromePath)) {
+                    $browsershot->setChromePath($chromePath);
+                    break;
+                }
+            }
+            
+            $pdf = $browsershot->pdf();
 
             return response($pdf, 200, [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'attachment; filename="AHC_User_Guide.pdf"',
             ]);
-        } catch (\Throwable) {
-            return response()->download($path, 'AHC_User_Guide.md', [
-                'Content-Type' => 'text/markdown; charset=UTF-8',
-            ]);
+        } catch (\Exception $e) {
+            // Log the Browsershot error
+            \Log::warning('Browsershot PDF generation failed, trying DomPDF: ' . $e->getMessage());
+            
+            try {
+                // Fallback to DomPDF
+                $options = new Options();
+                $options->set('defaultFont', 'Arial');
+                $options->set('isRemoteEnabled', true);
+                $options->set('isHtml5ParserEnabled', true);
+                
+                $dompdf = new Dompdf($options);
+                $dompdf->loadHtml($documentHtml);
+                $dompdf->setPaper('A4', 'portrait');
+                $dompdf->render();
+                
+                $pdfOutput = $dompdf->output();
+                
+                return response($pdfOutput, 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="AHC_User_Guide.pdf"',
+                ]);
+            } catch (\Exception $dompdfException) {
+                // Log both errors
+                \Log::error('Both PDF generation methods failed: ', [
+                    'browsershot_error' => $e->getMessage(),
+                    'dompdf_error' => $dompdfException->getMessage(),
+                    'file' => $path
+                ]);
+                
+                // Provide a helpful error message
+                $errorMessage = 'PDF generation failed. Please contact support.';
+                
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'error' => $errorMessage,
+                        'details' => config('app.debug') ? $e->getMessage() : null
+                    ], 500);
+                }
+                
+                return redirect()->back()
+                    ->with('error', $errorMessage);
+            }
         }
     }
 }
