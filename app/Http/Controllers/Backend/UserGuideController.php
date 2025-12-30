@@ -65,14 +65,20 @@ class UserGuideController extends Controller
                 ->format('A4')
                 ->margins(12, 12, 12, 12)
                 ->showBackground()
-                ->timeout(30);
+                ->timeout(60); // Increased timeout
             
             // Set Chrome path if found
+            $chromeFound = false;
             foreach ($chromePaths as $chromePath) {
                 if (file_exists($chromePath)) {
                     $browsershot->setChromePath($chromePath);
+                    $chromeFound = true;
                     break;
                 }
+            }
+            
+            if (!$chromeFound) {
+                throw new \Exception('Chrome not found in any expected location');
             }
             
             $pdf = $browsershot->pdf();
@@ -86,11 +92,17 @@ class UserGuideController extends Controller
             \Log::warning('Browsershot PDF generation failed, trying DomPDF: ' . $e->getMessage());
             
             try {
+                // Increase memory limit for large documents
+                ini_set('memory_limit', '512M');
+                set_time_limit(300); // 5 minutes
+                
                 // Fallback to DomPDF
                 $options = new Options();
                 $options->set('defaultFont', 'Arial');
                 $options->set('isRemoteEnabled', true);
                 $options->set('isHtml5ParserEnabled', true);
+                $options->set('fontDir', public_path('fonts'));
+                $options->set('fontCache', public_path('fonts'));
                 
                 $dompdf = new Dompdf($options);
                 $dompdf->loadHtml($documentHtml);
@@ -108,21 +120,16 @@ class UserGuideController extends Controller
                 \Log::error('Both PDF generation methods failed: ', [
                     'browsershot_error' => $e->getMessage(),
                     'dompdf_error' => $dompdfException->getMessage(),
-                    'file' => $path
+                    'file' => $path,
+                    'markdown_size' => strlen($markdown),
+                    'html_size' => strlen($documentHtml)
                 ]);
                 
-                // Provide a helpful error message
-                $errorMessage = 'PDF generation failed. Please contact support.';
-                
-                if (request()->expectsJson()) {
-                    return response()->json([
-                        'error' => $errorMessage,
-                        'details' => config('app.debug') ? $e->getMessage() : null
-                    ], 500);
-                }
-                
-                return redirect()->back()
-                    ->with('error', $errorMessage);
+                // Final fallback - return HTML as PDF content-type (better than MD)
+                return response($documentHtml, 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="AHC_User_Guide.html"',
+                ]);
             }
         }
     }
