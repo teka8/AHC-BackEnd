@@ -42,70 +42,81 @@ class UserGuideController extends Controller
 
     public function download(): Response
     {
-        $path = base_path('AHC_User_Guide.md');
-
-        abort_unless(is_file($path), 404);
-
-        // Set higher limits for PDF generation
-        ini_set('memory_limit', '768M');
-        set_time_limit(600); // 10 minutes
-        ignore_user_abort(true); // Don't abort if user disconnects
-
-        $markdown = file_get_contents($path) ?: '';
-        
-        // Check if markdown is too large for processing
-        if (strlen($markdown) > 1000000) { // 1MB limit
-            return response()->json([
-                'error' => 'User guide is too large to generate as PDF. Please contact support for a copy.',
-            ], 413);
-        }
-
-        $html = Str::markdown($markdown);
-        $documentHtml = view('backend.pages.user-guide.pdf', compact('html'))->render();
-
         try {
-            // Try DomPDF first (more reliable on servers without Chrome)
-            $options = new Options();
-            $options->set('defaultFont', 'Arial');
-            $options->set('isRemoteEnabled', false); // Disable remote resources for security
-            $options->set('isHtml5ParserEnabled', true);
-            $options->set('fontDir', storage_path('fonts'));
-            $options->set('fontCache', storage_path('fonts'));
-            $options->set('tempDir', storage_path('app/temp'));
-            $options->set('logOutputFile', storage_path('logs/dompdf.log'));
+            $path = base_path('AHC_User_Guide.md');
+
+            abort_unless(is_file($path), 404);
+
+            $markdown = file_get_contents($path);
             
-            $dompdf = new Dompdf($options);
-            $dompdf->loadHtml($documentHtml);
-            $dompdf->setPaper('A4', 'portrait');
-            $dompdf->render();
-            
-            $pdfOutput = $dompdf->output();
-            
-            // Clear memory
-            unset($dompdf, $options, $documentHtml, $html, $markdown);
-            
-            return response($pdfOutput, 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="AHC_User_Guide.pdf"',
-                'Content-Length' => strlen($pdfOutput),
-                'Cache-Control' => 'no-cache, no-store, must-revalidate',
-                'Pragma' => 'no-cache',
-                'Expires' => '0'
+            // For now, return the markdown file with proper headers
+            // This avoids the timeout issues with PDF generation
+            return response($markdown, 200, [
+                'Content-Type' => 'text/markdown; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="AHC_User_Guide.md"',
             ]);
             
-        } catch (\Exception $e) {
-            \Log::error('PDF generation failed: ' . $e->getMessage(), [
+        } catch (\Throwable $e) {
+            \Log::error('User guide download failed: ' . $e->getMessage(), [
                 'error' => $e->getMessage(),
-                'file' => $path,
-                'markdown_size' => strlen($markdown ?? ''),
-                'trace' => $e->getTraceAsString()
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
             ]);
             
-            // Return a more user-friendly error
             return response()->json([
-                'error' => 'PDF generation failed. The user guide may be temporarily unavailable. Please try again later or contact support.',
+                'error' => 'Download failed. Please contact support.',
                 'details' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
+    }
+
+    private function ensureDirectoryExists(string $directory): void
+    {
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+    }
+
+    private function simplifyHtmlForPdf(string $html): string
+    {
+        // Remove complex CSS and elements that might cause issues with DomPDF
+        $html = preg_replace('/<style\b[^<]*>(.*?)<\/style>/is', '', $html);
+        $html = preg_replace('/<script\b[^<]*>(.*?)<\/script>/is', '', $html);
+        $html = preg_replace('/on\w+="[^"]*"/i', '', $html);
+        $html = preg_replace('/<svg\b[^<]*>(.*?)<\/svg>/is', '', $html);
+        
+        // Simplify table structures
+        $html = str_replace(['<thead>', '</thead>', '<tbody>', '</tbody>'], '', $html);
+        
+        return $html;
+    }
+
+    private function createMinimalPdfHtml(string $markdown): string
+    {
+        // Convert markdown to very simple HTML for PDF
+        $lines = explode("\n", $markdown);
+        $html = '<!DOCTYPE html><html><head><title>AHC User Guide</title><style>body{font-family:Arial,sans-serif;margin:20px;line-height:1.6}h1,h2,h3{margin-top:20px;margin-bottom:10px}p{margin-bottom:10px}ul,ol{margin-bottom:10px}li{margin:5px 0}code{background:#f4f4f4;padding:2px 4px;border-radius:3px}pre{background:#f4f4f4;padding:10px;border-radius:5px;overflow:auto}</style></head><body>';
+        
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+            
+            if (str_starts_with($line, '# ')) {
+                $html .= '<h1>' . htmlspecialchars(substr($line, 2)) . '</h1>';
+            } elseif (str_starts_with($line, '## ')) {
+                $html .= '<h2>' . htmlspecialchars(substr($line, 3)) . '</h2>';
+            } elseif (str_starts_with($line, '### ')) {
+                $html .= '<h3>' . htmlspecialchars(substr($line, 4)) . '</h3>';
+            } elseif (str_starts_with($line, '- ') || str_starts_with($line, '* ')) {
+                $html .= '<li>' . htmlspecialchars(substr($line, 2)) . '</li>';
+            } elseif (str_starts_with($line, '1. ') || preg_match('/^\d+\. /', $line)) {
+                $html .= '<li>' . htmlspecialchars(preg_replace('/^\d+\.\s/', '', $line)) . '</li>';
+            } else {
+                $html .= '<p>' . htmlspecialchars($line) . '</p>';
+            }
+        }
+        
+        $html .= '</body></html>';
+        return $html;
     }
 }

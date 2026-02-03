@@ -31,9 +31,9 @@
                         <span id="user-guide-counter" class="text-sm text-gray-600 dark:text-gray-300 min-w-14 text-center hidden"></span>
                     </div>
 
-                    <button id="download-pdf-btn" class="btn btn-primary whitespace-nowrap" onclick="downloadPDF()">
+                    <button id="download-pdf-btn" class="btn btn-primary whitespace-nowrap" onclick="downloadUserGuide()">
                         <iconify-icon icon="lucide:download" class="mr-2"></iconify-icon>
-                        <span id="download-text">{{ __('Download PDF') }}</span>
+                        <span id="download-text">{{ __('Download User Guide') }}</span>
                     </button>
                 </div>
             </div>
@@ -332,28 +332,25 @@
                 }
             })();
 
-            function downloadPDF() {
+            function downloadUserGuide() {
                 const button = document.getElementById('download-pdf-btn');
                 const downloadText = document.getElementById('download-text');
                 const originalText = downloadText.textContent;
                 
                 // Show loading state
                 button.disabled = true;
-                downloadText.textContent = '{{ __('Generating PDF...') }}';
+                downloadText.textContent = '{{ __('Downloading...') }}';
                 
-                // Create a timeout for the request
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
-                
-                fetch('{{ route("admin.user-guide.download") }}', {
-                    signal: controller.signal
-                })
+                fetch('{{ route("admin.user-guide.download") }}')
                 .then(response => {
-                    clearTimeout(timeoutId);
-                    
                     if (!response.ok) {
-                        return response.json().then(data => {
-                            throw new Error(data.error || 'PDF generation failed');
+                        return response.text().then(text => {
+                            try {
+                                const data = JSON.parse(text);
+                                throw new Error(data.error || 'Download failed');
+                            } catch (jsonError) {
+                                throw new Error(text || 'Download failed');
+                            }
                         });
                     }
                     
@@ -364,7 +361,18 @@
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'AHC_User_Guide.pdf';
+                    
+                    // Get filename from Content-Disposition header or use default
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = 'AHC_User_Guide.md';
+                    if (contentDisposition) {
+                        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"/);
+                        if (filenameMatch) {
+                            filename = filenameMatch[1];
+                        }
+                    }
+                    
+                    a.download = filename;
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
@@ -375,23 +383,13 @@
                     downloadText.textContent = originalText;
                 })
                 .catch(error => {
-                    clearTimeout(timeoutId);
-                    
-                    let errorMessage = '{{ __('PDF generation failed. Please try again.') }}';
-                    if (error.name === 'AbortError') {
-                        errorMessage = '{{ __('PDF generation timed out. The file may be too large. Please try again or contact support.') }}';
-                    } else if (error.message) {
-                        errorMessage = error.message;
-                    }
-                    
-                    // Show error message
-                    alert(errorMessage);
+                    console.error('Download error:', error);
+                    alert('Download failed: ' + error.message);
                     
                     // Reset button
                     button.disabled = false;
                     downloadText.textContent = originalText;
                 });
-            }
         </script>
     @endpush
 </x-layouts.backend-layout>

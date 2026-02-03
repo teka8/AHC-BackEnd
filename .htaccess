@@ -9,12 +9,20 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+    # Increase timeout for PDF generation
+    <IfModule mod_php.c>
+        php_value max_execution_time 600
+        php_value memory_limit 768M
+        php_value upload_max_filesize 10M
+        php_value post_max_size 10M
+    </IfModule>
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Serve files and directories directly if they exist in the public directory
+    # Serve files and directories directly if they exist in public directory
     RewriteCond %{DOCUMENT_ROOT}/public/$1 -f [OR]
     RewriteCond %{DOCUMENT_ROOT}/public/$1 -d
     RewriteRule ^(.*)$ public/$1 [L]
