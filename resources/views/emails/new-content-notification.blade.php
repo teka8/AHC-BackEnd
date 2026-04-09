@@ -45,9 +45,7 @@ We are excited to share some new content with you.
 @elseif($content->description)
 <p style="font-size: 16px; line-height: 1.5em; color: #374151;">{{ $content->description }}</p>
 @endif
-@endif
 
-@else
 @php
 $path = Str::kebab(class_basename($content));
 if ($content instanceof \App\Models\Post) {
