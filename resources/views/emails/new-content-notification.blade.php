@@ -11,6 +11,12 @@ We are excited to share some new content with you.
 
 ## {{ $content->title }}
 
+@if($isNewsletter)
+<p style="font-size: 14px; color: #6b7280; font-style: italic; margin-top: -10px; margin-bottom: 20px;">
+    By {{ $content->creator ?? 'AHC' }} • {{ $content->published_at ? $content->published_at->format('F j, Y') : now()->format('F j, Y') }}
+</p>
+@endif
+
 @if($content->excerpt)
 <p style="font-size: 16px; line-height: 1.5em; color: #374151;">{{ $content->excerpt }}</p>
 @elseif($content->description)
