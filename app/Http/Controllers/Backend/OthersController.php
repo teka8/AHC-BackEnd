@@ -196,13 +196,13 @@ class OthersController extends Controller
     private function convertToBytes(string $size): int
     {
         $unit = preg_replace('/[^bkmgtpezy]/i', '', $size);
-        $size = preg_replace('/[^0-9\.]/', '', $size);
+        $sizeValue = preg_replace('/[^0-9\.]/', '', $size);
 
         if ($unit) {
-            return (int) round($size * pow(1024, stripos('bkmgtpezy', $unit[0])));
+            return (int) round((float)$sizeValue * pow(1024, stripos('bkmgtpezy', $unit[0] ?? 'b')));
         }
 
-        return (int) round($size);
+        return (int) round((float)$sizeValue);
     }
 
     private function formatBytes(int $bytes, int $precision = 2): string
@@ -221,8 +221,7 @@ class OthersController extends Controller
      */
     public function edit($id)
     {
-        $document = Others::findOrFail($id);
-
+        $document = Others::with(['newsletterArticles'])->findOrFail($id);
         $this->authorize('update', $document);
 
         $breadcrumbs = [
@@ -272,75 +271,71 @@ class OthersController extends Controller
     public function update(Request $request, $id)
     {
         $document = Others::findOrFail($id);
-
         $this->authorize('update', $document);
 
+        $isNewsletter = $request->input('document_type') === 'Newsletter';
+
         // Validate the request
-        $validated = $request->validate([
+        $rules = [
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
             'publication_date' => 'required|date',
             'abstract' => 'required|string',
             'document_type' => 'required|string|max:255',
             'category' => 'required|string|max:255',
-            'version' => 'nullable|string|max:50',
             'is_featured' => 'nullable|boolean',
             'access_level' => 'required|in:public,partner_only,internal_only',
             'status' => 'required|in:draft,under_review,approved,published,archived',
             'tags' => 'nullable|string|max:500',
-            'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,rtf,odt,ods,odp|max:102400', // 100MB max
-        ]);
+        ];
+
+        if ($isNewsletter) {
+            $rules['articles'] = 'required|array|min:1';
+            $rules['articles.*.title'] = 'required|string|max:255';
+            $rules['articles.*.content'] = 'required|string';
+            $rules['articles.*.image'] = 'nullable|image|max:5120';
+        } else {
+            $rules['file'] = 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,rtf,odt,ods,odp|max:102400';
+        }
+
+        $validated = $request->validate($rules);
 
         try {
             \DB::beginTransaction();
 
-            // Handle file upload if a new file is provided
             $fileData = [];
-            if ($request->hasFile('file')) {
+            if (!$isNewsletter && $request->hasFile('file')) {
                 $file = $request->file('file');
                 $originalName = $file->getClientOriginalName();
-                $extension = $file->getClientOriginalExtension();
-                $fileSize = $file->getSize();
-                $mimeType = $file->getMimeType();
-
-                // Generate unique filename
-                $filename = \Illuminate\Support\Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
+                $filename = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $file->getClientOriginalExtension();
                 $filePath = $file->storeAs('others', $filename, 'public');
 
-                // Delete old file
-                if ($document->file_path && \Storage::disk('public')->exists($document->file_path)) {
-                    \Storage::disk('public')->delete($document->file_path);
+                if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
+                    Storage::disk('public')->delete($document->file_path);
                 }
 
                 $fileData = [
                     'file_path' => $filePath,
                     'file_name' => $originalName,
-                    'file_size' => $fileSize,
+                    'file_size' => $file->getSize(),
                 ];
             }
 
-            // Map UI labels used in create to enum values stored in DB
+            // Map UI labels
             $typeMap = [
                 'Newsletter' => Others::TYPE_NEWSLETTER,
                 'Presentation' => Others::TYPE_PRESENTATION,
             ];
-            $allowedTypes = [
-                Others::TYPE_NEWSLETTER,
-                Others::TYPE_PRESENTATION,
-            ];
-            $resourceTypeInput = $validated['document_type'];
-            $resourceType = $typeMap[$resourceTypeInput] ?? (in_array($resourceTypeInput, $allowedTypes, true) ? $resourceTypeInput : Others::TYPE_PRESENTATION);
+            $resourceType = $typeMap[$validated['document_type']] ?? Others::TYPE_PRESENTATION;
 
             // Update the document
             $document->update(array_merge([
                 'title' => $validated['title'],
-                // Map incoming fields to schema columns
                 'creator' => $validated['author'],
                 'description' => $validated['abstract'],
                 'resource_type' => $resourceType,
                 'subject_area' => trim($validated['category']),
                 'published_at' => $validated['publication_date'] ? date('Y-m-d H:i:s', strtotime($validated['publication_date'])) : $document->published_at,
-                // 'version' is not stored in this schema
                 'is_featured' => $validated['is_featured'] ?? false,
                 'access_level' => $validated['access_level'],
                 'status' => $validated['status'],
@@ -348,32 +343,63 @@ class OthersController extends Controller
             ], $fileData));
 
             // Handle tags
-            if (! empty($validated['tags'])) {
+            if (!empty($validated['tags'])) {
                 $this->processTags($document, $validated['tags']);
             } else {
                 $document->tags = [];
                 $document->save();
             }
 
-            // Handle status changes
-            if ($validated['status'] === Others::STATUS_PUBLISHED && ! $document->published_at) {
-                $document->update(['published_at' => now()]);
+            // Handle Newspaper Articles sync
+            if ($isNewsletter && $request->has('articles')) {
+                $keepArticleIds = [];
+                foreach ($request->input('articles') as $index => $articleData) {
+                    $articleId = $articleData['id'] ?? null;
+                    
+                    $articleImagePath = null;
+                    if ($request->hasFile("articles.{$index}.image")) {
+                        $imageFile = $request->file("articles.{$index}.image");
+                        $imageName = 'newsletter_' . time() . '_' . $index . '.' . $imageFile->getClientOriginalExtension();
+                        $articleImagePath = $imageFile->storeAs('newsletter_images', $imageName, 'public');
+                    }
+
+                    $articlePayload = [
+                        'title' => $articleData['title'],
+                        'volume' => $articleData['volume'] ?? null,
+                        'issue_number' => $articleData['issue_number'] ?? null,
+                        'content' => $articleData['content'],
+                        'sort_order' => $index,
+                    ];
+
+                    if ($articleImagePath) {
+                        $articlePayload['image_path'] = $articleImagePath;
+                    }
+
+                    if ($articleId) {
+                        $article = $document->newsletterArticles()->find($articleId);
+                        if ($article) {
+                            $article->update($articlePayload);
+                            $keepArticleIds[] = $article->id;
+                        } else {
+                            $newArticle = $document->newsletterArticles()->create($articlePayload);
+                            $keepArticleIds[] = $newArticle->id;
+                        }
+                    } else {
+                        $newArticle = $document->newsletterArticles()->create($articlePayload);
+                        $keepArticleIds[] = $newArticle->id;
+                    }
+                }
+                // Delete articles not in the request
+                $document->newsletterArticles()->whereNotIn('id', $keepArticleIds)->delete();
             }
 
             \DB::commit();
-
-            // Log the activity
-            // activity()
-            //     ->causedBy(Auth::user())
-            //     ->performedOn($document)
-            //     ->log('updated document: ' . $document->title);
 
             return redirect()->route('admin.others.index')
                 ->with('success', __('Document updated successfully'));
 
         } catch (\Exception $e) {
             \DB::rollBack();
-
             \Log::error('Document update failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'document_id' => $id,
@@ -455,51 +481,60 @@ class OthersController extends Controller
 
     public function store(Request $request)
     {
+        // Determine if it's a newsletter to apply different validation
+        $isNewsletter = $request->input('document_type') === 'Newsletter';
 
         // Validate the request
-        $validated = $request->validate([
+        $rules = [
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
             'publication_date' => 'required|date',
             'abstract' => 'required|string',
             'document_type' => 'required|string|max:255',
             'category' => 'required|string|max:255',
-            'version' => 'nullable|string|max:50',
             'is_featured' => 'nullable|boolean',
             'access_level' => 'required|in:public,partner_only,internal_only',
             'tags' => 'nullable|string|max:500',
-            'files' => 'required|array',
-            'files.*' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,rtf,odt,ods,odp|max:102400', // 100MB max
-        ]);
+        ];
+
+        if ($isNewsletter) {
+            $rules['articles'] = 'required|array|min:1';
+            $rules['articles.*.title'] = 'required|string|max:255';
+            $rules['articles.*.content'] = 'required|string';
+            $rules['articles.*.image'] = 'nullable|image|max:5120'; // 5MB max per image
+        } else {
+            $rules['files'] = 'required|array';
+            $rules['files.*'] = 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,rtf,odt,ods,odp|max:102400';
+        }
+
+        $validated = $request->validate($rules);
 
         try {
-            // Handle file upload
-            $file = $request->file('files')[0]; // Get the first file since we're uploading one document
-            $originalName = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension();
-            $fileSize = $file->getSize();
-            $mimeType = $file->getMimeType();
+            \DB::beginTransaction();
 
-            // Generate unique filename
-            $filename = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
-            $filePath = $file->storeAs('others', $filename, 'public');
-
-            // Map UI labels used in create to enum values stored in DB
+            // Map UI labels
             $typeMap = [
                 'Newsletter' => Others::TYPE_NEWSLETTER,
                 'Presentation' => Others::TYPE_PRESENTATION,
             ];
-            $allowedTypes = [
-                Others::TYPE_NEWSLETTER,
-                Others::TYPE_PRESENTATION,
-            ];
-            $resourceTypeInput = $validated['document_type'];
-            $resourceType = $typeMap[$resourceTypeInput] ?? (in_array($resourceTypeInput, $allowedTypes, true) ? $resourceTypeInput : Others::TYPE_PRESENTATION);
+            $resourceType = $typeMap[$validated['document_type']] ?? Others::TYPE_PRESENTATION;
 
-            // Create the document
+            // Handle standard file upload for non-newsletters
+            $filePath = null;
+            $originalName = null;
+            $fileSize = null;
+
+            if (!$isNewsletter) {
+                $file = $request->file('files')[0];
+                $originalName = $file->getClientOriginalName();
+                $filename = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $filePath = $file->storeAs('others', $filename, 'public');
+                $fileSize = $file->getSize();
+            }
+
+            // Create the main document entry
             $document = Others::create([
                 'title' => $validated['title'],
-                // Map incoming fields to schema columns
                 'creator' => $validated['author'],
                 'description' => $validated['abstract'],
                 'resource_type' => $resourceType,
@@ -507,41 +542,65 @@ class OthersController extends Controller
                 'file_path' => $filePath,
                 'file_name' => $originalName,
                 'file_size' => $fileSize,
-                'published_at' => ! empty($validated['publication_date']) ? date('Y-m-d H:i:s', strtotime($validated['publication_date'])) : null,
-                // 'version' is not stored in this schema
+                'published_at' => !empty($validated['publication_date']) ? date('Y-m-d H:i:s', strtotime($validated['publication_date'])) : null,
                 'is_featured' => $validated['is_featured'] ?? false,
                 'access_level' => $validated['access_level'],
-                'status' => Others::STATUS_DRAFT, // Default to draft, can be changed via workflow
+                'status' => Others::STATUS_DRAFT,
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
 
             // Handle tags
-            if (! empty($validated['tags'])) {
+            if (!empty($validated['tags'])) {
                 $this->processTags($document, $validated['tags']);
             }
 
+            // Handle Newspaper Articles
+            if ($isNewsletter && $request->has('articles')) {
+                foreach ($request->input('articles') as $index => $articleData) {
+                    $articleImagePath = null;
+                    
+                    // Handle image upload for this article
+                    if ($request->hasFile("articles.{$index}.image")) {
+                        $imageFile = $request->file("articles.{$index}.image");
+                        $imageName = 'newsletter_' . time() . '_' . $index . '.' . $imageFile->getClientOriginalExtension();
+                        $articleImagePath = $imageFile->storeAs('newsletter_images', $imageName, 'public');
+                    }
+
+                    $document->newsletterArticles()->create([
+                        'title' => $articleData['title'],
+                        'volume' => $articleData['volume'] ?? null,
+                        'issue_number' => $articleData['issue_number'] ?? null,
+                        'content' => $articleData['content'],
+                        'image_path' => $articleImagePath,
+                        'sort_order' => $index,
+                    ]);
+                }
+            }
+
+            \DB::commit();
+
             return response()->json([
                 'success' => true,
-                'message' => __('File uploaded successfully'),
+                'message' => $isNewsletter ? __('Newsletter created successfully') : __('File uploaded successfully'),
                 'data' => $document,
             ], 201);
 
         } catch (\Exception $e) {
-            // Delete the file if it was uploaded but document creation failed
+            \DB::rollBack();
             if (isset($filePath) && Storage::disk('public')->exists($filePath)) {
                 Storage::disk('public')->delete($filePath);
             }
 
-            \Log::error('File upload failed: ' . $e->getMessage(), [
+            \Log::error('Resource creation failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
-                'file' => $request->file('files')[0]?->getClientOriginalName(),
+                'type' => $request->input('document_type'),
                 'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to upload file: ') . $e->getMessage(),
+                'message' => __('Failed to process request: ') . $e->getMessage(),
             ], 500);
         }
     }

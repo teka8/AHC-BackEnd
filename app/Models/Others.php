@@ -7,10 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Others extends Model
 {
     use HasFactory, SoftDeletes;
+    
+    /**
+     * Get the articles associated with this newsletter.
+     */
+    public function newsletterArticles(): HasMany
+    {
+        return $this->hasMany(NewsletterArticle::class, 'others_id')->orderBy('sort_order');
+    }
 
     protected $fillable = [
         'title',
@@ -176,7 +185,7 @@ class Others extends Model
     /**
      * Check if document is accessible by user
      */
-    public function isAccessibleBy(User $user = null): bool
+    public function isAccessibleBy(?User $user = null): bool
     {
         if ($this->access_level === self::ACCESS_PUBLIC) {
             return true;
@@ -205,7 +214,7 @@ class Others extends Model
         if (!$this->file_size)
             return '0 B';
 
-        $size = (int) $this->file_size;
+        $size = (float) $this->file_size;
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
         for ($i = 0; $size > 1024 && $i < count($units) - 1; $i++) {
@@ -241,7 +250,7 @@ class Others extends Model
 
     public function getTagsListAttribute(): string
     {
-        if (!$this->tags) {
+        if (empty($this->tags)) {
             return '';
         }
         
@@ -251,7 +260,7 @@ class Others extends Model
         }
         
         // If tags is a relationship collection
-        if (is_object($this->tags) && method_exists($this->tags, 'pluck')) {
+        if ($this->tags instanceof \Illuminate\Support\Collection) {
             return $this->tags->pluck('name')->implode(', ');
         }
         
@@ -261,7 +270,7 @@ class Others extends Model
     /**
      * Available transitions for each status with permission requirements
      */
-    public static function getAvailableTransitions($currentStatus, User $user = null)
+    public static function getAvailableTransitions($currentStatus, ?User $user = null)
     {
         $transitions = [
             self::STATUS_DRAFT => [
@@ -352,7 +361,7 @@ class Others extends Model
     /**
      * Get available actions for current user based on permissions
      */
-    public function getAvailableActions(User $user = null)
+    public function getAvailableActions(?User $user = null)
     {
         $user = $user ?: auth()->user();
         $transitions = self::getAvailableTransitions($this->status, $user);
@@ -367,7 +376,7 @@ class Others extends Model
         return $availableActions;
     }
 
-    public function canPerformAction($action, User $user = null)
+    public function canPerformAction($action, ?User $user = null)
     {
         $user = $user ?: auth()->user();
         $availableActions = $this->getAvailableActions($user);

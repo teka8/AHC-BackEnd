@@ -18,6 +18,9 @@
         changeStatusButtonText: '',
         changeStatusComment: '',
         changeStatusLoading: false,
+
+        isNewsletter: false,
+        articles: [{ id: Date.now(), title: '', volume: '', issue: '', content: '' }],
     
         showSingleDeleteModal(id) {
             this.selectedDocuments = [id.toString()];
@@ -304,7 +307,7 @@
                 <div class="border-t border-gray-100 dark:border-gray-800">
                     <!-- List View Only -->
                     <div class="overflow-x-auto">
-                        @if ($documents->count() > 0)
+                        @if (count($documents) > 0)
                             <table class="table">
                                 <thead class="table-thead">
                                     <tr class="table-tr">
@@ -458,7 +461,7 @@
                                                     </a>
                                                     <button
                                                         class="text-green-400 hover:text-green-600 dark:hover:text-green-300"
-                                                        onclick="openPdfModal('{{ Storage::disk('public')->url($document->file_path) }}', '{{ $document->title }}')"
+                                                        onclick="openPdfModal('{{ url('storage/' . $document->file_path) }}', '{{ $document->title }}')"
                                                         title="{{ __('Preview') }}">
                                                         <iconify-icon icon="lucide:eye"
                                                             class="text-sm"></iconify-icon>
@@ -506,7 +509,9 @@
 
                     <!-- Pagination -->
                     <div class="px-5 py-4">
-                        {{ $documents->links() }}
+                        @if (is_object($documents) && method_exists($documents, 'links'))
+                            {{ $documents->links() }}
+                        @endif
                     </div>
                 </div>
             </div>

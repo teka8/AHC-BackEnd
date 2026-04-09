@@ -78,7 +78,7 @@
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 {{ __('Document Type') }} *
                             </label>
-                            <select id="document_type" name="document_type" required
+                            <select id="document_type" name="document_type" required @change="isNewsletter = ($event.target.value === 'Newsletter'); if(isNewsletter && articles.length === 0) articles = [{ id: Date.now(), title: '', volume: '', issue: '', content: '' }]"
                                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white">
                                 <option value="">{{ __('Select Document Type') }}</option>
                                 <option value="Newsletter">{{ __('Newsletter') }}</option>
@@ -140,7 +140,7 @@
                 </div>
 
                 <!-- File Upload Section -->
-                <div class="mb-6">
+                <div class="mb-6" x-show="!isNewsletter">
                     <h4 class="text-lg font-medium text-gray-700 dark:text-white mb-4">{{ __('File Upload') }}</h4>
 
                     <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center transition-colors cursor-pointer hover:border-primary hover:bg-primary-50 dark:hover:bg-primary-900/20"
@@ -175,6 +175,61 @@
                     <div id="file-preview" class="mt-4 hidden">
                         <h4 class="font-medium text-gray-700 dark:text-white mb-2">{{ __('Selected Document:') }}</h4>
                         <div id="file-list" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- Newsletter Articles Section -->
+                <div x-show="isNewsletter" class="mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-lg font-medium text-gray-700 dark:text-white">{{ __('Newsletter Articles') }}</h4>
+                        <button type="button" @click="articles.push({ id: Date.now(), title: '', volume: '', issue: '', content: '' })" 
+                            class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300">
+                            <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
+                            {{ __('Add More Articles') }}
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <template x-for="(article, index) in articles" :key="article.id">
+                            <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50/50 dark:bg-gray-800/30 relative">
+                                <button type="button" @click="articles.splice(index, 1)" x-show="articles.length > 1"
+                                    class="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1">
+                                    <iconify-icon icon="lucide:trash-2" class="w-4 h-4"></iconify-icon>
+                                </button>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 mt-2">
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Article Title') }}</label>
+                                        <input type="text" :name="'articles['+index+'][title]'" x-model="article.title" required
+                                            class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm focus:ring-primary focus:border-primary">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Volume (Optional)') }}</label>
+                                        <input type="text" :name="'articles['+index+'][volume]'" x-model="article.volume"
+                                            class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm">
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Issue Number (Optional)') }}</label>
+                                        <input type="text" :name="'articles['+index+'][issue_number]'" x-model="article.issue"
+                                            class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Image Upload') }}</label>
+                                        <input type="file" :name="'articles['+index+'][image]'" accept="image/*"
+                                            class="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Article Text') }}</label>
+                                    <textarea :name="'articles['+index+'][content]'" x-model="article.content" required rows="4"
+                                        class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm"></textarea>
+                                </div>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
@@ -333,8 +388,13 @@
             return;
         }
 
-        if (fileInput.files.length === 0) {
+        if (!this.isNewsletter && fileInput.files.length === 0) {
             alert('{{ __('Please select a document file to upload') }}');
+            return;
+        }
+
+        if (this.isNewsletter && this.articles.length === 0) {
+            alert('{{ __('Please add at least one article to your newsletter') }}');
             return;
         }
 

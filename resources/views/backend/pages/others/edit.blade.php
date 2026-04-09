@@ -1,5 +1,15 @@
 <x-layouts.backend-layout :breadcrumbs="$breadcrumbs">
-    <div class="space-y-6">
+    <div x-data="{ 
+        isNewsletter: {{ $document->resource_type === \App\Models\Others::TYPE_NEWSLETTER ? 'true' : 'false' }},
+        articles: {{ $document->newsletterArticles->map(fn($a) => [
+            'id' => $a->id,
+            'title' => $a->title,
+            'volume' => $a->volume,
+            'issue' => $a->issue_number,
+            'content' => $a->content,
+            'image_url' => $a->image_url
+        ])->toJson() }}
+    }" class="space-y-6">
         <div class="rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-white/[0.03]">
             <div class="px-5 py-4 sm:px-6 sm:py-5 border-b border-gray-100 dark:border-gray-800">
                 <h3 class="text-lg font-semibold text-gray-700 dark:text-white">
@@ -98,7 +108,7 @@
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         {{ __('Resource Type') }} *
                                     </label>
-                                    <select id="document_type" name="document_type" required
+                                    <select id="document_type" name="document_type" required @change="isNewsletter = ($event.target.value === 'Newsletter')"
                                         class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white">
                                         <option value="">{{ __('Select Resource Type') }}</option>
                                         @foreach ($documentTypes as $type)
@@ -225,8 +235,74 @@
                             </div>
                         </div>
 
+                        <!-- Newsletter Articles (Dynamic) -->
+                        <div x-show="isNewsletter" class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-lg font-medium text-gray-700 dark:text-white">
+                                    <iconify-icon icon="lucide:newspaper" class="mr-2"></iconify-icon>
+                                    {{ __('Newsletter Articles') }}
+                                </h4>
+                                <button type="button" @click="articles.push({ id: null, title: '', volume: '', issue: '', content: '' })" 
+                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300">
+                                    <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
+                                    {{ __('Add More Articles') }}
+                                </button>
+                            </div>
+
+                            <div class="space-y-4">
+                                <template x-for="(article, index) in articles" :key="index">
+                                    <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 relative shadow-sm">
+                                        <button type="button" @click="articles.splice(index, 1)" x-show="articles.length > 1"
+                                            class="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1">
+                                            <iconify-icon icon="lucide:trash-2" class="w-4 h-4"></iconify-icon>
+                                        </button>
+                                        
+                                        <input type="hidden" :name="'articles['+index+'][id]'" x-model="article.id">
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 mt-2">
+                                            <div class="md:col-span-2">
+                                                <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Article Title') }}</label>
+                                                <input type="text" :name="'articles['+index+'][title]'" x-model="article.title" required
+                                                    class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm focus:ring-primary focus:border-primary dark:text-white">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Volume (Optional)') }}</label>
+                                                <input type="text" :name="'articles['+index+'][volume]'" x-model="article.volume"
+                                                    class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Issue Number (Optional)') }}</label>
+                                                <input type="text" :name="'articles['+index+'][issue_number]'" x-model="article.issue"
+                                                    class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Update Image (Optional)') }}</label>
+                                                <input type="file" :name="'articles['+index+'][image]'" accept="image/*"
+                                                    class="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                                                <template x-if="article.image_url">
+                                                    <div class="mt-2 flex items-center">
+                                                        <span class="text-[10px] text-gray-400 mr-2">{{ __('Current image exists') }}</span>
+                                                        <img :src="article.image_url" class="h-8 w-8 object-cover rounded border border-gray-200">
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Article Text') }}</label>
+                                            <textarea :name="'articles['+index+'][content]'" x-model="article.content" required rows="4"
+                                                class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white"></textarea>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
                         <!-- File Update -->
-                        <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
+                        <div x-show="!isNewsletter" class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
                             <h4 class="text-lg font-medium text-gray-700 dark:text-white mb-4">
                                 <iconify-icon icon="lucide:upload" class="mr-2"></iconify-icon>
                                 {{ __('File Update') }}
@@ -253,13 +329,13 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <a href="{{ Storage::disk('public')->url($document->file_path) }}"
+                                        <a href="{{ url('storage/' . $document->file_path) }}"
                                             target="_blank"
                                             class="text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
                                             title="{{ __('View') }}">
                                             <iconify-icon icon="lucide:eye" class="text-sm"></iconify-icon>
                                         </a>
-                                        <a href="{{ Storage::disk('public')->url($document->file_path) }}" download
+                                        <a href="{{ url('storage/' . $document->file_path) }}" download
                                             class="text-green-400 hover:text-green-600 dark:hover:text-green-300"
                                             title="{{ __('Download') }}">
                                             <iconify-icon icon="lucide:download" class="text-sm"></iconify-icon>
