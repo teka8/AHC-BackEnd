@@ -51,7 +51,9 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => 'https://ahcadmin.aau.edu.et',
+
+    'frontend_url' => 'https://ahc.aau.edu.et',
 
     /*
     |--------------------------------------------------------------------------

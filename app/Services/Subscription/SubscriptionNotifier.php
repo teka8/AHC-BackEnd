@@ -31,7 +31,7 @@ class SubscriptionNotifier
             ? __('New announcement: :title', ['title' => $post->title])
             : __('New story published: :title', ['title' => $post->title]);
 
-        $headline = $post->title ?? ($type === 'announcement' ? __('Latest announcement from AHC') : __('Latest news from AHC'));
+        $headline = $post->title ?? ($type === 'announcement' ? __('Latest announcement from AHC - AAU') : __('Latest news from AHC - AAU'));
         $intro = $this->summarize($post->excerpt, $post->content);
         $path = $type === 'announcement' ? "announcement/{$post->getKey()}" : "news/{$post->getKey()}";
         $meta = [];
@@ -59,7 +59,7 @@ class SubscriptionNotifier
     public function notifyEventPublished(Event $event): void
     {
         $subject = __('Upcoming event: :title', ['title' => $event->title]);
-        $headline = $event->title ?? __('New event from AHC');
+        $headline = $event->title ?? __('New event from AHC - AAU');
         $intro = $this->summarize($event->description, null);
         $path = "events/{$event->getKey()}";
 
@@ -101,7 +101,7 @@ class SubscriptionNotifier
                 'status' => $currentStatus,
             ]);
 
-        $headline = $scholarship->title ?? __('Scholarship opportunity at AHC');
+        $headline = $scholarship->title ?? __('Scholarship opportunity at AHC - AAU');
         $intro = $this->summarize($scholarship->description, null);
         $path = "scholarship/{$scholarship->getKey()}";
 
@@ -201,7 +201,7 @@ class SubscriptionNotifier
             ?: ($content ? Str::of(strip_tags($content))->squish()->toString() : '');
 
         if ($text === '') {
-            $text = __('Stay tuned for more details from the Africa Health Collaborative.');
+            $text = __('Stay tuned for more details from the Africa Health Collaborative - AAU.');
         }
 
         return Str::limit($text, 240);
