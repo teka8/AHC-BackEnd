@@ -60,12 +60,12 @@
                     </div>
 
                     <!-- Abstract -->
-                    <div class="mb-4">
+                    <div class="mb-4" x-show="!isNewsletter">
                         <label for="document_abstract"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             {{ __('Abstract / Summary') }} *
                         </label>
-                        <textarea id="document_abstract" name="abstract" required rows="4"
+                        <textarea id="document_abstract" name="abstract" :required="!isNewsletter" rows="4"
                             class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                             placeholder="{{ __('Provide a brief summary of the document content...') }}"></textarea>
                     </div>
@@ -252,7 +252,7 @@
                 <button type="button" x-on:click="uploadModalOpen = false" class="btn-default">
                     {{ __('Cancel') }}
                 </button>
-                <button type="button" id="upload-btn" onclick="uploadDocument()" class="btn-primary">
+                <button type="button" id="upload-btn" @click="uploadDocument()" class="btn-primary">
                     {{ __('Upload to Repository') }}
                 </button>
             </div>
@@ -373,13 +373,20 @@
         const form = document.getElementById('upload-form');
 
         // Validate required fields
-        const requiredFields = ['title', 'author', 'publication_date', 'abstract', 'document_type', 'category'];
-        const missingFields = [];
+        const isNewsletter = Alpine.$data(document.getElementById('upload-form').closest('[x-data]')).isNewsletter;
+        const articles = Alpine.$data(document.getElementById('upload-form').closest('[x-data]')).articles;
 
+        const requiredFields = ['title', 'author', 'publication_date', 'document_type', 'category'];
+        if (!isNewsletter) {
+            requiredFields.push('abstract');
+        }
+
+        const missingFields = [];
         requiredFields.forEach(field => {
             const element = form.querySelector(`[name="${field}"]`);
             if (!element.value.trim()) {
-                missingFields.push(element.previousElementSibling.textContent.trim());
+                const label = element.previousElementSibling ? element.previousElementSibling.textContent.trim() : field;
+                missingFields.push(label);
             }
         });
 
@@ -388,12 +395,12 @@
             return;
         }
 
-        if (!this.isNewsletter && fileInput.files.length === 0) {
+        if (!isNewsletter && fileInput.files.length === 0) {
             alert('{{ __('Please select a document file to upload') }}');
             return;
         }
 
-        if (this.isNewsletter && this.articles.length === 0) {
+        if (isNewsletter && articles.length === 0) {
             alert('{{ __('Please add at least one article to your newsletter') }}');
             return;
         }

@@ -80,12 +80,12 @@
                             </div>
 
                             <!-- Description (Abstract) -->
-                            <div class="mt-4">
+                            <div class="mt-4" x-show="!isNewsletter">
                                 <label for="abstract"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     {{ __('Abstract / Summary') }} *
                                 </label>
-                                <textarea id="abstract" name="abstract" required rows="4"
+                                <textarea id="abstract" name="abstract" :required="!isNewsletter" rows="4"
                                     class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white"
                                     placeholder="{{ __('Provide a brief summary of the resource...') }}">{{ old('abstract', $document->description) }}</textarea>
                                 @error('abstract')
