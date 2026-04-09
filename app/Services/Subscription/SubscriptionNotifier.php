@@ -204,7 +204,7 @@ class SubscriptionNotifier
             $text = __('Stay tuned for more details from the Africa Health Collaborative - AAU.');
         }
 
-        return Str::limit($text, 240);
+        return $text;
     }
 
     private function formatScholarshipStatus(string $status): string

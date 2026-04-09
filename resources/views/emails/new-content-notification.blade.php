@@ -5,7 +5,7 @@
 @endphp
 # A New {{ $contentType }} has been published!
 
-Hello {{ $subscriber->name ?? 'Subscriber' }},
+Hello!
 
 We are excited to share some new content with you.
 
@@ -14,7 +14,7 @@ We are excited to share some new content with you.
 @if($content->excerpt)
 <p style="font-size: 16px; line-height: 1.5em; color: #374151;">{{ $content->excerpt }}</p>
 @elseif($content->description)
-<p style="font-size: 16px; line-height: 1.5em; color: #374151;">{{ Str::limit($content->description, 200) }}</p>
+<p style="font-size: 16px; line-height: 1.5em; color: #374151;">{{ $content->description }}</p>
 @endif
 
 @if($isNewsletter)
