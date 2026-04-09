@@ -111,7 +111,7 @@ class PublicResourceController extends Controller
      */
     public function othersShow(int $id)
     {
-        $item = Others::whereIn('access_level', ['public', 'Public'])
+        $item = Others::with(['newsletterArticles'])->whereIn('access_level', ['public', 'Public'])
             ->whereIn('status', ['published', 'Published'])
             ->findOrFail($id);
         return new \App\Http\Resources\OthersPublicResource($item);

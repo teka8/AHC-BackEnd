@@ -40,6 +40,7 @@ class OthersPublicResource extends JsonResource
             'published_at' => optional($this->published_at)->toISOString(),
             'download_count' => (int) ($this->download_count ?? 0),
             'view_count' => (int) ($this->view_count ?? 0),
+            'articles' => $this->whenLoaded('newsletterArticles'),
         ];
     }
 }
