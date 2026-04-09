@@ -312,13 +312,14 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::post('/generate-content', [App\Http\Controllers\Backend\AiContentController::class, 'generateContent'])->name('generate-content');
     });
 
-    // remember to remove this below code after finalizing this project
     Route::get('/clear-cache', function () {
-        if (app()->environment('local')) {
-            Artisan::call('optimize:clear');
-            return "✅ Cache cleared in local environment!";
-        }
-        abort(403, 'Unauthorized action.');
+        Artisan::call('cache:clear');
+        Artisan::call('route:clear');
+        Artisan::call('config:clear');
+        Artisan::call('view:clear');
+        Artisan::call('queue:restart');
+        
+        return "✅ Core Caches, Views, and Configurations Cleared! Queue workers successfully restarted.";
     });
 
     Route::get('/run-migrate', function () {
