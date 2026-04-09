@@ -47,14 +47,6 @@ We are excited to share some new content with you.
 @endif
 @endif
 
-@if($isNewsletter)
-<x-mail::button :url="config('app.frontend_url') . '/resources#others'" color="primary">
-View Newsletter
-</x-mail::button>
-
-<x-mail::button :url="url('/api/v1/public/resources/others/' . $content->id . '/file')" color="success">
-Download Newsletter
-</x-mail::button>
 @else
 @php
 $path = Str::kebab(class_basename($content));
