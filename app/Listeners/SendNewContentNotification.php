@@ -16,7 +16,7 @@ class SendNewContentNotification implements ShouldQueue
      *
      * @var string|null
      */
-    public ?string $queue = 'emails';
+    public ?string $queue = null;
 
     /**
      * Create the event listener.
@@ -33,6 +33,7 @@ class SendNewContentNotification implements ShouldQueue
     {
         $subscribers = EmailSubscription::query()
             ->active()
+            ->whereNotNull('confirmed_at')
             ->where(function (Builder $query) use ($event) {
                 $query->where("wants_{$event->type}", true);
             })

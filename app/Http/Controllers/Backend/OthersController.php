@@ -328,6 +328,8 @@ class OthersController extends Controller
             ];
             $resourceType = $typeMap[$validated['document_type']] ?? Others::TYPE_PRESENTATION;
 
+            $oldStatus = $document->status;
+
             // Update the document
             $document->update(array_merge([
                 'title' => $validated['title'],
@@ -341,6 +343,11 @@ class OthersController extends Controller
                 'status' => $validated['status'],
                 'updated_by' => Auth::id(),
             ], $fileData));
+
+            // Trigger notification if status changed to published and it's a newsletter
+            if ($oldStatus !== Others::STATUS_PUBLISHED && $document->status === Others::STATUS_PUBLISHED && $document->resource_type === Others::TYPE_NEWSLETTER) {
+                event(new NewContentPublished($document, 'newsletters'));
+            }
 
             // Handle tags
             if (!empty($validated['tags'])) {
