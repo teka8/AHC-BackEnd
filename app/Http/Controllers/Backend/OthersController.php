@@ -293,7 +293,8 @@ class OthersController extends Controller
 
         if ($isNewsletter) {
             $rules['articles'] = 'required|array|min:1';
-            $rules['articles.*.title'] = 'required|string|max:255';
+            $rules['articles.*.title'] = 'nullable|string|max:255';
+            $rules['articles.*.subtitle'] = 'nullable|string|max:255';
             $rules['articles.*.content'] = 'required|string';
             $rules['articles.*.image'] = 'nullable|image|max:5120';
         } else {
@@ -503,6 +504,7 @@ class OthersController extends Controller
             'document_type' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'is_featured' => 'nullable|boolean',
+            'access_level' => 'required|in:public,partner_only,internal_only',
             'status' => 'nullable|in:draft,under_review,approved,published,archived',
             'tags' => 'nullable|string|max:500',
             'newsletter_volume' => $isNewsletter ? 'nullable|string|max:50' : 'nullable',
@@ -511,7 +513,8 @@ class OthersController extends Controller
 
         if ($isNewsletter) {
             $rules['articles'] = 'required|array|min:1';
-            $rules['articles.*.title'] = 'required|string|max:255';
+            $rules['articles.*.title'] = 'nullable|string|max:255';
+            $rules['articles.*.subtitle'] = 'nullable|string|max:255';
             $rules['articles.*.content'] = 'required|string';
             $rules['articles.*.image'] = 'nullable|image|max:5120'; // 5MB max per image
         } else {
