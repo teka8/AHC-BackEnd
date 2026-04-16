@@ -1,14 +1,16 @@
 <x-layouts.backend-layout :breadcrumbs="$breadcrumbs">
     <div x-data="{ 
         isNewsletter: {{ $document->resource_type === \App\Models\Others::TYPE_NEWSLETTER ? 'true' : 'false' }},
-        articles: {{ $document->newsletterArticles->map(fn($a) => [
-            'id' => $a->id,
-            'title' => $a->title,
-            'volume' => $a->volume,
-            'issue' => $a->issue_number,
-            'content' => $a->content,
-            'image_url' => $a->image_url
-        ])->toJson() }}
+        articles: @json($document->newsletterArticles->map(function($article) {
+                    return [
+                        'id' => $article->id,
+                        'title' => $article->title,
+                        'content' => $article->content,
+                        'image_url' => $article->image_url,
+                    ];
+                })),
+        newsletter_volume: '{{ old('newsletter_volume', $document->newsletter_volume) }}',
+        newsletter_issue: '{{ old('newsletter_issue', $document->newsletter_issue) }}'
     }" class="space-y-6">
         <div class="rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-white/[0.03]">
             <div class="px-5 py-4 sm:px-6 sm:py-5 border-b border-gray-100 dark:border-gray-800">
@@ -249,6 +251,25 @@
                                 </button>
                             </div>
 
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/20">
+                                <div>
+                                    <label for="newsletter_volume" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {{ __('Newsletter Volume (Global)') }}
+                                    </label>
+                                    <input type="text" id="newsletter_volume" name="newsletter_volume" x-model="newsletter_volume"
+                                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm dark:text-white"
+                                        placeholder="e.g., Vol 1">
+                                </div>
+                                <div>
+                                    <label for="newsletter_issue" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {{ __('Newsletter Issue Number (Global)') }}
+                                    </label>
+                                    <input type="text" id="newsletter_issue" name="newsletter_issue" x-model="newsletter_issue"
+                                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm dark:text-white"
+                                        placeholder="e.g., Issue 5">
+                                </div>
+                            </div>
+
                             <div class="space-y-4">
                                 <template x-for="(article, index) in articles" :key="index">
                                     <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 relative shadow-sm">
@@ -259,25 +280,15 @@
                                         
                                         <input type="hidden" :name="'articles['+index+'][id]'" x-model="article.id">
                                         
-                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 mt-2">
-                                            <div class="md:col-span-2">
+                                        <div class="grid grid-cols-1 gap-4 mb-4 mt-2">
+                                            <div>
                                                 <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Article Title') }}</label>
                                                 <input type="text" :name="'articles['+index+'][title]'" x-model="article.title" required
                                                     class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm focus:ring-primary focus:border-primary dark:text-white">
                                             </div>
-                                            <div>
-                                                <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Volume (Optional)') }}</label>
-                                                <input type="text" :name="'articles['+index+'][volume]'" x-model="article.volume"
-                                                    class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white">
-                                            </div>
                                         </div>
                                         
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                            <div>
-                                                <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Issue Number (Optional)') }}</label>
-                                                <input type="text" :name="'articles['+index+'][issue_number]'" x-model="article.issue"
-                                                    class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white">
-                                            </div>
+                                        <div class="grid grid-cols-1 gap-4 mb-4">
                                             <div>
                                                 <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Update Image (Optional)') }}</label>
                                                 <input type="file" :name="'articles['+index+'][image]'" accept="image/*"

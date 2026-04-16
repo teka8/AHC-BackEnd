@@ -287,6 +287,8 @@ class OthersController extends Controller
             'access_level' => 'required|in:public,partner_only,internal_only',
             'status' => 'required|in:draft,under_review,approved,published,archived',
             'tags' => 'nullable|string|max:500',
+            'newsletter_volume' => $isNewsletter ? 'nullable|string|max:50' : 'nullable',
+            'newsletter_issue' => $isNewsletter ? 'nullable|string|max:50' : 'nullable',
         ];
 
         if ($isNewsletter) {
@@ -341,6 +343,8 @@ class OthersController extends Controller
                 'is_featured' => $validated['is_featured'] ?? false,
                 'access_level' => $validated['access_level'],
                 'status' => $validated['status'],
+                'newsletter_volume' => $validated['newsletter_volume'] ?? null,
+                'newsletter_issue' => $validated['newsletter_issue'] ?? null,
                 'updated_by' => Auth::id(),
             ], $fileData));
 
@@ -372,8 +376,6 @@ class OthersController extends Controller
 
                     $articlePayload = [
                         'title' => $articleData['title'],
-                        'volume' => $articleData['volume'] ?? null,
-                        'issue_number' => $articleData['issue_number'] ?? null,
                         'content' => $articleData['content'],
                         'sort_order' => $index,
                     ];
@@ -500,8 +502,10 @@ class OthersController extends Controller
             'document_type' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'is_featured' => 'nullable|boolean',
-            'access_level' => 'required|in:public,partner_only,internal_only',
+            'status' => 'nullable|in:draft,under_review,approved,published,archived',
             'tags' => 'nullable|string|max:500',
+            'newsletter_volume' => $isNewsletter ? 'nullable|string|max:50' : 'nullable',
+            'newsletter_issue' => $isNewsletter ? 'nullable|string|max:50' : 'nullable',
         ];
 
         if ($isNewsletter) {
@@ -552,6 +556,8 @@ class OthersController extends Controller
                 'published_at' => !empty($validated['publication_date']) ? date('Y-m-d H:i:s', strtotime($validated['publication_date'])) : null,
                 'is_featured' => $validated['is_featured'] ?? false,
                 'access_level' => $validated['access_level'],
+                'newsletter_volume' => $validated['newsletter_volume'] ?? null,
+                'newsletter_issue' => $validated['newsletter_issue'] ?? null,
                 'status' => Others::STATUS_DRAFT,
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
@@ -576,8 +582,6 @@ class OthersController extends Controller
 
                     $document->newsletterArticles()->create([
                         'title' => $articleData['title'],
-                        'volume' => $articleData['volume'] ?? null,
-                        'issue_number' => $articleData['issue_number'] ?? null,
                         'content' => $articleData['content'],
                         'image_path' => $articleImagePath,
                         'sort_order' => $index,

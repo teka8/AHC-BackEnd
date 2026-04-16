@@ -197,25 +197,34 @@
                                     <iconify-icon icon="lucide:trash-2" class="w-4 h-4"></iconify-icon>
                                 </button>
                                 
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 mt-2">
-                                    <div class="md:col-span-2">
+                                <div x-show="isNewsletter" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50/50 dark:bg-gray-800/30 rounded-lg">
+                                    <div>
+                                        <label for="newsletter_volume" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                            {{ __('Newsletter Volume (Global)') }}
+                                        </label>
+                                        <input type="text" id="newsletter_volume" name="newsletter_volume"
+                                            class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white"
+                                            placeholder="e.g., Vol 1">
+                                    </div>
+                                    <div>
+                                        <label for="newsletter_issue" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                            {{ __('Newsletter Issue Number (Global)') }}
+                                        </label>
+                                        <input type="text" id="newsletter_issue" name="newsletter_issue"
+                                            class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white"
+                                            placeholder="e.g., Issue 5">
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 gap-4 mb-4 mt-2">
+                                    <div>
                                         <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Article Title') }}</label>
                                         <input type="text" :name="'articles['+index+'][title]'" x-model="article.title" required
                                             class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm focus:ring-primary focus:border-primary">
                                     </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Volume (Optional)') }}</label>
-                                        <input type="text" :name="'articles['+index+'][volume]'" x-model="article.volume"
-                                            class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm">
-                                    </div>
                                 </div>
                                 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Issue Number (Optional)') }}</label>
-                                        <input type="text" :name="'articles['+index+'][issue_number]'" x-model="article.issue"
-                                            class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm">
-                                    </div>
+                                <div class="grid grid-cols-1 gap-4 mb-4">
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Image Upload') }}</label>
                                         <input type="file" :name="'articles['+index+'][image]'" accept="image/*"

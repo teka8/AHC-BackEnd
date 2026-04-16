@@ -27,6 +27,8 @@ class Others extends Model
         'description',
         'resource_type',
         'subject_area',
+        'newsletter_volume',
+        'newsletter_issue',
         'file_path',
         'file_name',
         'file_size',
