@@ -11,8 +11,8 @@ $issue = $content->newsletter_issue;
 @endphp
 
 @if($volume || $issue)
-<div style="margin-bottom: 30px; text-align: center;">
-<p style="font-size: 14px; color: #6b7280; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
+<div style="margin-top: -10px; margin-bottom: 20px; text-align: right;">
+<p style="font-size: 10px; color: #9ca3af; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
 @if($volume)Volume {{ $volume }}@endif
 @if($volume && $issue) &nbsp;•&nbsp; @endif
 @if($issue)Issue {{ $issue }}@endif
