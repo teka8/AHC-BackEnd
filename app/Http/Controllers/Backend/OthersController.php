@@ -375,7 +375,8 @@ class OthersController extends Controller
                     }
 
                     $articlePayload = [
-                        'title' => $articleData['title'],
+                        'title' => $articleData['title'] ?? null,
+                        'subtitle' => $articleData['subtitle'] ?? null,
                         'content' => $articleData['content'],
                         'sort_order' => $index,
                     ];
@@ -581,7 +582,8 @@ class OthersController extends Controller
                     }
 
                     $document->newsletterArticles()->create([
-                        'title' => $articleData['title'],
+                        'title' => $articleData['title'] ?? null,
+                        'subtitle' => $articleData['subtitle'] ?? null,
                         'content' => $articleData['content'],
                         'image_path' => $articleImagePath,
                         'sort_order' => $index,

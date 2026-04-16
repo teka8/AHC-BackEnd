@@ -16,6 +16,7 @@ class NewsletterArticle extends Model
     protected $fillable = [
         'others_id',
         'title',
+        'subtitle',
         'volume',
         'issue_number',
         'image_path',

@@ -5,6 +5,7 @@
                     return [
                         'id' => $article->id,
                         'title' => $article->title,
+                        'subtitle' => $article->subtitle,
                         'content' => $article->content,
                         'image_url' => $article->image_url,
                     ];
@@ -280,10 +281,15 @@
                                         
                                         <input type="hidden" :name="'articles['+index+'][id]'" x-model="article.id">
                                         
-                                        <div class="grid grid-cols-1 gap-4 mb-4 mt-2">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-2">
                                             <div>
-                                                <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Article Title') }}</label>
-                                                <input type="text" :name="'articles['+index+'][title]'" x-model="article.title" required
+                                                <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Main Title (Above Image) - Optional') }}</label>
+                                                <input type="text" :name="'articles['+index+'][title]'" x-model="article.title"
+                                                    class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm focus:ring-primary focus:border-primary dark:text-white">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Subtitle (Below Image) - Optional') }}</label>
+                                                <input type="text" :name="'articles['+index+'][subtitle]'" x-model="article.subtitle"
                                                     class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm focus:ring-primary focus:border-primary dark:text-white">
                                             </div>
                                         </div>
