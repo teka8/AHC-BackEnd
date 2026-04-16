@@ -244,7 +244,7 @@
                                     <iconify-icon icon="lucide:newspaper" class="mr-2"></iconify-icon>
                                     {{ __('Newsletter Articles') }}
                                 </h4>
-                                <button type="button" @click="articles.push({ id: null, title: '', volume: '', issue: '', content: '' })" 
+                                <button type="button" @click="articles.push({ id: null, title: '', content: '' })" 
                                     class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300">
                                     <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
                                     {{ __('Add More Articles') }}

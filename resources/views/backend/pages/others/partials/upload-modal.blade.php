@@ -182,11 +182,30 @@
                 <div x-show="isNewsletter" class="mb-6">
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="text-lg font-medium text-gray-700 dark:text-white">{{ __('Newsletter Articles') }}</h4>
-                        <button type="button" @click="articles.push({ id: Date.now(), title: '', volume: '', issue: '', content: '' })" 
+                        <button type="button" @click="articles.push({ id: Date.now(), title: '', content: '' })" 
                             class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300">
                             <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
                             {{ __('Add More Articles') }}
                         </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50/50 dark:bg-gray-800/30 rounded-lg">
+                        <div>
+                            <label for="newsletter_volume" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                {{ __('Newsletter Volume (Global)') }}
+                            </label>
+                            <input type="text" id="newsletter_volume" name="newsletter_volume"
+                                class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white"
+                                placeholder="e.g., Vol 1">
+                        </div>
+                        <div>
+                            <label for="newsletter_issue" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                {{ __('Newsletter Issue Number (Global)') }}
+                            </label>
+                            <input type="text" id="newsletter_issue" name="newsletter_issue"
+                                class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white"
+                                placeholder="e.g., Issue 5">
+                        </div>
                     </div>
 
                     <div class="space-y-4">
@@ -196,25 +215,6 @@
                                     class="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1">
                                     <iconify-icon icon="lucide:trash-2" class="w-4 h-4"></iconify-icon>
                                 </button>
-                                
-                                <div x-show="isNewsletter" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50/50 dark:bg-gray-800/30 rounded-lg">
-                                    <div>
-                                        <label for="newsletter_volume" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                                            {{ __('Newsletter Volume (Global)') }}
-                                        </label>
-                                        <input type="text" id="newsletter_volume" name="newsletter_volume"
-                                            class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white"
-                                            placeholder="e.g., Vol 1">
-                                    </div>
-                                    <div>
-                                        <label for="newsletter_issue" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                                            {{ __('Newsletter Issue Number (Global)') }}
-                                        </label>
-                                        <input type="text" id="newsletter_issue" name="newsletter_issue"
-                                            class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white"
-                                            placeholder="e.g., Issue 5">
-                                    </div>
-                                </div>
                                 
                                 <div class="grid grid-cols-1 gap-4 mb-4 mt-2">
                                     <div>
