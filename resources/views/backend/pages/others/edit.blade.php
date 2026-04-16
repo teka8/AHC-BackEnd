@@ -109,16 +109,23 @@
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         {{ __('Resource Type') }} *
                                     </label>
-                                    <select id="document_type" name="document_type" required @change="isNewsletter = ($event.target.value === 'Newsletter')"
-                                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white">
-                                        <option value="">{{ __('Select Resource Type') }}</option>
-                                        @foreach ($documentTypes as $type)
-                                            <option value="{{ $type }}"
-                                                {{ old('document_type', $document->resource_type) == $type ? 'selected' : '' }}>
-                                                {{ __($type) }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <div class="relative">
+                                        <select id="document_type" name="document_type" required 
+                                            :disabled="isNewsletter"
+                                            @change="isNewsletter = ($event.target.value === 'Newsletter')"
+                                            class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800/50 disabled:cursor-not-allowed">
+                                            <option value="">{{ __('Select Resource Type') }}</option>
+                                            @foreach ($documentTypes as $type)
+                                                <option value="{{ $type }}"
+                                                    {{ old('document_type', $document->resource_type) == $type ? 'selected' : '' }}>
+                                                    {{ __($type) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <template x-if="isNewsletter">
+                                            <input type="hidden" name="document_type" value="Newsletter">
+                                        </template>
+                                    </div>
                                     @error('document_type')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
@@ -243,28 +250,28 @@
                                     <iconify-icon icon="lucide:newspaper" class="mr-2"></iconify-icon>
                                     {{ __('Newsletter Articles') }}
                                 </h4>
-                                <button type="button" @click="articles.push({ id: null, title: '', content: '' })" 
-                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300">
+                                <button type="button" @click="articles.push({ id: null, title: '', subtitle: '', content: '', image_url: null })" 
+                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20">
                                     <iconify-icon icon="lucide:plus" class="mr-1"></iconify-icon>
                                     {{ __('Add More Articles') }}
                                 </button>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/20">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50/50 dark:bg-gray-800/30 rounded-lg">
                                 <div>
-                                    <label for="newsletter_volume" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label for="newsletter_volume" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
                                         {{ __('Newsletter Volume (Global)') }}
                                     </label>
                                     <input type="text" id="newsletter_volume" name="newsletter_volume" x-model="newsletter_volume"
-                                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm dark:text-white"
+                                        class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white"
                                         placeholder="e.g., Vol 1">
                                 </div>
                                 <div>
-                                    <label for="newsletter_issue" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label for="newsletter_issue" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
                                         {{ __('Newsletter Issue Number (Global)') }}
                                     </label>
                                     <input type="text" id="newsletter_issue" name="newsletter_issue" x-model="newsletter_issue"
-                                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm dark:text-white"
+                                        class="w-full rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm dark:text-white"
                                         placeholder="e.g., Issue 5">
                                 </div>
                             </div>
@@ -294,15 +301,29 @@
                                         
                                         <div class="grid grid-cols-1 gap-4 mb-4">
                                             <div>
-                                                <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Update Image (Optional)') }}</label>
-                                                <input type="file" :name="'articles['+index+'][image]'" accept="image/*"
-                                                    class="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
-                                                <template x-if="article.image_url">
-                                                    <div class="mt-2 flex items-center">
-                                                        <span class="text-[10px] text-gray-400 mr-2">{{ __('Current image exists') }}</span>
-                                                        <img :src="article.image_url" class="h-8 w-8 object-cover rounded border border-gray-200">
+                                                <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Article Image (Optional)') }}</label>
+                                                <div class="flex items-center space-x-4">
+                                                    <div class="flex-1">
+                                                        <input type="file" :name="'articles['+index+'][image]'" accept="image/*"
+                                                            @change="
+                                                                const file = $event.target.files[0];
+                                                                if (file) {
+                                                                    const reader = new FileReader();
+                                                                    reader.onload = (e) => { article.image_url = e.target.result; };
+                                                                    reader.readAsDataURL(file);
+                                                                }
+                                                            "
+                                                            class="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
                                                     </div>
-                                                </template>
+                                                    <template x-if="article.image_url">
+                                                        <div class="relative group">
+                                                            <img :src="article.image_url" class="h-16 w-16 object-cover rounded-lg border border-gray-200 shadow-sm">
+                                                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-lg transition-opacity duration-200">
+                                                                <iconify-icon icon="lucide:eye" class="text-white w-4 h-4"></iconify-icon>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </div>
                                             </div>
                                         </div>
                                         

@@ -231,9 +231,29 @@
                                 
                                 <div class="grid grid-cols-1 gap-4 mb-4">
                                     <div>
-                                        <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Image Upload') }}</label>
-                                        <input type="file" :name="'articles['+index+'][image]'" accept="image/*"
-                                            class="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('Article Image (Optional)') }}</label>
+                                        <div class="flex items-center space-x-4">
+                                            <div class="flex-1">
+                                                <input type="file" :name="'articles['+index+'][image]'" accept="image/*"
+                                                    @change="
+                                                        const file = $event.target.files[0];
+                                                        if (file) {
+                                                            const reader = new FileReader();
+                                                            reader.onload = (e) => { article.image_url = e.target.result; };
+                                                            reader.readAsDataURL(file);
+                                                        }
+                                                    "
+                                                    class="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                                            </div>
+                                            <template x-if="article.image_url">
+                                                <div class="relative group">
+                                                    <img :src="article.image_url" class="h-16 w-16 object-cover rounded-lg border border-gray-200 shadow-sm">
+                                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-lg transition-opacity duration-200">
+                                                        <iconify-icon icon="lucide:eye" class="text-white w-4 h-4"></iconify-icon>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
                                 
