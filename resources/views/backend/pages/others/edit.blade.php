@@ -1,10 +1,13 @@
 <x-layouts.backend-layout :breadcrumbs="$breadcrumbs">
-    <div x-data="{ 
+<script>
+    window.__newsletterEditData = {
         isNewsletter: @json($document->resource_type === 'Newsletter'),
         articles: @json($articles),
         newsletter_volume: @json(old('newsletter_volume', (string)$document->newsletter_volume)),
         newsletter_issue: @json(old('newsletter_issue', (string)$document->newsletter_issue))
-    }" class="space-y-6">
+    };
+</script>
+    <div x-data="window.__newsletterEditData" class="space-y-6">
         <div class="rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-white/[0.03]">
             <div class="px-5 py-4 sm:px-6 sm:py-5 border-b border-gray-100 dark:border-gray-800">
                 <h3 class="text-lg font-semibold text-gray-700 dark:text-white">
