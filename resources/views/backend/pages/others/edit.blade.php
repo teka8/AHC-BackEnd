@@ -1,15 +1,6 @@
 <x-layouts.backend-layout :breadcrumbs="$breadcrumbs">
-@php
-    $articles = $document->newsletterArticles->map(fn($a) => [
-        'id' => $a->id,
-        'title' => $a->title,
-        'subtitle' => $a->subtitle,
-        'content' => $a->content,
-        'image_url' => $a->image_url,
-    ]);
-@endphp
     <div x-data="{ 
-        isNewsletter: {{ $document->resource_type === \App\Models\Others::TYPE_NEWSLETTER ? 'true' : 'false' }},
+        isNewsletter: @json($document->resource_type === 'Newsletter'),
         articles: @json($articles),
         newsletter_volume: @json(old('newsletter_volume', (string)$document->newsletter_volume)),
         newsletter_issue: @json(old('newsletter_issue', (string)$document->newsletter_issue))

@@ -245,6 +245,13 @@ class OthersController extends Controller
         return view('backend.pages.others.edit', [
             'document' => $document,
             'breadcrumbs' => $breadcrumbs,
+            'articles' => $document->newsletterArticles->map(fn($a) => [
+                'id' => $a->id,
+                'title' => $a->title,
+                'subtitle' => $a->subtitle,
+                'content' => $a->content,
+                'image_url' => $a->image_url,
+            ]),
             'documentTypes' => [
                 'Newsletter',
                 'Presentation',
