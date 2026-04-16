@@ -1,17 +1,15 @@
 <x-layouts.backend-layout :breadcrumbs="$breadcrumbs">
     <div x-data="{ 
         isNewsletter: {{ $document->resource_type === \App\Models\Others::TYPE_NEWSLETTER ? 'true' : 'false' }},
-        articles: @json($document->newsletterArticles->map(function($article) {
-                    return [
-                        'id' => $article->id,
-                        'title' => $article->title,
-                        'subtitle' => $article->subtitle,
-                        'content' => $article->content,
-                        'image_url' => $article->image_url,
-                    ];
-                })),
-        newsletter_volume: '{{ old('newsletter_volume', $document->newsletter_volume) }}',
-        newsletter_issue: '{{ old('newsletter_issue', $document->newsletter_issue) }}'
+        articles: {{ json_encode($document->newsletterArticles->map(fn($a) => [
+            'id' => $a->id,
+            'title' => $a->title,
+            'subtitle' => $a->subtitle,
+            'content' => $a->content,
+            'image_url' => $a->image_url,
+        ])) }},
+        newsletter_volume: @json(old('newsletter_volume', (string)$document->newsletter_volume)),
+        newsletter_issue: @json(old('newsletter_issue', (string)$document->newsletter_issue))
     }" class="space-y-6">
         <div class="rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-white/[0.03]">
             <div class="px-5 py-4 sm:px-6 sm:py-5 border-b border-gray-100 dark:border-gray-800">
