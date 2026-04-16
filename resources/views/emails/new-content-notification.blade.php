@@ -11,13 +11,13 @@ $issue = $content->newsletter_issue;
 @endphp
 
 @if($volume || $issue)
-<div style="margin-top: -10px; margin-bottom: 20px; text-align: right;">
-<p style="font-size: 10px; color: #9ca3af; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
-@if($volume)Volume {{ $volume }}@endif
-@if($volume && $issue) &nbsp;•&nbsp; @endif
-@if($issue)Issue {{ $issue }}@endif
-</p>
-</div>
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 0; margin-bottom: 16px;">
+<tr>
+<td align="right" style="padding: 0;">
+<span style="font-size: 10px; color: #9ca3af; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">@if($volume)Vol. {{ $volume }}@endif@if($volume && $issue) &nbsp;•&nbsp; @endif@if($issue)Issue {{ $issue }}@endif</span>
+</td>
+</tr>
+</table>
 @endif
 
 @foreach($content->newsletterArticles as $article)
