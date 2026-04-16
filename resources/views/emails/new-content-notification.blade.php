@@ -43,7 +43,9 @@ $issue = $content->newsletter_issue;
 {{ Str::limit($article->content, 400) }}
 </div>
 
+<div style="text-align: right;">
 <a href="{{ config('app.frontend_url') }}/newsletters/{{ $content->id }}" style="background-color: #004D40; border-radius: 4px; color: #ffffff; display: inline-block; font-size: 13px; font-weight: 600; line-height: 36px; padding: 0 20px; text-align: center; text-decoration: none;">{{ __('Read More') }}</a>
+</div>
 
 </div>
 @endforeach

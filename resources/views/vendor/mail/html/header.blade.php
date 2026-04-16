@@ -25,8 +25,7 @@
                         </table>
                         <div style="text-align: center;">
                             <span
-                                style="color: #ffffff; font-size: 20px; font-weight: 800; letter-spacing: 2px; font-family: 'Urbanist', 'Inter', Helvetica, Arial, sans-serif; text-transform: uppercase;">AHC
-                                - AAU</span>
+                                style="color: #ffffff; font-size: 16px; font-weight: 800; letter-spacing: 1px; font-family: 'Urbanist', 'Inter', Helvetica, Arial, sans-serif; text-transform: uppercase;">Africa Health Collaborative - Addis Ababa University</span>
                         </div>
                     </a>
                 </td>
