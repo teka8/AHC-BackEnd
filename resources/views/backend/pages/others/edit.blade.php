@@ -238,7 +238,8 @@
                         </div>
 
                         <!-- Newsletter Articles (Dynamic) -->
-                        <div x-show="isNewsletter" class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
+                        @if($document->resource_type === 'Newsletter')
+                        <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
                             <div class="flex items-center justify-between mb-4">
                                 <h4 class="text-lg font-medium text-gray-700 dark:text-white">
                                     <iconify-icon icon="lucide:newspaper" class="mr-2"></iconify-icon>
@@ -330,9 +331,10 @@
                                 </template>
                             </div>
                         </div>
+                        @else
 
                         <!-- File Update -->
-                        <div x-show="!isNewsletter" class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
+                        <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
                             <h4 class="text-lg font-medium text-gray-700 dark:text-white mb-4">
                                 <iconify-icon icon="lucide:upload" class="mr-2"></iconify-icon>
                                 {{ __('File Update') }}
@@ -390,6 +392,7 @@
                                 @enderror
                             </div>
                         </div>
+                        @endif
                     </div>
 
                     <!-- Form Actions -->
