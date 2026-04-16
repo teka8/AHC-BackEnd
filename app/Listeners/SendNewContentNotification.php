@@ -31,20 +31,21 @@ class SendNewContentNotification implements ShouldQueue
      */
     public function handle(NewContentPublished $event): void
     {
-        $subscribers = EmailSubscription::query()
+        EmailSubscription::query()
             ->active()
             ->whereNotNull('confirmed_at')
             ->where(function (Builder $query) use ($event) {
                 $query->where("wants_{$event->type}", true);
             })
-            ->get();
-
-        foreach ($subscribers as $subscriber) {
-            try {
-                Mail::to($subscriber->email)->queue(new NewContentNotification($event->content, $subscriber));
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Failed to send new content notification to ' . $subscriber->email . ': ' . $e->getMessage());
-            }
-        }
+            ->chunkById(100, function ($subscribers) use ($event) {
+                foreach ($subscribers as $subscriber) {
+                    /** @var EmailSubscription $subscriber */
+                    try {
+                        Mail::to($subscriber->email)->queue(new NewContentNotification($event->content, $subscriber));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Failed to send new content notification to ' . $subscriber->email . ': ' . $e->getMessage());
+                    }
+                }
+            });
     }
 }
