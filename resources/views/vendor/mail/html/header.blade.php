@@ -10,16 +10,28 @@
                         <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
                             style="margin-bottom: 14px; padding: 0 30px;">
                             <tr>
-                                <td align="left" width="70%" style="vertical-align: middle; text-align: left !important;">
-                                    <img src="https://ahc.aau.edu.et/images/logo_white.png" alt="AHC" height="40"
-                                        style="vertical-align: middle; margin-right: 15px; max-height: 40px; display: inline-block;">
-                                    <img src="https://ahc.aau.edu.et/images/partners/Addis_Ababa_University_logo.png"
-                                        alt="AAU" height="40" style="vertical-align: middle; max-height: 40px; display: inline-block;">
+                                <td align="left" style="vertical-align: middle; text-align: left;">
+                                    <table align="left" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                                        <tr>
+                                            <td align="left" style="vertical-align: middle; text-align: left; padding: 0;">
+                                                <img src="https://ahc.aau.edu.et/images/logo_white.png" alt="AHC" height="40"
+                                                    style="vertical-align: middle; margin-right: 15px; max-height: 40px; display: inline-block;">
+                                                <img src="https://ahc.aau.edu.et/images/partners/Addis_Ababa_University_logo.png"
+                                                    alt="AAU" height="40" style="vertical-align: middle; max-height: 40px; display: inline-block;">
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
-                                <td align="right" width="30%" style="vertical-align: middle; text-align: right !important;">
-                                    <img src="https://ahc.aau.edu.et/images/partners/mastercard_foundation_-_logo.png"
-                                        alt="Mastercard Foundation" height="40"
-                                        style="vertical-align: middle; max-height: 40px; display: inline-block; float: right;">
+                                <td align="right" style="vertical-align: middle; text-align: right;">
+                                    <table align="right" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-right: 0; margin-left: auto;">
+                                        <tr>
+                                            <td align="right" style="vertical-align: middle; text-align: right; padding: 0;">
+                                                <img src="https://ahc.aau.edu.et/images/partners/mastercard_foundation_-_logo.png"
+                                                    alt="Mastercard Foundation" height="40"
+                                                    style="vertical-align: middle; max-height: 40px; display: block;">
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
                         </table>

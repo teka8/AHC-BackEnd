@@ -13,10 +13,14 @@ $issue = $content->newsletter_issue;
 @if($volume || $issue)
 <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin-top: 0; margin-bottom: 16px; width: 100%;">
 <tr>
-<td align="right" style="padding: 0; text-align: right !important; width: 100%;">
-<div style="display: block; text-align: right !important; width: 100%;">
-<span style="display: inline-block; font-size: 10px; color: #9ca3af; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; text-align: right !important;">@if($volume)Vol. {{ $volume }}@endif@if($volume && $issue) &nbsp;•&nbsp; @endif@if($issue)Issue {{ $issue }}@endif</span>
-</div>
+<td align="right" style="padding: 0; text-align: right;">
+<table align="right" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-right: 0; margin-left: auto;">
+<tr>
+<td align="right" style="text-align: right; padding: 0;">
+<span style="font-size: 10px; color: #9ca3af; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">@if($volume)Vol. {{ $volume }}@endif@if($volume && $issue) &nbsp;•&nbsp; @endif@if($issue)Issue {{ $issue }}@endif</span>
+</td>
+</tr>
+</table>
 </td>
 </tr>
 </table>
