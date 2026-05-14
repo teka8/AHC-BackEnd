@@ -47,7 +47,7 @@ Route::get('/translations/{lang}', function (string $lang) {
 
 // Authentication routes
 Route::prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
@@ -163,23 +163,25 @@ Route::middleware('api')->prefix('v1')->group(function () {
 
     // Scholarship Portal
     Route::prefix('scholarships')->group(function () {
-        // Scholarships (public)
+        // ✅ PUBLIC: Anyone can browse scholarships
         Route::get('/', [\App\Http\Controllers\Api\Scholarship\ScholarshipController::class, 'index']);
         Route::get('/{id}', [\App\Http\Controllers\Api\Scholarship\ScholarshipController::class, 'show']);
 
-        // Applications (requires auth)
-        // Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/applications', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'store']);
-        Route::post('/applications/draft', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'saveDraft']);
-        Route::patch('/applications/{id}/draft', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'saveDraft']);
-        Route::get('/applications/my', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'myApplications']);
-        Route::get('/applications/{id}', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'show']);
-        Route::get('/applications/{id}/status', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'statusHistory']);
+        // 🔒 AUTHENTICATED USERS: Must be logged in to apply or view own applications
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/applications', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'store']);
+            Route::post('/applications/draft', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'saveDraft']);
+            Route::patch('/applications/{id}/draft', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'saveDraft']);
+            Route::get('/applications/my', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'myApplications']);
+            Route::get('/applications/{id}', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'show']);
+            Route::get('/applications/{id}/status', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'statusHistory']);
+        });
 
-        // Admin routes (add role check middleware as needed)
-        Route::get('/admin/applications', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'adminIndex']);
-        Route::patch('/applications/{id}/status', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'updateStatus']);
-        // });
+        // 🔐 ADMIN ONLY: Must be logged in AND have admin role
+        Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+            Route::get('/admin/applications', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'adminIndex']);
+            Route::patch('/applications/{id}/status', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'updateStatus']);
+        });
     });
 
     // Public posts (news)

@@ -312,55 +312,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::post('/generate-content', [App\Http\Controllers\Backend\AiContentController::class, 'generateContent'])->name('generate-content');
     });
 
-    Route::get('/clear-cache', function () {
-        Artisan::call('cache:clear');
-        Artisan::call('route:clear');
-        Artisan::call('config:clear');
-        Artisan::call('view:clear');
-        Artisan::call('queue:restart');
-        
-        return "✅ Core Caches, Views, and Configurations Cleared! Queue workers successfully restarted.";
-    });
 
-    Route::get('/run-migrate', function () {
-        Artisan::call('migrate', ['--force' => true]);
-        return "Migration completed!";
-    });
-
-    Route::get('/run-seed', function () {
-        // Auto-discover all seeders
-        $seederPath = database_path('seeders');
-        $seederFiles = File::glob($seederPath . '/*Seeder.php');
-
-        $allSeeders = collect($seederFiles)
-            ->map(fn ($file) => basename($file, '.php'))
-            ->filter(fn ($seeder) => $seeder !== 'DatabaseSeeder') // Exclude main seeder
-            ->values()
-            ->toArray();
-
-        $excludeSeeders = ['UserSeeder', 'ContentSeeder', 'TestUserProfileFieldsSeeder', 'SettingsSeeder']; // ← Customize exclusions
-
-        $seedersToRun = array_diff($allSeeders, $excludeSeeders);
-
-        $results = [];
-        foreach ($seedersToRun as $seeder) {
-            try {
-                Artisan::call('db:seed', [
-                    '--class' => $seeder,
-                    '--force' => true,
-                ]);
-                $results[] = "✓ {$seeder}";
-            } catch (\Exception $e) {
-                $results[] = "✗ {$seeder}: " . $e->getMessage();
-            }
-        }
-
-        return response()->json([
-            'message' => 'Seeding completed!',
-            'excluded' => $excludeSeeders,
-            'results' => $results,
-        ], 200);
-    });
 });
 
 /**
@@ -373,7 +325,7 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth'
 });
 
 Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch');
-Route::get('/screenshot-login/{email}', [ScreenshotGeneratorLoginController::class, 'login'])->middleware('web')->name('screenshot.login');
+
 Route::get('/demo-preview', fn () => view('demo.preview'))->name('demo.preview');
 
 Route::get('/media/ahc-leaders/{path}', function (string $path) {

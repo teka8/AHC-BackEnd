@@ -44,9 +44,7 @@ class ChatController extends Controller
         $fullPrompt = $systemInstruction . "\n\n" . $contextString . "\n\nUser Question: " . $userMessage;
 
         try {
-            $response = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
+            $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
                 'x-goog-api-key' => $apiKey,
             ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent", [
