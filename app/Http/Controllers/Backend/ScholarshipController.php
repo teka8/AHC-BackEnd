@@ -95,7 +95,7 @@ class ScholarshipController extends Controller
         $scholarship = Scholarship::create($validated);
 
         if ($scholarship->status === 'open') {
-            event(new NewContentPublished($scholarship, 'scholarship'));
+            event(new NewContentPublished($scholarship, 'scholarships'));
         }
 
         return redirect()
@@ -163,7 +163,7 @@ class ScholarshipController extends Controller
         $scholarship->update($validated);
 
         if ($scholarship->status === 'open' && $scholarship->wasChanged('status')) {
-            event(new NewContentPublished($scholarship, 'scholarship'));
+            event(new NewContentPublished($scholarship, 'scholarships'));
         }
 
         return redirect()
