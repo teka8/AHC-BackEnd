@@ -169,7 +169,9 @@ class ScholarshipDatatable extends Datatable
 
     public function renderDeadlineColumn(Scholarship $scholarship): string|Renderable
     {
-        return $scholarship->deadline->format('M d, Y');
+        return $scholarship->deadline
+            ? $scholarship->deadline->format('M d, Y')
+            : '<span class="text-gray-400 italic text-xs">No deadline</span>';
     }
 
     public function renderAvailableSlotsColumn(Scholarship $scholarship): string|Renderable
