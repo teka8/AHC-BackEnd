@@ -124,21 +124,6 @@ class PublicPostController extends Controller
             ->all();
 
         return PostResource::collection($posts)->additional([
-            'meta' => [
-                'current_page' => $posts->currentPage(),
-                'from' => $posts->firstItem(),
-                'last_page' => $posts->lastPage(),
-                'path' => $posts->path(),
-                'per_page' => $posts->perPage(),
-                'to' => $posts->lastItem(),
-                'total' => $posts->total(),
-            ],
-            'links' => [
-                'first' => $posts->url(1),
-                'last' => $posts->url($posts->lastPage()),
-                'prev' => $posts->previousPageUrl(),
-                'next' => $posts->nextPageUrl(),
-            ],
             'filters' => [
                 'categories' => $categories,
             ],
