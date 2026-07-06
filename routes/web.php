@@ -341,3 +341,17 @@ Route::get('/media/ahc-leaders/{path}', function (string $path) {
 
     return response()->file(Storage::disk('public')->path($storagePath));
 })->where('path', '.*')->name('media.ahc-leaders');
+
+/**
+ * Temporary migration runner — visit this URL in the browser to run pending migrations.
+ * REMOVE THIS ROUTE after use.
+ */
+Route::get('/run-migrations-now', function () {
+    Artisan::call('migrate', ['--force' => true]);
+    $output = Artisan::output();
+
+    return '<pre style="font-family:monospace;font-size:14px;padding:20px;">'
+        . '<strong>✅ Migration complete</strong>' . "\n\n"
+        . htmlspecialchars($output ?: 'No pending migrations.')
+        . '</pre>';
+});
