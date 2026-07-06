@@ -427,7 +427,8 @@
                                             name="application_start_date" 
                                             id="application_start_date" 
                                             value="{{ old('application_start_date') }}"
-                                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('application_start_date') border-red-500 @enderror"
+                                            onclick="try{this.showPicker()}catch(e){}"
+                                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors cursor-pointer @error('application_start_date') border-red-500 @enderror"
                                         >
                                         @error('application_start_date')
                                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -436,15 +437,16 @@
 
                                     <div class="space-y-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {{ __('Application Deadline') }} <span class="text-red-500">*</span>
+                                            {{ __('Application Deadline') }}
+                                            <span class="text-xs text-gray-400 ml-1">({{ __('Optional') }})</span>
                                         </label>
                                         <input 
                                             type="date" 
                                             name="deadline" 
                                             id="deadline" 
-                                            value="{{ old('deadline') }}" 
-                                            required
-                                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('deadline') border-red-500 @enderror"
+                                            value="{{ old('deadline') }}"
+                                            onclick="try{this.showPicker()}catch(e){}"
+                                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors cursor-pointer @error('deadline') border-red-500 @enderror"
                                         >
                                         @error('deadline')
                                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
