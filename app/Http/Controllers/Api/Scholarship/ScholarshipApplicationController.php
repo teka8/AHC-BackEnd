@@ -102,6 +102,7 @@ class ScholarshipApplicationController extends Controller
         if ($id) {
             $application = ScholarshipApplication::where('id', $id)
                 ->where('user_id', $userId)
+                ->where('status', 'draft')
                 ->firstOrFail();
             
             $application->update($request->except(['cv', 'transcript', 'motivation_letter_file']));

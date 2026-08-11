@@ -167,11 +167,13 @@ Route::middleware('api')->prefix('v1')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\Scholarship\ScholarshipController::class, 'index']);
         Route::get('/{id}', [\App\Http\Controllers\Api\Scholarship\ScholarshipController::class, 'show']);
 
-        // 🔒 AUTHENTICATED USERS: Must be logged in to apply or view own applications
+        // ✅ PUBLIC: Anyone can submit an application or save a draft (no login required)
+        Route::post('/applications', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'store']);
+        Route::post('/applications/draft', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'saveDraft']);
+        Route::patch('/applications/{id}/draft', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'saveDraft']);
+
+        // 🔒 AUTHENTICATED USERS: Must be logged in to view own applications
         Route::middleware('auth:sanctum')->group(function () {
-            Route::post('/applications', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'store']);
-            Route::post('/applications/draft', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'saveDraft']);
-            Route::patch('/applications/{id}/draft', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'saveDraft']);
             Route::get('/applications/my', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'myApplications']);
             Route::get('/applications/{id}', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'show']);
             Route::get('/applications/{id}/status', [\App\Http\Controllers\Api\Scholarship\ScholarshipApplicationController::class, 'statusHistory']);
