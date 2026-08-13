@@ -422,6 +422,41 @@
                     </div>
                 @endforeach
             </div>
+
+            @if(is_array($application->other_documents) && count($application->other_documents) > 0)
+            <div class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                <h4 class="text-md font-semibold text-gray-900 dark:text-white mb-3">Other Documents ({{ count($application->other_documents) }})</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @foreach($application->other_documents as $index => $doc)
+                        @php
+                            $docPath = is_array($doc) ? ($doc['path'] ?? '') : '';
+                            $docName = is_array($doc) ? ($doc['name'] ?? 'Document ' . ($index + 1)) : 'Document ' . ($index + 1);
+                            $docSize = is_array($doc) && isset($doc['size']) ? $doc['size'] : 0;
+                            $fileExists = $docPath && Storage::disk('public')->exists($docPath);
+                        @endphp
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-blue-50 dark:bg-blue-900/10">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white" title="{{ $docName }}">{{ Str::limit($docName, 30) }}</h4>
+                                    @if($fileExists)
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ number_format($docSize / 1024, 2) }} KB</p>
+                                    @else
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">File not found</p>
+                                    @endif
+                                </div>
+                                @if($fileExists)
+                                    <a href="{{ asset('storage/' . $docPath) }}" target="_blank" download class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                        <iconify-icon icon="lucide:download" class="text-lg"></iconify-icon>
+                                    </a>
+                                @else
+                                    <iconify-icon icon="lucide:file-x" class="text-lg text-gray-400"></iconify-icon>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- Additional Information -->

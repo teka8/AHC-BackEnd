@@ -47,6 +47,8 @@ class ScholarshipApplicationController extends Controller
             'cv' => 'required|file|mimes:pdf,doc,docx|max:5120',
             'transcript' => 'required|file|mimes:pdf|max:5120',
             'motivation_letter_file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'other_documents' => 'nullable|array|max:10',
+            'other_documents.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ]);
 
         // Handle file uploads
@@ -66,6 +68,20 @@ class ScholarshipApplicationController extends Controller
             $motivationLetterFilePath = $request->file('motivation_letter_file')->store('applications/motivation-letter-files', 'public');
         }
 
+        $otherDocs = [];
+        if ($request->hasFile('other_documents')) {
+            foreach ($request->file('other_documents') as $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('applications/other-documents', 'public');
+                    $otherDocs[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                    ];
+                }
+            }
+        }
+
         $application = ScholarshipApplication::create([
             ...$validated,
             'user_id' => $request->user()?->id,
@@ -73,6 +89,7 @@ class ScholarshipApplicationController extends Controller
             'cv' => $cvPath,
             'transcript' => $transcriptPath,
             'motivation_letter_file' => $motivationLetterFilePath,
+            'other_documents' => $otherDocs,
             'submitted_at' => now(),
         ]);
 

@@ -38,6 +38,14 @@ class ScholarshipApplicationResource extends JsonResource
             'reference_2_name' => $this->reference_2_name,
             'reference_2_email' => $this->reference_2_email,
             'additional_info' => $this->additional_info,
+            'other_documents' => collect($this->other_documents ?? [])->map(function ($doc) {
+                return [
+                    'name' => $doc['name'] ?? basename($doc['path'] ?? ''),
+                    'path' => $doc['path'] ?? null,
+                    'url' => isset($doc['path']) ? asset('storage/' . $doc['path']) : null,
+                    'size' => $doc['size'] ?? null,
+                ];
+            })->all(),
             'status' => $this->status,
             'submitted_at' => $this->submitted_at?->format('Y-m-d H:i:s'),
             'reviewed_at' => $this->reviewed_at?->format('Y-m-d H:i:s'),

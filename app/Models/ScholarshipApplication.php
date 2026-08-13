@@ -50,6 +50,7 @@ class ScholarshipApplication extends Model implements SpatieHasMedia
         'recommendation_letter_2',
         'id_document',
         'proof_of_enrollment',
+        'other_documents',
         'additional_info',
         'status',
         'submitted_at',
@@ -60,6 +61,7 @@ class ScholarshipApplication extends Model implements SpatieHasMedia
     protected $casts = [
         'date_of_birth' => 'date',
         'graduation_year' => 'integer',
+        'other_documents' => 'array',
         'submitted_at' => 'datetime',
         'reviewed_at' => 'datetime',
         'decision_at' => 'datetime',
