@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Scholarship;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ScholarshipApplicationResource;
+use App\Models\Scholarship;
 use App\Models\ScholarshipApplication;
 use App\Models\ScholarshipApplicationStatusHistory;
 use Illuminate\Http\Request;
@@ -50,6 +51,26 @@ class ScholarshipApplicationController extends Controller
             'other_documents' => 'nullable|array|max:10',
             'other_documents.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ]);
+
+        $scholarship = Scholarship::findOrFail($validated['scholarship_id']);
+
+        if ($scholarship->status !== 'open') {
+            return response()->json([
+                'message' => 'This scholarship is not currently accepting applications.',
+            ], 422);
+        }
+
+        if ($scholarship->isPastDeadline()) {
+            return response()->json([
+                'message' => 'The application deadline for this scholarship has passed.',
+            ], 422);
+        }
+
+        if ($scholarship->application_start_date && \Carbon\Carbon::parse($scholarship->application_start_date)->startOfDay()->isFuture()) {
+            return response()->json([
+                'message' => 'Applications for this scholarship have not opened yet.',
+            ], 422);
+        }
 
         // Handle file uploads
         $cvPath = null;
@@ -115,6 +136,15 @@ class ScholarshipApplicationController extends Controller
     public function saveDraft(Request $request, $id = null)
     {
         $userId = $request->user()?->id;
+
+        if ($request->filled('scholarship_id')) {
+            $scholarship = Scholarship::find($request->input('scholarship_id'));
+            if ($scholarship && ($scholarship->status !== 'open' || $scholarship->isPastDeadline())) {
+                return response()->json([
+                    'message' => 'The application deadline for this scholarship has passed. Drafts cannot be saved.',
+                ], 422);
+            }
+        }
 
         if ($id) {
             $application = ScholarshipApplication::where('id', $id)

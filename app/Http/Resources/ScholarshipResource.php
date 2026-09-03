@@ -27,6 +27,8 @@ class ScholarshipResource extends JsonResource
             'deadline' => $this->deadline?->format('Y-m-d'),
             'application_start_date' => $this->application_start_date?->format('Y-m-d'),
             'status' => $this->status,
+            'is_open' => $this->isOpen(),
+            'is_past_deadline' => $this->isPastDeadline(),
             'available_slots' => $this->available_slots,
             'image_path' => $imagePath,
             'image_url' => $imageUrl,
