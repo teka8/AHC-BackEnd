@@ -120,4 +120,21 @@ class ScholarshipApplicationController extends Controller
         return redirect()->route('admin.scholarship-applications.index')
             ->with('error', __('No applications were deleted.'));
     }
+
+    public function downloadZip(Request $request, string $batchId)
+    {
+        $this->authorize('viewAny', ScholarshipApplication::class);
+
+        // Sanitize batchId to prevent directory traversal
+        $batchId = preg_replace('/[^a-zA-Z0-9_-]/', '', $batchId);
+        $tempZipPath = storage_path('app/public/temp_zip_' . $batchId . '.zip');
+
+        if (!file_exists($tempZipPath)) {
+            abort(404, __('ZIP file not found or has already expired.'));
+        }
+
+        $finalZipName = 'scholarship_applications_' . now()->format('Y-m-d_H-i-s') . '.zip';
+
+        return response()->download($tempZipPath, $finalZipName)->deleteFileAfterSend(true);
+    }
 }

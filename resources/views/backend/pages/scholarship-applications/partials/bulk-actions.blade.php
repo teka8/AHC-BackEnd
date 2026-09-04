@@ -61,8 +61,10 @@
             this.progress = 100;
             
             try {
-                const response = await $wire.finalizeZipDownload(this.batchId);
-                // Livewire handles the download response automatically
+                const downloadUrl = await $wire.finalizeZipDownload(this.batchId);
+                if (downloadUrl) {
+                    window.location.href = downloadUrl;
+                }
                 setTimeout(() => {
                     this.zipProgressModalOpen = false;
                 }, 1000);

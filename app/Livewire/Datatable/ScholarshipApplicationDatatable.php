@@ -118,7 +118,11 @@ class ScholarshipApplicationDatatable extends Datatable
 
     public function processZipChunk(array $ids, string $batchId)
     {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(300);
+
         $applications = ScholarshipApplication::whereIn('id', $ids)->with('scholarship')->get();
+        $batchId = preg_replace('/[^a-zA-Z0-9_-]/', '', $batchId);
         $zipFileName = 'temp_zip_' . $batchId . '.zip';
         $zipPath = storage_path('app/public/' . $zipFileName);
 
@@ -164,8 +168,9 @@ class ScholarshipApplicationDatatable extends Datatable
         return true;
     }
 
-    public function finalizeZipDownload(string $batchId)
+    public function finalizeZipDownload(string $batchId): ?string
     {
+        $batchId = preg_replace('/[^a-zA-Z0-9_-]/', '', $batchId);
         $tempZipName = 'temp_zip_' . $batchId . '.zip';
         $tempZipPath = storage_path('app/public/' . $tempZipName);
         
@@ -175,15 +180,10 @@ class ScholarshipApplicationDatatable extends Datatable
                 'title' => 'Error',
                 'message' => 'Zip file generation failed.',
             ]);
-            return;
+            return null;
         }
 
-        $finalZipName = 'scholarship_applications_' . now()->format('Y-m-d_H-i-s') . '.zip';
-        $finalZipPath = storage_path('app/public/' . $finalZipName);
-        
-        rename($tempZipPath, $finalZipPath);
-
-        return response()->download($finalZipPath)->deleteFileAfterSend(true);
+        return route('admin.scholarship-applications.download-zip', ['batchId' => $batchId]);
     }
 
     protected function getItemRouteParameters($item): array

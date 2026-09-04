@@ -184,6 +184,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     // Scholarship Applications Routes
     Route::prefix('scholarship-applications')->name('scholarship-applications.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Backend\ScholarshipApplicationController::class, 'index'])->name('index');
+        Route::get('/download-zip/{batchId}', [\App\Http\Controllers\Backend\ScholarshipApplicationController::class, 'downloadZip'])->name('download-zip');
         Route::get('/{scholarshipApplication}', [\App\Http\Controllers\Backend\ScholarshipApplicationController::class, 'show'])->name('show');
         Route::post('/{id}/update-status', [\App\Http\Controllers\Backend\ScholarshipApplicationController::class, 'updateStatus'])->name('update-status');
         Route::delete('/{scholarshipApplication}', [\App\Http\Controllers\Backend\ScholarshipApplicationController::class, 'destroy'])->name('destroy');
